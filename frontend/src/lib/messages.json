@@ -136,7 +136,8 @@
         "delete.grants.title": "Delete",
         "delete.grants.single": "Grant",
         "delete.grants.multiple": "Grants",
-        "unsaved.partitions.title": "Would you like to save these partitions?"
+        "unsaved.partitions.title": "Would you like to save these partitions?",
+        "topic.changed.title": "Topic updated"
     },
 
     "application":
@@ -198,7 +199,8 @@
         "curl.commands.download.permissions.document.label": "Download a permissions document",
         "delete.grants.title": "Delete",
         "delete.grants.single": "Grant",
-        "delete.grants.multiple": "Grants"
+        "delete.grants.multiple": "Grants",
+        "application.changed.title": "Application updated"
     },
 
     "group.context":
@@ -286,7 +288,9 @@
         "associate.application.button.label.two.edit": "Save",
         "associate.application.input.access.placeholder": "Add a Partition",
         "reminder.message.button.label": "Yes",
-        "discard.changes": "Discard Changes"
+        "discard.changes": "Discard Changes",
+        "topic.update.message": "This topic has been updated. Would you like to reload?",
+        "application.update.message": "This application has been updated. Would you like to reload?"
     },
 
     "pagination":

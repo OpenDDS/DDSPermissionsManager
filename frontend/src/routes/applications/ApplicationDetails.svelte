@@ -1,6 +1,6 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { isAdmin } from '../../stores/authentication';
 	import { httpAdapter } from '../../appconfig';
@@ -41,6 +41,8 @@
 		grantsRowsSelectedTrue = false,
 		grantsAllRowsSelectedTrue = false;
 
+	// Modals
+	let reloadMessageVisible = false;
 	// checkboxes selection
 	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
 		grantsRowsSelectedTrue = false;
@@ -57,6 +59,9 @@
 
 	let editApplicationVisible = false,
 		deleteSelectedGrantsVisible = false;
+
+	// Websocket
+	let applicationSocketIsPaused = false;
 
 	const decodeError = (errorObject) => {
 		errorObject = errorObject.code.replaceAll('-', '_');
@@ -96,6 +101,7 @@
 	};
 
 	const saveNewApp = async (newAppName, newAppDescription, newAppPublic) => {
+		pauseSocketListener();
 		const res = await httpAdapter
 			.post(`/applications/save/`, {
 				id: selectedAppId,
@@ -114,6 +120,7 @@
 				}
 			});
 		dispatch('reloadAllApps');
+		resumeSocketListener();
 	};
 
 	const deleteTopicApplicationAssociation = async () => {
@@ -130,12 +137,52 @@
 		checkboxes.forEach((checkbox) => (checkbox.checked = false));
 	};
 
+	const loadApplicationDetail = async (appId, groupId) => {
+		const appDetail = await httpAdapter.get(`/applications/show/${appId}`);
+
+		selectedAppId = appId;
+		selectedAppGroupId = groupId;
+		selectedAppName = appDetail.data.name;
+		selectedAppGroupName = appDetail.data.groupName;
+		selectedAppDescription = appDetail.data.description;
+		selectedAppPublic = appDetail.data.public;
+		isPublic = selectedAppPublic;
+	};
+
+	const socket = new WebSocket(`ws://localhost:8080/ws/applications/${selectedAppId}`);
+
+	const pauseSocketListener = () => {
+		applicationSocketIsPaused = true;
+	};
+
+	const resumeSocketListener = () => {
+		applicationSocketIsPaused = false;
+	};
+
+	const subscribeApplicationMessage = (applicationSocket) => {
+		applicationSocket.addEventListener('message', (event) => {
+			if (!applicationSocketIsPaused) {
+				if (
+					event.data.includes('application_updated') ||
+					event.data.includes('application_deleted')
+				) {
+					reloadMessageVisible = true;
+				}
+			}
+		});
+	};
+
 	onMount(async () => {
+		subscribeApplicationMessage(socket);
 		headerTitle.set(selectedAppName);
 		await getAppPermissions();
 		if (appCurrentGroupPublic === undefined) {
 			appCurrentGroupPublic = await getGroupVisibilityPublic(selectedAppGroupName);
 		}
+	});
+
+	onDestroy(() => {
+		socket.close();
 	});
 </script>
 
@@ -468,6 +515,18 @@
 		</table>
 	{/if}
 </div>
+
+{#if reloadMessageVisible}
+	<Modal
+		title={messages['application.detail']['application.changed.title']}
+		actionApplicationChange={true}
+		on:cancel={() => (reloadMessageVisible = false)}
+		on:reloadContent={() => {
+			reloadMessageVisible = false;
+			loadApplicationDetail(selectedAppId, selectedAppGroupId);
+		}}
+	/>
+{/if}
 
 <style>
 	.content {

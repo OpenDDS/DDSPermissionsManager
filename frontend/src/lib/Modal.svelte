@@ -39,6 +39,8 @@
 	export let actionDeleteGrants = false;
 	export let actionDeleteGroups = false;
 	export let actionDeleteApplications = false;
+	export let actionTopicChange = false;
+	export let actionApplicationChange = false;
 	export let actionUnsavedPartitions = false;
 	export let noneditable = false;
 	export let emailValue = '';
@@ -1241,6 +1243,42 @@
 			}}>{title}</button
 		>
 	{/if}
+
+	{#if actionTopicChange}
+		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
+			{messages['modal']['topic.update.message']}
+		</p>
+		<!-- svelte-ignore a11y-autofocus -->
+		<button
+			data-cy="refresh-page"
+			autofocus
+			class="action-button"
+			on:click={() => dispatch('reloadContent')}
+			on:keydown={(event) => {
+				if (event.which === returnKey) {
+					dispatch('reloadContent');
+				}
+			}}>Reload topic</button
+		>
+	{/if}
+
+	{#if actionApplicationChange}
+	<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
+		{messages['modal']['application.update.message']}
+	</p>
+	<!-- svelte-ignore a11y-autofocus -->
+	<button
+		data-cy="refresh-page"
+		autofocus
+		class="action-button"
+		on:click={() => dispatch('reloadContent')}
+		on:keydown={(event) => {
+			if (event.which === returnKey) {
+				dispatch('reloadContent');
+			}
+		}}>Reload content</button
+	>
+{/if}
 
 	{#if actionDeleteSuperUsers}
 		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">

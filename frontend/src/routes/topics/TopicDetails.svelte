@@ -1,7 +1,7 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { isAuthenticated, isAdmin } from '../../stores/authentication';
-	import { onMount, createEventDispatcher } from 'svelte';
+	import { onMount, createEventDispatcher, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
@@ -72,7 +72,8 @@
 		editTopicVisible = false,
 		deleteSelectedGrantsVisible = false,
 		editGrantVisible = false,
-		showUnsavedPartitionsModal = false;
+		showUnsavedPartitionsModal = false,
+		reloadMessageVisible = false;
 
 	// Constants
 	const returnKey = 13,
@@ -90,29 +91,61 @@
 	//Grant
 	let editGrant = false;
 
+	// Websocket
+	let topicSocketIsPaused = false;
+
+	const fetchAndUpdateTopic = async () => {
+		promise = await httpAdapter.get(`/topics/show/${selectedTopicId}`);
+		topicDetails.set(promise.data);
+
+		await loadApplicationPermissions(selectedTopicId);
+		selectedTopicId = $topicDetails.id;
+		selectedTopicName = $topicDetails.name;
+		selectedTopicCanonicalName = $topicDetails.canonicalName;
+		selectedTopicDescription = $topicDetails.description;
+		selectedTopicPublic = $topicDetails.public;
+		selectedTopicGroupName = $topicDetails.groupName;
+		selectedTopicGroupId = $topicDetails.group;
+		selectedTopicKind = $topicDetails.kind;
+		isPublic = $topicDetails.public;
+
+		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicGroupName);
+
+		headerTitle.set(selectedTopicName);
+		detailView.set(true);
+	};
+
+	const socket = new WebSocket(`ws://localhost:8080/ws/topics/${selectedTopicId}`);
+
+	const subscribeTopicMessage = (topicSocket) => {
+		topicSocket.addEventListener('message', (event) => {
+			if (!topicSocketIsPaused) {
+				if (event.data.includes('topic_updated') || event.data.includes('topic_deleted')) {
+					reloadMessageVisible = true;
+				}
+			}
+		});
+	};
+
+	const pauseSocketListener = () => {
+		topicSocketIsPaused = true;
+	};
+
+	const resumeSocketListener = () => {
+		topicSocketIsPaused = false;
+	};
+
 	onMount(async () => {
 		try {
-			promise = await httpAdapter.get(`/topics/show/${selectedTopicId}`);
-			topicDetails.set(promise.data);
-
-			await loadApplicationPermissions(selectedTopicId);
-			selectedTopicId = $topicDetails.id;
-			selectedTopicName = $topicDetails.name;
-			selectedTopicCanonicalName = $topicDetails.canonicalName;
-			selectedTopicDescription = $topicDetails.description;
-			selectedTopicPublic = $topicDetails.public;
-			selectedTopicGroupName = $topicDetails.groupName;
-			selectedTopicGroupId = $topicDetails.group;
-			selectedTopicKind = $topicDetails.kind;
-			isPublic = $topicDetails.public;
-
-			topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicGroupName);
-
-			headerTitle.set(selectedTopicName);
-			detailView.set(true);
+			subscribeTopicMessage(socket);
+			await fetchAndUpdateTopic();
 		} catch (err) {
 			errorMessage(errorMessages['topic']['loading.detail.error.title'], err.message);
 		}
+	});
+
+	onDestroy(() => {
+		socket.close();
 	});
 
 	const errorMessage = (errMsg, errObj) => {
@@ -248,6 +281,7 @@
 
 	const saveNewTopic = async (newTopicName, newTopicDescription, newTopicPublic) => {
 		try {
+			pauseSocketListener();
 			await httpAdapter.post(`/topics/save/`, {
 				name: newTopicName,
 				id: selectedTopicId,
@@ -259,6 +293,7 @@
 			});
 
 			dispatch('reloadTopics');
+			resumeSocketListener();
 			selectedTopicDescription = newTopicDescription;
 			isPublic = newTopicPublic;
 			editTopicVisible = false;
@@ -740,6 +775,18 @@
 
 		<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 	{/await}
+{/if}
+
+{#if reloadMessageVisible}
+	<Modal
+		title={messages['topic.detail']['topic.changed.title']}
+		actionTopicChange={true}
+		on:cancel={() => (reloadMessageVisible = false)}
+		on:reloadContent={() => {
+			reloadMessageVisible = false;
+			fetchAndUpdateTopic();
+		}}
+	/>
 {/if}
 
 <style>
