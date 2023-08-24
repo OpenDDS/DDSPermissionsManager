@@ -32,6 +32,7 @@ import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -146,10 +147,9 @@ public class TopicSetService {
         return HttpResponse.ok(responseTopicDTO);
     }
 
-    // PUT /topic-set/{id}
-    public MutableHttpResponse<?> update(UpdateTopicSetDTO topicSetDTO) {
+    public MutableHttpResponse<?> update(@NotNull Long topicSetId, UpdateTopicSetDTO topicSetDTO) {
 
-        Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetDTO.getId());
+        Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetId);
 
         checkExistenceAndAuthorization(topicSetOptional);
 

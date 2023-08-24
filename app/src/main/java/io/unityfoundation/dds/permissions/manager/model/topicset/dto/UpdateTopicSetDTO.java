@@ -22,9 +22,6 @@ import javax.validation.constraints.Size;
 
 public class UpdateTopicSetDTO implements EntityDTO {
 
-    @NotNull
-    private Long id;
-
     @NotBlank
     @Size(min = 3)
     private String name;
@@ -34,14 +31,6 @@ public class UpdateTopicSetDTO implements EntityDTO {
 
     public UpdateTopicSetDTO(TopicSet topicSet) {
         this.name = topicSet.getName();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
