@@ -16,11 +16,14 @@ package io.unityfoundation.dds.permissions.manager.model.topic;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.data.annotation.DateCreated;
+import io.micronaut.data.annotation.DateUpdated;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.time.Instant;
 
 @Entity
 @Table(name = "permissions_topic")
@@ -43,6 +46,12 @@ public class Topic {
     private String description;
 
     private boolean makePublic = false;
+
+    @DateCreated
+    private Instant dateCreated;
+
+    @DateUpdated
+    private Instant dateUpdated;
 
     @ManyToOne
     @JoinColumn(name = "permissions_group_id", nullable = false)
@@ -130,5 +139,21 @@ public class Topic {
 
     public String deriveCanonicalName() {
         return kind + "." + permissionsGroup.getId() + "." + name;
+    }
+
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Instant getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Instant dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }

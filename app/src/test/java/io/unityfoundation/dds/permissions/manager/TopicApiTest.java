@@ -42,6 +42,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.*;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -529,6 +530,58 @@ public class TopicApiTest {
             assertTrue(updatedTopicOptional.isPresent());
             TopicDTO updatedTopic = updatedTopicOptional.get();
             assertEquals("This is a description", updatedTopic.getDescription());
+        }
+
+        @Test
+        public void createdLastUpdatedFieldsArePopulatedAndNotEditable() {
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
+            request = HttpRequest.POST("/groups/save", theta);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            theta = thetaOptional.get();
+
+            // create topics
+            TopicDTO topicDTO = new TopicDTO();
+            topicDTO.setName("Abc123");
+            topicDTO.setKind(TopicKind.B);
+            topicDTO.setGroup(theta.getId());
+
+            request = HttpRequest.POST("/topics/save", topicDTO);
+            response = blockingClient.exchange(request, TopicDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicOptional.isPresent());
+            TopicDTO createdTopic = topicOptional.get();
+            assertEquals("Abc123", createdTopic.getName());
+            Instant createdDate = createdTopic.getDateCreated();
+            Instant updatedDate = createdTopic.getDateUpdated();
+            assertNotNull(createdDate);
+            assertNotNull(updatedDate);
+            assertEquals(createdDate, updatedDate);
+
+            // with same name different description
+            createdTopic.setDescription("This is a description");
+            Instant date = Instant.ofEpochMilli(1675899232);
+            createdTopic.setDateCreated(date);
+            createdTopic.setDateUpdated(date);
+            request = HttpRequest.POST("/topics/save", createdTopic);
+            response = blockingClient.exchange(request, TopicDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> updatedTopicOptional = response.getBody(TopicDTO.class);
+            assertTrue(updatedTopicOptional.isPresent());
+            TopicDTO updatedTopic = updatedTopicOptional.get();
+            assertEquals("This is a description", updatedTopic.getDescription());
+            assertNotEquals(date, updatedTopic.getDateCreated());
+            assertNotEquals(date, updatedTopic.getDateUpdated());
+            assertEquals(createdDate, updatedTopic.getDateCreated());
+            assertNotEquals(updatedDate, updatedTopic.getDateUpdated());
         }
 
         @Test

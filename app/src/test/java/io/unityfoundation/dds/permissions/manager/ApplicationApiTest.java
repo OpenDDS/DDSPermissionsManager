@@ -46,6 +46,7 @@ import jakarta.inject.Singleton;
 import org.junit.jupiter.api.*;
 
 import java.text.Collator;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -806,6 +807,53 @@ public class ApplicationApiTest {
 
             assertEquals("TestApplicationUpdate", updatedApplication.getName());
             assertEquals("This is a description", updatedApplication.getDescription());
+        }
+
+        @Test
+        public void createdLastUpdatedFieldsArePopulatedAndNotEditable() {
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create groups
+            response = createGroup("PrimaryGroup");
+            assertEquals(OK, response.getStatus());
+            Optional<Group> primaryOptional = response.getBody(Group.class);
+            assertTrue(primaryOptional.isPresent());
+            Group primaryGroup = primaryOptional.get();
+
+            // create applications
+            response = createApplication("TestApplication", primaryGroup.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(applicationOptional.isPresent());
+            ApplicationDTO createdApplication = applicationOptional.get();
+            Instant createdDate = createdApplication.getDateCreated();
+            Instant updatedDate = createdApplication.getDateUpdated();
+            assertNotNull(createdDate);
+            assertNotNull(updatedDate);
+            assertEquals(createdDate, updatedDate);
+            System.out.println("created.updateDate " + updatedDate);
+
+
+            // with same name different description
+            createdApplication.setDescription("This is a description");
+            Instant date = Instant.ofEpochMilli(1675899232);
+            createdApplication.setDateCreated(date);
+            createdApplication.setDateUpdated(date);
+            request = HttpRequest.POST("/applications/save", createdApplication);
+            response = blockingClient.exchange(request, ApplicationDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> updatedApplicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(updatedApplicationOptional.isPresent());
+            ApplicationDTO updatedApplication = updatedApplicationOptional.get();
+            assertEquals("This is a description", updatedApplication.getDescription());
+            assertNotEquals(date, updatedApplication.getDateCreated());
+            assertNotEquals(date, updatedApplication.getDateUpdated());
+            assertEquals(createdDate, updatedApplication.getDateCreated());
+            System.out.println("created.updateDate " + updatedDate);
+            System.out.println("updatedApplication.getDateUpdated() " + updatedApplication.getDateUpdated());
+
+            assertNotEquals(updatedDate, updatedApplication.getDateUpdated());
         }
 
         @Test

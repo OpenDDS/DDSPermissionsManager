@@ -13,12 +13,14 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.application;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.Instant;
 
 @Introspected
 public class ApplicationDTO implements EntityDTO {
@@ -34,6 +36,12 @@ public class ApplicationDTO implements EntityDTO {
     private Long group;
     private String groupName;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateCreated;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateUpdated;
+
     public ApplicationDTO() {
     }
 
@@ -42,6 +50,8 @@ public class ApplicationDTO implements EntityDTO {
         this.name = app.getName();
         this.description = app.getDescription();
         this.isPublic = app.getMakePublic();
+        this.dateCreated = app.getDateCreated();
+        this.dateUpdated = app.getDateUpdated();
         this.group = app.getPermissionsGroup().getId();
         this.groupName = app.getPermissionsGroup().getName();
     }
@@ -92,5 +102,21 @@ public class ApplicationDTO implements EntityDTO {
 
     public void setPublic(Boolean aPublic) {
         isPublic = aPublic;
+    }
+
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Instant getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Instant dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }

@@ -13,6 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.topic;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
@@ -20,6 +21,7 @@ import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.Instant;
 
 @Introspected
 public class TopicDTO implements EntityDTO {
@@ -37,6 +39,12 @@ public class TopicDTO implements EntityDTO {
     private String groupName;
     private String canonicalName;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateCreated;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateUpdated;
+
     public TopicDTO() {
     }
 
@@ -49,6 +57,8 @@ public class TopicDTO implements EntityDTO {
         this.group = topic.getPermissionsGroup().getId();
         this.groupName = topic.getPermissionsGroup().getName();
         this.canonicalName = topic.deriveCanonicalName();
+        this.dateCreated = topic.getDateCreated();
+        this.dateUpdated = topic.getDateUpdated();
     }
 
     public Long getId() {
@@ -114,5 +124,21 @@ public class TopicDTO implements EntityDTO {
 
     public void setPublic(Boolean aPublic) {
         isPublic = aPublic;
+    }
+
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Instant getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Instant dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }
