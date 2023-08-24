@@ -33,7 +33,9 @@ import io.micronaut.websocket.annotation.OnClose;
 import io.micronaut.websocket.annotation.OnMessage;
 import io.micronaut.websocket.annotation.OnOpen;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
+import io.unityfoundation.dds.permissions.manager.model.application.OnUpdateApplicationWebSocket;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
+import io.unityfoundation.dds.permissions.manager.model.topic.OnUpdateTopicWebSocket;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
@@ -199,12 +201,12 @@ public class WebSocketTests {
         TestWebSocketClient topicWsClient = createWebSocketClient(embeddedServer.getPort(), "topics", topicOptional.get().getId());
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        assertFalse(topicWsClient.replies.contains("topic_updated"));
+        assertFalse(topicWsClient.replies.contains(OnUpdateTopicWebSocket.TOPIC_UPDATED));
 
         // with same name different description
         TopicDTO savededTopicDTO = topicOptional.get();
@@ -218,12 +220,12 @@ public class WebSocketTests {
         assertEquals("This is a description", updatedTopic.getDescription());
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        assertTrue(topicWsClient.replies.contains("topic_updated"));
+        assertTrue(topicWsClient.replies.contains(OnUpdateTopicWebSocket.TOPIC_UPDATED));
     }
 
     @Test
@@ -249,12 +251,12 @@ public class WebSocketTests {
         TestWebSocketClient applicationsWsClient = createWebSocketClient(embeddedServer.getPort(), "applications", application.getId());
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        assertFalse(applicationsWsClient.replies.contains("application_updated"));
+        assertFalse(applicationsWsClient.replies.contains(OnUpdateApplicationWebSocket.APPLICATION_UPDATED));
 
         // with same name different description
         application.setDescription("This is a description");
@@ -267,12 +269,12 @@ public class WebSocketTests {
         assertEquals("This is a description", updatedApplication.getDescription());
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        assertTrue(applicationsWsClient.replies.contains("application_updated"));
+        assertTrue(applicationsWsClient.replies.contains(OnUpdateApplicationWebSocket.APPLICATION_UPDATED));
     }
 
     private HttpResponse<?> createGroup(String groupName) {
