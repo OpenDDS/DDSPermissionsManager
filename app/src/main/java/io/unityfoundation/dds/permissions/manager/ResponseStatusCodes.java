@@ -72,6 +72,13 @@ public interface ResponseStatusCodes {
     String APPLICATION_PERMISSION_NOT_FOUND = "application.permission.not-found";
     String APPLICATION_PERMISSION_ALREADY_EXISTS = "application.permission.exists";
 
+    // topic set
+    String TOPIC_SET_NOT_FOUND = "topic-set.not-found";
+    String TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP = "topic-set.topic.not.same-group";
+    String TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET = "topic-set.topic.not.exists";
+    String TOPIC_SET_REQUIRES_GROUP_ASSOCIATION = "topic-set.requires-group-association";
+    String TOPIC_SET_ALREADY_EXISTS = "topic-set.exists";
+
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
     String INVALID_TOKEN = "security.invalid-token";

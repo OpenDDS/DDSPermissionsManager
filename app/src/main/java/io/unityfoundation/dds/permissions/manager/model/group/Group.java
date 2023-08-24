@@ -18,6 +18,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
+import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -54,6 +55,10 @@ public class Group {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Application> applications = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<TopicSet> topicSets = new HashSet<>();
 
     public Group() {
     }
@@ -112,11 +117,28 @@ public class Group {
     }
 
     public boolean removeApplication(Long applicationId) {
-        return topics.removeIf(application -> applicationId != null && applicationId.equals(application.getId()));
+        return applications.removeIf(application -> applicationId != null && applicationId.equals(application.getId()));
     }
 
     public void addApplication(Application application) {
         applications.add(application);
+    }
+
+    public Set<TopicSet> getTopicSets() {
+        if (topicSets == null) return null;
+        return Collections.unmodifiableSet(topicSets);
+    }
+
+    public void setTopicSets(Set<TopicSet> topicSets) {
+        this.topicSets = topicSets;
+    }
+
+    public boolean removeTopicSet(Long topicSetId) {
+        return topicSets.removeIf(topicSet -> topicSetId != null && topicSetId.equals(topicSet.getId()));
+    }
+
+    public void addTopicSet(TopicSet topicSet) {
+        topicSets.add(topicSet);
     }
 
     @PrePersist
