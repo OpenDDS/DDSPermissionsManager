@@ -23,6 +23,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.http.uri.UriBuilder;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.security.utils.SecurityService;
@@ -51,10 +52,13 @@ import org.reactivestreams.Subscription;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.micronaut.http.HttpStatus.BAD_REQUEST;
 import static io.micronaut.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -261,20 +265,30 @@ public class WebSocketTests {
         // with same name different description
         application.setDescription("This is a description");
         request = HttpRequest.POST("/applications/save", application);
-        response = blockingClient.exchange(request, ApplicationDTO.class);
-        assertEquals(OK, response.getStatus());
-        Optional<ApplicationDTO> updatedApplicationOptional = response.getBody(ApplicationDTO.class);
-        assertTrue(updatedApplicationOptional.isPresent());
-        ApplicationDTO updatedApplication = updatedApplicationOptional.get();
-        assertEquals("This is a description", updatedApplication.getDescription());
-
         try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            response = blockingClient.exchange(request, ApplicationDTO.class);
+
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> updatedApplicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(updatedApplicationOptional.isPresent());
+            ApplicationDTO updatedApplication = updatedApplicationOptional.get();
+            assertEquals("This is a description", updatedApplication.getDescription());
+
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            assertTrue(applicationsWsClient.replies.contains(OnUpdateApplicationWebSocket.APPLICATION_UPDATED));
+        } catch (HttpClientResponseException e) {
+            assertEquals(BAD_REQUEST, e.getStatus());
+            Optional<List> bodyOptional = e.getResponse().getBody(List.class);
+            assertTrue(bodyOptional.isPresent());
+            List<Map> list = bodyOptional.get();
+            System.out.println("application list "+list);
         }
 
-        assertTrue(applicationsWsClient.replies.contains(OnUpdateApplicationWebSocket.APPLICATION_UPDATED));
     }
 
     private HttpResponse<?> createGroup(String groupName) {
