@@ -2,6 +2,7 @@
 <script>
 	import { isAuthenticated, isAdmin } from '../../stores/authentication';
 	import { onMount, createEventDispatcher } from 'svelte';
+	import moment from 'moment';
 	import { page } from '$app/stores';
 	import { httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
@@ -90,11 +91,13 @@
 	//Grant
 	let editGrant = false;
 
+	const fetchAndSetTopicDetails = async () =>{
+		promise = await httpAdapter.get(`/topics/show/${selectedTopicId}`);
+		topicDetails.set(promise.data);
+	}
 	onMount(async () => {
 		try {
-			promise = await httpAdapter.get(`/topics/show/${selectedTopicId}`);
-			topicDetails.set(promise.data);
-
+			await fetchAndSetTopicDetails();
 			await loadApplicationPermissions(selectedTopicId);
 			selectedTopicId = $topicDetails.id;
 			selectedTopicName = $topicDetails.name;
@@ -259,6 +262,7 @@
 			});
 
 			dispatch('reloadTopics');
+			await fetchAndSetTopicDetails();
 			selectedTopicDescription = newTopicDescription;
 			isPublic = newTopicPublic;
 			editTopicVisible = false;
@@ -292,6 +296,9 @@
 		checkboxes = Array.from(checkboxes);
 		return checkboxes.filter((checkbox) => checkbox.checked === true).length;
 	};
+
+	$: timeAgo = moment($topicDetails?.dateUpdated).fromNow();
+	$: browserFormat = new Date($topicDetails?.dateUpdated).toLocaleString();
 </script>
 
 {#if $isAuthenticated}
@@ -483,6 +490,7 @@
 				/>
 			{/if}
 		</div>
+		{#if $topicDetails.dateUpdated} <p style="font-style: italic;">Last updated {timeAgo} ({browserFormat})</p> {/if}
 
 		{#if !$page.url.pathname.includes('search')}
 			<div>
