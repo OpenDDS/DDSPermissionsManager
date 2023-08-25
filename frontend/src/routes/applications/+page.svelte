@@ -391,7 +391,6 @@
 		selectedAppPublic = appDetail.data.public;
 		selectedAppDateUpdated = appDetail.data.dateUpdated;
 		isPublic = selectedAppPublic;
-		console.log(appDetail.data);
 		curlCommandsDecode();
 	};
 
