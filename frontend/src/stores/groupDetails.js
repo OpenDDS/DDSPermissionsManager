@@ -13,6 +13,6 @@
 // limitations under the License.
 import { writable } from 'svelte/store';
 
-const groupDetails = writable(null);
+const groupDetails = writable({});
 
 export default groupDetails;

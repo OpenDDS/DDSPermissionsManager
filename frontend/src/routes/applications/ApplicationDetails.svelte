@@ -1,6 +1,7 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+	import moment from 'moment';
 	import { page } from '$app/stores';
 	import { isAdmin } from '../../stores/authentication';
 	import { httpAdapter } from '../../appconfig';
@@ -20,6 +21,7 @@
 		selectedAppPublic,
 		appCurrentGroupPublic,
 		selectedAppGroupName,
+		selectedAppDateUpdated = '',
 		selectedTopicApplications = [];
 
 	const dispatch = createEventDispatcher();
@@ -120,6 +122,7 @@
 				}
 			});
 		dispatch('reloadAllApps');
+		dispatch('loadApplicationDetail');
 		resumeSocketListener();
 	};
 
@@ -180,6 +183,9 @@
 			appCurrentGroupPublic = await getGroupVisibilityPublic(selectedAppGroupName);
 		}
 	});
+
+	$: timeAgo = moment(selectedAppDateUpdated).fromNow();
+	$: browserFormat = new Date(selectedAppDateUpdated).toLocaleString();
 
 	onDestroy(() => {
 		socket.close();
@@ -287,6 +293,8 @@
 			</td>
 		</tr>
 	</table>
+
+	{#if selectedAppDateUpdated} <p style="font-style: italic;">Last updated {timeAgo} ({browserFormat})</p> {/if}
 
 	{#if !$page.url.pathname.includes('search')}
 		<div style="margin-top: 3.5rem">
