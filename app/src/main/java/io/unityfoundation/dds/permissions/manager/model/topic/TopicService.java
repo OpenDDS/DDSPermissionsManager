@@ -41,13 +41,15 @@ public class TopicService {
     private final GroupUserService groupUserService;
     private final GroupRepository groupRepository;
     private final ApplicationPermissionService applicationPermissionService;
+    private final OnUpdateTopicWebSocket onUpdateTopicWebSocket;
 
-    public TopicService(TopicRepository topicRepository, SecurityUtil securityUtil, GroupUserService groupUserService, GroupRepository groupRepository, ApplicationPermissionService applicationPermissionService) {
+    public TopicService(TopicRepository topicRepository, SecurityUtil securityUtil, GroupUserService groupUserService, GroupRepository groupRepository, ApplicationPermissionService applicationPermissionService, OnUpdateTopicWebSocket onUpdateTopicWebSocket) {
         this.topicRepository = topicRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
         this.groupRepository = groupRepository;
         this.applicationPermissionService = applicationPermissionService;
+        this.onUpdateTopicWebSocket = onUpdateTopicWebSocket;
     }
 
     public Page<TopicDTO> findAll(Pageable pageable, String filter, Long groupId) {
@@ -137,6 +139,7 @@ public class TopicService {
             savedTopic.setMakePublic(isPublic);
 
             topic = topicRepository.update(savedTopic);
+            onUpdateTopicWebSocket.broadcastResourceEvent(OnUpdateTopicWebSocket.TOPIC_UPDATED, topic.getId());
         } else {
             // save
             Optional<Topic> searchTopicByNameAndGroup = topicRepository.findByNameAndPermissionsGroup(
@@ -173,6 +176,7 @@ public class TopicService {
         applicationPermissionService.deleteAllByTopic(topic);
 
         topicRepository.deleteById(id);
+        onUpdateTopicWebSocket.broadcastResourceEvent(OnUpdateTopicWebSocket.TOPIC_DELETED, topic.getId());
         return HttpResponse.seeOther(URI.create("/api/topics"));
     }
 

@@ -126,6 +126,7 @@ public class ApplicationService {
     private final JwtTokenGenerator jwtTokenGenerator;
     private final JWTClaimsSetGenerator jwtClaimsSetGenerator;
     private final XMLEscaper xmlEscaper;
+    private final OnUpdateApplicationWebSocket onUpdateApplicationWebSocket;
 
 
     public ApplicationService(ApplicationRepository applicationRepository, GroupRepository groupRepository,
@@ -134,7 +135,7 @@ public class ApplicationService {
                               PassphraseGenerator passphraseGenerator,
                               BCryptPasswordEncoderService passwordEncoderService, ApplicationSecretsClient applicationSecretsClient,
                               TemplateService templateService, JwtTokenGenerator jwtTokenGenerator,
-                              JWTClaimsSetGenerator jwtClaimsSetGenerator, XMLEscaper xmlEscaper) {
+                              JWTClaimsSetGenerator jwtClaimsSetGenerator, XMLEscaper xmlEscaper, OnUpdateApplicationWebSocket onUpdateApplicationWebSocket) {
         this.applicationRepository = applicationRepository;
         this.groupRepository = groupRepository;
         this.securityUtil = securityUtil;
@@ -147,6 +148,7 @@ public class ApplicationService {
         this.jwtTokenGenerator = jwtTokenGenerator;
         this.jwtClaimsSetGenerator = jwtClaimsSetGenerator;
         this.xmlEscaper = xmlEscaper;
+        this.onUpdateApplicationWebSocket = onUpdateApplicationWebSocket;
     }
 
     public Page<ApplicationDTO> findAll(Pageable pageable, String filter, Long applicationId, Long groupId) {
@@ -268,7 +270,9 @@ public class ApplicationService {
             application.setDescription(applicationDTO.getDescription());
             application.setMakePublic(isPublic);
 
-            return HttpResponse.ok(new ApplicationDTO(applicationRepository.update(application)));
+            Application update = applicationRepository.update(application);
+            onUpdateApplicationWebSocket.broadcastResourceEvent(OnUpdateApplicationWebSocket.APPLICATION_UPDATED, update.getId());
+            return HttpResponse.ok(new ApplicationDTO(update));
         } else {
 
             if (searchApplicationByNameAndGroup.isPresent()) {
@@ -315,6 +319,7 @@ public class ApplicationService {
         applicationPermissionService.deleteAllByApplication(application);
 
         applicationRepository.deleteById(id);
+        onUpdateApplicationWebSocket.broadcastResourceEvent(OnUpdateApplicationWebSocket.APPLICATION_DELETED, id);
         return HttpResponse.seeOther(URI.create("/api/applications"));
     }
 
