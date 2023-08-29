@@ -41,8 +41,7 @@ public class TopicSet {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Group permissionsGroup;
 
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "rApplicationPermission")
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER)
     private Set<Topic> topics = new HashSet<>();
 
 
@@ -71,6 +70,11 @@ public class TopicSet {
         this.name = name;
     }
 
+    @PrePersist
+    void trimName() {
+        this.name = this.name.trim();
+    }
+
     @NonNull
     public Group getPermissionsGroup() {
         return permissionsGroup;
@@ -79,8 +83,6 @@ public class TopicSet {
     public void setPermissionsGroup(@NonNull Group permissionsGroup) {
         this.permissionsGroup = permissionsGroup;
     }
-
-
 
     public Set<Topic> getTopics() {
         if (topics == null) return null;

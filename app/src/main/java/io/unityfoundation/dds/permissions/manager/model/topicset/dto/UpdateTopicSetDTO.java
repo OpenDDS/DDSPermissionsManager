@@ -13,13 +13,14 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.topicset.dto;
 
+import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+@Introspected
 public class UpdateTopicSetDTO implements EntityDTO {
 
     @NotBlank

@@ -151,13 +151,13 @@ public class TopicSetService {
 
         Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetId);
 
-        checkExistenceAndAuthorization(topicSetOptional);
+        checkExistenceAndAdminAuthorization(topicSetOptional);
 
         Optional<TopicSet> searchTopicSetByNameAndGroup = topicSetRepository.findByNameAndPermissionsGroup(
                 topicSetDTO.getName().trim(), topicSetOptional.get().getPermissionsGroup());
 
         if (searchTopicSetByNameAndGroup.isPresent()) {
-            throw new DPMException(ResponseStatusCodes.TOPIC_ALREADY_EXISTS);
+            throw new DPMException(ResponseStatusCodes.TOPIC_SET_ALREADY_EXISTS);
         }
 
         TopicSet topicSet = topicSetOptional.get();
@@ -171,7 +171,7 @@ public class TopicSetService {
 
         Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetId);
 
-        checkExistenceAndAuthorization(topicSetOptional);
+        checkExistenceAndAdminAuthorization(topicSetOptional);
 
         topicSetRepository.delete(topicSetOptional.get());
         return HttpResponse.noContent();
@@ -181,7 +181,7 @@ public class TopicSetService {
 
         Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetId);
 
-        checkExistenceAndAuthorization(topicSetOptional);
+        checkExistenceAndAdminAuthorization(topicSetOptional);
 
         Optional<Topic> topicById = topicRepository.findById(topicId);
         if (topicById.isEmpty()) {
@@ -193,7 +193,7 @@ public class TopicSetService {
 
         if (!topicSet.getPermissionsGroup().getId().equals(topic.getPermissionsGroup().getId())) {
             throw new DPMException(ResponseStatusCodes.TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP, HttpStatus.CONFLICT);
-        } else if (topicSet.getTopics().contains(topic)) {
+        } else if (doesTopicSetContainTopic(topicSet, topic)) {
             throw new DPMException(ResponseStatusCodes.TOPIC_ALREADY_EXISTS);
         }
 
@@ -206,7 +206,7 @@ public class TopicSetService {
 
         Optional<TopicSet> topicSetOptional = topicSetRepository.findById(topicSetId);
 
-        checkExistenceAndAuthorization(topicSetOptional);
+        checkExistenceAndAdminAuthorization(topicSetOptional);
 
         Optional<Topic> topicById = topicRepository.findById(topicId);
         if (topicById.isEmpty()) {
@@ -218,13 +218,17 @@ public class TopicSetService {
 
         if (!topicSet.getPermissionsGroup().getId().equals(topic.getPermissionsGroup().getId())) {
             throw new DPMException(ResponseStatusCodes.TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP, HttpStatus.CONFLICT);
-        } else if (!topicSet.getTopics().contains(topic)) {
+        } else if (!doesTopicSetContainTopic(topicSet, topic)) {
             throw new DPMException(ResponseStatusCodes.TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET, HttpStatus.NOT_FOUND);
         }
 
         topicSet.removeTopic(topic.getId());
         TopicSet updated = topicSetRepository.update(topicSet);
-        return HttpResponse.created(createDTO(updated));
+        return HttpResponse.ok(createDTO(updated));
+    }
+
+    public boolean doesTopicSetContainTopic(TopicSet topicSet, Topic topic) {
+        return topicSet.getTopics().stream().map(Topic::getId).anyMatch(aLong -> aLong.equals(topic.getId()));
     }
 
     public TopicSetDTO createDTO(TopicSet topicSet) {
@@ -239,7 +243,7 @@ public class TopicSetService {
         );
     }
 
-    private void checkExistenceAndAuthorization(Optional<TopicSet> topicSetOptional) {
+    private void checkExistenceAndAdminAuthorization(Optional<TopicSet> topicSetOptional) {
         if (topicSetOptional.isEmpty()) {
             throw new DPMException(ResponseStatusCodes.TOPIC_SET_NOT_FOUND, HttpStatus.NOT_FOUND);
         } else {
@@ -247,6 +251,19 @@ public class TopicSetService {
 
             if (!securityUtil.isCurrentUserAdmin() &&
                     !groupUserService.isUserTopicAdminOfGroup(topicSetOptional.get().getPermissionsGroup().getId(), user.getId())) {
+                throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
+            }
+        }
+    }
+
+    private void checkExistenceAndAuthorization(Optional<TopicSet> topicSetOptional) {
+        if (topicSetOptional.isEmpty()) {
+            throw new DPMException(ResponseStatusCodes.TOPIC_SET_NOT_FOUND, HttpStatus.NOT_FOUND);
+        } else {
+            User user = securityUtil.getCurrentlyAuthenticatedUser().get();
+
+            if (!securityUtil.isCurrentUserAdmin() &&
+                    !groupUserService.isUserMemberOfGroup(topicSetOptional.get().getPermissionsGroup().getId(), user.getId())) {
                 throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
             }
         }

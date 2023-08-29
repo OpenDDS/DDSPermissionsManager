@@ -74,10 +74,12 @@ public interface ResponseStatusCodes {
 
     // topic set
     String TOPIC_SET_NOT_FOUND = "topic-set.not-found";
+    String TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL = "topic-set.name.cannot-be-blank-or-null";
     String TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP = "topic-set.topic.not.same-group";
     String TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET = "topic-set.topic.not.exists";
     String TOPIC_SET_REQUIRES_GROUP_ASSOCIATION = "topic-set.requires-group-association";
     String TOPIC_SET_ALREADY_EXISTS = "topic-set.exists";
+    String TOPIC_SET_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "topic-set.name.cannot-be-less-than-three-characters";
 
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";

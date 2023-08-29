@@ -50,25 +50,25 @@ public class TopicSetController {
 
     @Get("/{topicSetId}")
     @ExecuteOn(TaskExecutors.IO)
-    public TopicSetDTO byTopicId(@NotNull Long topicSetId) {
+    public TopicSetDTO getByTopicId(@NotNull Long topicSetId) {
         return topicSetService.findById(topicSetId);
     }
 
     @Post
     @ExecuteOn(TaskExecutors.IO)
-    HttpResponse<?> save(@Body @Valid CreateTopicSetDTO topicSetDTO) {
+    HttpResponse<?> create(@Body @Valid CreateTopicSetDTO topicSetDTO) {
         return topicSetService.create(topicSetDTO);
     }
 
     @Put("/{topicSetId}")
     @ExecuteOn(TaskExecutors.IO)
-    HttpResponse<?> save(@NotNull Long topicSetId, @Body @Valid UpdateTopicSetDTO topicSetDTO) {
+    HttpResponse<?> update(@NotNull Long topicSetId, @Body @Valid UpdateTopicSetDTO topicSetDTO) {
         return topicSetService.update(topicSetId, topicSetDTO);
     }
 
     @Delete("/{topicSet}")
     @ExecuteOn(TaskExecutors.IO)
-    HttpResponse<?> removeAccess(Long topicSet) {
+    HttpResponse<?> delete(Long topicSet) {
         return topicSetService.deleteById(topicSet);
     }
 
