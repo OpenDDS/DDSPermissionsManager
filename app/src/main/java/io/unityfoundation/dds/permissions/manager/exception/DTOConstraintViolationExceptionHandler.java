@@ -122,6 +122,18 @@ public class DTOConstraintViolationExceptionHandler implements ExceptionHandler<
                     code = ResponseStatusCodes.TOPIC_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS;
                 }
             }
+        } else if (code.contains(".expirationPolicyDTO.")) {
+            if (code.endsWith(".name")) {
+                if (descriptor.getAnnotation() instanceof NotBlank) {
+                    code = ResponseStatusCodes.EXPIRATION_POLICY_NAME_CANNOT_BE_BLANK_OR_NULL;
+                } else if (descriptor.getAnnotation() instanceof Size) {
+                    code = ResponseStatusCodes.EXPIRATION_POLICY_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS;
+                }
+            } else if (code.endsWith(".groupId")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.EXPIRATION_POLICY_REQUIRES_GROUP_ASSOCIATION;
+                }
+            }
         } else if (code.endsWith("dto.permissionsGroup")) {
             if (descriptor.getAnnotation() instanceof NotNull) {
                 code = ResponseStatusCodes.GROUP_MEMBERSHIP_REQUIRES_GROUP_ASSOCIATION;

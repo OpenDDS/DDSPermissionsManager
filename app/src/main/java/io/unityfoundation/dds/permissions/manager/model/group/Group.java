@@ -17,6 +17,7 @@ package io.unityfoundation.dds.permissions.manager.model.group;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
+import io.unityfoundation.dds.permissions.manager.model.expirationpolicy.ExpirationPolicy;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -54,6 +55,10 @@ public class Group {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Application> applications = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<ExpirationPolicy> expirationPolicies = new HashSet<>();
 
     public Group() {
     }
@@ -117,6 +122,23 @@ public class Group {
 
     public void addApplication(Application application) {
         applications.add(application);
+    }
+
+    public Set<ExpirationPolicy> getExpirationPolicies() {
+        if (expirationPolicies == null) return null;
+        return Collections.unmodifiableSet(expirationPolicies);
+    }
+
+    public void setExpirationPolicies(Set<ExpirationPolicy> expirationPolicies) {
+        this.expirationPolicies = expirationPolicies;
+    }
+
+    public boolean removeExpirationPolicy(Long expirationPolicyId) {
+        return expirationPolicies.removeIf(expirationPolicy -> expirationPolicyId != null && expirationPolicyId.equals(expirationPolicy.getId()));
+    }
+
+    public void addExpirationPolicy(ExpirationPolicy expirationPolicy) {
+        expirationPolicies.add(expirationPolicy);
     }
 
     @PrePersist

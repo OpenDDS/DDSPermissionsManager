@@ -72,6 +72,14 @@ public interface ResponseStatusCodes {
     String APPLICATION_PERMISSION_NOT_FOUND = "application.permission.not-found";
     String APPLICATION_PERMISSION_ALREADY_EXISTS = "application.permission.exists";
 
+    // expiration policy
+    String EXPIRATION_POLICY_NOT_FOUND = "expiration-policy.not-found";
+    String EXPIRATION_POLICY_REQUIRES_GROUP_ASSOCIATION = "expiration-policy.requires-group-association";
+    String EXPIRATION_POLICY_ALREADY_EXISTS = "expiration-policy.exists";
+    String EXPIRATION_POLICY_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "expiration-policy.name.cannot-be-less-than-three-characters";
+    String EXPIRATION_POLICY_NAME_CANNOT_BE_BLANK_OR_NULL = "expiration-policy.name.cannot-be-less-than-three-characters";
+    String EXPIRATION_POLICY_CANNOT_UPDATE_GROUP_ASSOCIATION = "expiration-policy.cannot-update-group-association";
+
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
     String INVALID_TOKEN = "security.invalid-token";
