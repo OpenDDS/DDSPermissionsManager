@@ -106,6 +106,18 @@ public class DTOConstraintViolationExceptionHandler implements ExceptionHandler<
                     code = ResponseStatusCodes.APPLICATION_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS;
                 }
             }
+        } else if (code.contains(".topicSetDTO.")) {
+            if (code.endsWith(".name")) {
+                if (descriptor.getAnnotation() instanceof NotBlank) {
+                    code = ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL;
+                } else if (descriptor.getAnnotation() instanceof Size) {
+                    code = ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS;
+                }
+            } else if (code.endsWith(".groupId")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.TOPIC_SET_REQUIRES_GROUP_ASSOCIATION;
+                }
+            }
         } else if (code.contains(".topic.")) {
             if (code.endsWith(".name")) {
                 if (descriptor.getAnnotation() instanceof NotBlank) {

@@ -18,6 +18,7 @@ import io.unityfoundation.dds.permissions.manager.model.applicationpermission.Ap
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
+import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSetRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import jakarta.inject.Singleton;
 
@@ -31,18 +32,21 @@ public class DbCleanup {
     private final UserRepository userRepository;
     private final ApplicationPermissionRepository applicationPermissionRepository;
     private final GroupUserRepository groupUserRepository;
+    private final TopicSetRepository topicSetRepository;
 
-    public DbCleanup(TopicRepository topicRepository, GroupRepository groupRepository, ApplicationRepository applicationRepository, UserRepository userRepository, ApplicationPermissionRepository applicationPermissionRepository, GroupUserRepository groupUserRepository) {
+    public DbCleanup(TopicRepository topicRepository, GroupRepository groupRepository, ApplicationRepository applicationRepository, UserRepository userRepository, ApplicationPermissionRepository applicationPermissionRepository, GroupUserRepository groupUserRepository, TopicSetRepository topicSetRepository) {
         this.topicRepository = topicRepository;
         this.groupRepository = groupRepository;
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.applicationPermissionRepository = applicationPermissionRepository;
         this.groupUserRepository = groupUserRepository;
+        this.topicSetRepository = topicSetRepository;
     }
 
     @Transactional
     public void cleanup() {
+        topicSetRepository.deleteAll();
         groupUserRepository.deleteAll();
         applicationPermissionRepository.deleteAll();
         topicRepository.deleteAll();
