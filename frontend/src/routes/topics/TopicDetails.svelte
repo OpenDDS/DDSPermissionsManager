@@ -2,6 +2,7 @@
 <script>
 	import { isAuthenticated, isAdmin } from '../../stores/authentication';
 	import { onMount, createEventDispatcher, onDestroy } from 'svelte';
+	import moment from 'moment';
 	import { page } from '$app/stores';
 	import { httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
@@ -91,6 +92,7 @@
 	//Grant
 	let editGrant = false;
 
+
 	// Websocket
 	let topicSocketIsPaused = false;
 
@@ -110,7 +112,6 @@
 		isPublic = $topicDetails.public;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicGroupName);
-
 		headerTitle.set(selectedTopicName);
 		detailView.set(true);
 	};
@@ -293,6 +294,7 @@
 			});
 
 			dispatch('reloadTopics');
+			await fetchAndUpdateTopic();
 			resumeSocketListener();
 			selectedTopicDescription = newTopicDescription;
 			isPublic = newTopicPublic;
@@ -327,6 +329,9 @@
 		checkboxes = Array.from(checkboxes);
 		return checkboxes.filter((checkbox) => checkbox.checked === true).length;
 	};
+
+	$: timeAgo = moment($topicDetails?.dateUpdated).fromNow();
+	$: browserFormat = new Date($topicDetails?.dateUpdated).toLocaleString();
 </script>
 
 {#if $isAuthenticated}
@@ -518,6 +523,7 @@
 				/>
 			{/if}
 		</div>
+		{#if $topicDetails.dateUpdated} <p style="font-style: italic;">Last updated {timeAgo} ({browserFormat})</p> {/if}
 
 		{#if !$page.url.pathname.includes('search')}
 			<div>

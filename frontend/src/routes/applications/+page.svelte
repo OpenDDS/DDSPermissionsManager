@@ -160,7 +160,8 @@
 		selectedAppGroupName,
 		selectedAppDescription,
 		selectedAppDescriptionSelector,
-		selectedAppPublic;
+		selectedAppPublic,
+		selectedAppDateUpdated;
 
 	// Validation
 	let previousAppName;
@@ -388,8 +389,8 @@
 		selectedAppGroupName = appDetail.data.groupName;
 		selectedAppDescription = appDetail.data.description;
 		selectedAppPublic = appDetail.data.public;
+		selectedAppDateUpdated = appDetail.data.dateUpdated;
 		isPublic = selectedAppPublic;
-
 		curlCommandsDecode();
 	};
 
@@ -950,11 +951,13 @@
 								{selectedAppName}
 								{selectedAppDescription}
 								{selectedAppPublic}
+								{selectedAppDateUpdated}
 								appCurrentGroupPublic={$groupContext?.public}
 								on:deleteTopicApplicationAssociation={(e) => {
 									deleteTopicApplicationAssociation(e.detail);
 								}}
 								on:reloadAllApps={() => reloadAllApps()}
+								on:loadApplicationDetail={() => loadApplicationDetail(selectedAppId, selectedAppGroupId)}
 							/>
 
 							<div style="display: inline-flex; height: 7rem; margin-left: -1rem">
