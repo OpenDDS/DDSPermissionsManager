@@ -294,7 +294,7 @@
 			});
 
 			dispatch('reloadTopics');
-			await fetchAndSetTopicDetails();
+			await fetchAndUpdateTopic();
 			resumeSocketListener();
 			selectedTopicDescription = newTopicDescription;
 			isPublic = newTopicPublic;
