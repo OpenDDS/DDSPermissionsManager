@@ -48,12 +48,14 @@ After authentication is completed, we are redirected to `/groups` that serves as
 `.env` file that contains configuration variables
 
 - VITE_BACKEND_URL - the URL of the backend
+- VITE_WEBSOCKET_URL - the URL of the backend websocket
 
 By default, the API runs on port 8080.
 So, if the API is running locally (as it usually is during development), `.env` would contain
 
 ```bash
 VITE_BACKEND_URL=http://localhost:8080/api
+VITE_WEBSOCKET_URL=ws://localhost:8080/ws
 ```
 
 If the UI will be served from the API, then the host portion can be omitted and the necessary URLs will be relative instead of absolute.
@@ -61,6 +63,7 @@ For example,
 
 ```bash
 VITE_BACKEND_URL=/api
+VITE_WEBSOCKET_URL=ws://{API_PATH}/ws
 ```
 
 ## Application Functionality

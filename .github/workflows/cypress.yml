@@ -33,6 +33,7 @@ jobs:
       - name: Run the server with Gradle
         env:
           VITE_BACKEND_URL: /api
+          VITE_WEBSOCKET_URL: ws://localhost:8080/ws
           MICRONAUT_ENVIRONMENTS: h2,dev,dev-data
         run: |
           ./gradlew app:run &

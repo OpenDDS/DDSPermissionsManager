@@ -116,7 +116,8 @@
 		detailView.set(true);
 	};
 
-	const socket = new WebSocket(`ws://localhost:8080/ws/topics/${selectedTopicId}`);
+	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
+	const socket = new WebSocket(`${websocketURL}/topics/${selectedTopicId}`);
 
 	const subscribeTopicMessage = (topicSocket) => {
 		topicSocket.addEventListener('message', (event) => {
