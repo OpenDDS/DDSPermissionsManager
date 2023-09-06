@@ -294,7 +294,7 @@
 		</tr>
 	</table>
 
-	{#if selectedAppDateUpdated} <p style="font-style: italic;">Last updated {timeAgo} ({browserFormat})</p> {/if}
+	{#if selectedAppDateUpdated} <p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p> {/if}
 
 	{#if !$page.url.pathname.includes('search')}
 		<div style="margin-top: 3.5rem">
