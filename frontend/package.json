@@ -11,7 +11,7 @@
 		"format": "prettier --write --plugin-search-dir=. .",
 		"start": "concurrently \"npm run start:frontend\" \"cross-env CONCURRENTLY_NEW_WINDOW=1 npm run start:backend\"",
 		"start:frontend": "npm run dev -- --open",
-		"start:backend": "cd .. && MICRONAUT_ENVIRONMENTS=dev,dev-data ./gradlew app:run"
+		"start:backend": "cd .. && MICRONAUT_ENVIRONMENTS=dev,dev-data,h2 ./gradlew app:run"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",

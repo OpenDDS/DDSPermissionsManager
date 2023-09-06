@@ -149,10 +149,12 @@
 		selectedAppGroupName = appDetail.data.groupName;
 		selectedAppDescription = appDetail.data.description;
 		selectedAppPublic = appDetail.data.public;
+		selectedAppDateUpdated = appDetail.data.dateUpdated;
 		isPublic = selectedAppPublic;
 	};
 
-	const socket = new WebSocket(`ws://localhost:8080/ws/applications/${selectedAppId}`);
+	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
+	const socket = new WebSocket(`${websocketURL}/applications/${selectedAppId}`);
 
 	const pauseSocketListener = () => {
 		applicationSocketIsPaused = true;
