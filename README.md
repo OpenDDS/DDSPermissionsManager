@@ -212,11 +212,10 @@ The Web API is horizontally scalable.
 ### Building the Application
 
 The Web Application UI requires the URLs of the API when built.
-This is set using the VITE_BACKEND_URL and VITE_WEBSOCKET_URL environment variable.
+This is set using the VITE_BACKEND_URL environment variable.
 If the Web API will serve the UI, then set VITE_BACKEND_URL to `/api`.
 Otherwise, set VITE_BACKEND_URL to the full URL of the API (which should end in `/api`).
-The VITE_WEBSOCKET_URL should be set to 'ws://localhost:8080/ws' for running locally.
-The VITE_BACKEND_URL and VITE_WEBSOCKET_URL variable can also be set in `frontend/.env`.
+The VITE_BACKEND_URL variable can also be set in `frontend/.env`.
 
 The application is built with gradle, e.g., `./gradlew app:build`.
 This builds both the API and the UI.

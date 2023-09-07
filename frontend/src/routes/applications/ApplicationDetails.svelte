@@ -12,6 +12,7 @@
 	import errorMessages from '$lib/errorMessages.json';
 	import editSVG from '../../icons/edit.svg';
 	import deleteSVG from '../../icons/delete.svg';
+	import { createWebSocketUrl } from '../../utils.js';
 
 	export let isApplicationAdmin,
 		selectedAppId,
@@ -153,7 +154,7 @@
 		isPublic = selectedAppPublic;
 	};
 
-	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
+	const websocketURL = createWebSocketUrl(import.meta.env.VITE_BACKEND_URL);
 	const socket = new WebSocket(`${websocketURL}/applications/${selectedAppId}`);
 
 	const pauseSocketListener = () => {

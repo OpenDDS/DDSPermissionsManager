@@ -18,6 +18,7 @@
 	import permissionsByGroup from '../../stores/permissionsByGroup';
 	import groupContext from '../../stores/groupContext';
 	import nonEmptyInputField from '../../stores/nonEmptyInputField';
+	import { createWebSocketUrl } from '../../utils.js';
 
 	export let selectedTopicId, isTopicAdmin;
 
@@ -116,7 +117,7 @@
 		detailView.set(true);
 	};
 
-	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
+	const websocketURL = createWebSocketUrl(import.meta.env.VITE_BACKEND_URL);
 	const socket = new WebSocket(`${websocketURL}/topics/${selectedTopicId}`);
 
 	const subscribeTopicMessage = (topicSocket) => {
