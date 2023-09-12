@@ -163,3 +163,5 @@ permissions-manager:
       domain: 1
     passphrase:
       length: 16
+  websockets:
+    broadcast-changes: ${DPM_WEBSOCKETS_BROADCAST_CHANGES:false}
