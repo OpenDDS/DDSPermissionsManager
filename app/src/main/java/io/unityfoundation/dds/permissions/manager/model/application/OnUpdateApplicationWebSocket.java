@@ -13,6 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.application;
 
+import io.micronaut.context.annotation.Property;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.websocket.WebSocketBroadcaster;
@@ -29,6 +30,9 @@ public class OnUpdateApplicationWebSocket {
     public static final String APPLICATION_UPDATED = "application_updated";
     public static final String APPLICATION_DELETED = "application_deleted";
 
+    @Property(name = "permissions-manager.websockets.broadcast-changes")
+    protected boolean broadcastChanges;
+
     private final WebSocketBroadcaster broadcaster;
 
     public OnUpdateApplicationWebSocket(WebSocketBroadcaster broadcaster) {
@@ -36,9 +40,10 @@ public class OnUpdateApplicationWebSocket {
     }
 
     public void broadcastResourceEvent(String event, Long applicationId) {
-        broadcaster.broadcastSync(event, session ->
-                applicationId.equals(session.getUriVariables().get("applicationId", Long.class, null))
-        );
+        if (broadcastChanges) {
+            broadcaster.broadcastSync(event, session -> applicationId.equals(session.getUriVariables().get(
+                    "applicationId", Long.class, null)));
+        }
     }
 
     @OnMessage

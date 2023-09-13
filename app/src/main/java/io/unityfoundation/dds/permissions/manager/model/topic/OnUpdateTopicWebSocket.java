@@ -13,6 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.topic;
 
+import io.micronaut.context.annotation.Property;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.websocket.WebSocketBroadcaster;
@@ -29,6 +30,9 @@ public class OnUpdateTopicWebSocket {
     public static final String TOPIC_UPDATED = "topic_updated";
     public static final String TOPIC_DELETED = "topic_deleted";
 
+    @Property(name = "permissions-manager.websockets.broadcast-changes")
+    protected boolean broadcastChanges;
+
     private final WebSocketBroadcaster broadcaster;
 
     public OnUpdateTopicWebSocket(WebSocketBroadcaster broadcaster) {
@@ -36,9 +40,11 @@ public class OnUpdateTopicWebSocket {
     }
 
     public void broadcastResourceEvent(String event, Long topicId) {
-        broadcaster.broadcastSync(event, session ->
-                topicId.equals(session.getUriVariables().get("topicId", Long.class, null))
-        );
+        if (broadcastChanges) {
+            broadcaster.broadcastSync(event, session ->
+                    topicId.equals(session.getUriVariables().get("topicId", Long.class, null))
+            );
+        }
     }
 
     @OnMessage

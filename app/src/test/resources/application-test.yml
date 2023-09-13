@@ -33,3 +33,5 @@ permissions-manager:
     email: unity-admin-test@test.test
     password: password
     is-admin: true
+  websockets:
+    broadcast-changes: true
