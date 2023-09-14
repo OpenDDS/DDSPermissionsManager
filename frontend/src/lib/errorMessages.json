@@ -70,6 +70,21 @@
         "adding.error.title": "Error Adding Topic",
         "updating.access.type.error.title": "Error Updating Application Access Type"
     },
+
+    "topic-sets":
+    {
+        "not_found": "Topic Set not found",
+        "update_not_allowed": "Topic Set update not allowed",
+        "requires_group_association": "Topic Set requires group association",
+        "name.cannot_be_blank_or_null": "Topic Set name cannot be blank or invalid",
+        "name.cannot_be_less_than_three_characters": "Topic Set name cannot be less than 3 characters",
+        "exists": "Topic Set  already exists",
+        "loading.error.title": "Error Loading Topic Sets",
+        "loading.detail.error.title": "Error Loading Topic Set Details",
+        "deleting.error.title": "Error Deleting Topic Set",
+        "adding.error.title": "Error Adding Topic Set",
+        "updating.access.type.error.title": "Error Updating Application Access Type"
+    },
     
     "group_membership":
     {

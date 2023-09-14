@@ -103,6 +103,42 @@
         "empty.topics.action.result": "to create a new Topic."
     },
 
+    "topic-sets":
+    {
+        "title": "My Topics Sets",
+        "tab.title": "My Topics Sets | DDS Permissions Manager",
+        "add": "Add Topic Set",
+        "edit": "Edit Topic Set",
+        "delete.title": "Delete",
+        "delete.single": "Topic Set",
+        "delete.multiple": "Topic Sets",
+        "search.placeholder": "Search",
+        "search.clear.button": "Clear",
+        "add.tooltip.topic.admin.required": "Topic Set Admin permission required",
+        "add.tooltip.select.group": "Select a group to add a Topic Set",
+        "delete.tooltip": "Select topics to delete",
+        "delete.tooltip.topic.admin.required": "Topic Set Admin permissions required",
+        "table.column.one": "Topic Set",
+        "table.column.two": "Group",
+        "empty.topics": "No Topic Set Found.",
+        "empty.topics.action": "Select a group to get started.",
+        "empty.topics.action.two": "Click here",
+        "empty.topics.action.result": "to create a new Topic Set."
+    },
+
+    "topic-sets.detail": {
+        "row.one": "Name:",
+        "row.two": "Group:",
+        "search.placeholder": "Search and Add Topics",
+        "no.topics.found": "No Topics Found.",
+        "delete.title": "Delete",
+        "delete.single": "Topic",
+        "delete.multiple": "Topics",
+        "table.column.one": "Topic",
+        "delete.tooltip": "Select topics to delete",
+        "delete.tooltip.topic.admin.required": "Topic Admin permissions required"
+    },
+
     "topic.detail":
     {
         "application.associate": "Grant Access to Topic",
@@ -244,7 +280,10 @@
         "item.two": "My Users",
         "item.three": "My Topics",
         "item.four": "My Applications",
-        "item.five": "Search"
+        "item.five": "Search",
+        "item.six": "My Grants",
+        "item.seven": "My Expirations",
+        "item.eight": "My Topic Sets"
     },
 
     "modal":
@@ -253,6 +292,7 @@
         "input.email.placeholder": "Email",
         "input.email.label": "Email",
         "input.topic.placeholder": "Topic Name",
+        "input.topic-set.placeholder": "Topic Set Name",
         "error.message.topic.substring": "Topic",
         "input.application.placeholder": "Application Name",
         "error.message.application.substring": "Application",
@@ -279,10 +319,13 @@
         "required.field.message.three": "* Required",
         "button.add.user.label": "Add User",
         "button.add.topic.label": "Add Topic",
+        "button.add.topic-set.label": "Add Topic Set",
+        "button.edit.topic-set.label": "Edit Topic Set",
         "button.add.application.label": "Add Application",
         "button.add.group.label": "Add Group",
         "button.save.changes": "Save Changes",
         "delete.warning": "Are you sure? This is not reversible.",
+        "delete.message": "Are you sure?",
         "associate.application.button.label": "Next",
         "associate.application.button.label.two": "Add",
         "associate.application.button.label.two.edit": "Save",
