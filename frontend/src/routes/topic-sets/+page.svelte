@@ -311,7 +311,6 @@
 					topicCurrentGroupPublic={$groupContext?.public ?? false}
 					on:cancel={() => (addTopicVisible = false)}
 					on:addTopicSet={(e) => {
-						console.log(e.detail)
 						newTopicSetName = e.detail.newTopicSetName;
 						selectedGroup = e.detail.selectedGroup;
 						addTopicSet();

@@ -392,7 +392,7 @@
 								</td>
 							{/if}
 
-							<td style="width: max-content">{Object.values(topic)[0]}</td>
+							<td data-cy="topic" style="width: max-content">{Object.values(topic)[0]}</td>
 
 							<td style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem">
 								{#if $isAdmin || isTopicAdmin}
