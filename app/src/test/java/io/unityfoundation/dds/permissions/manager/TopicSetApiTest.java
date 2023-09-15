@@ -33,10 +33,10 @@ import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
-import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.CreateTopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.TopicSetDTO;
+import io.unityfoundation.dds.permissions.manager.model.topicset.dto.UpdateTopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -141,6 +142,49 @@ public class TopicSetApiTest {
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSet = response.getBody(TopicSetDTO.class);
             assertTrue(topicSet.isPresent());
+        }
+
+        @Test
+        public void createdLastUpdatedFieldsArePopulatedAndNotEditable() {
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            response = createTopicSet("Abc123", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
+            assertTrue(topicSetOptional.isPresent());
+
+            TopicSetDTO topicSet = topicSetOptional.get();
+
+            assertEquals("Abc123", topicSet.getName());
+            Instant createdDate = topicSet.getDateCreated();
+            Instant updatedDate = topicSet.getDateUpdated();
+            assertNotNull(createdDate);
+            assertNotNull(updatedDate);
+            assertEquals(createdDate, updatedDate);
+
+            // different name
+            topicSet.setName("Xyz789");
+            Instant date = Instant.ofEpochMilli(1675899232);
+            topicSet.setDateCreated(date);
+            topicSet.setDateUpdated(date);
+            request = HttpRequest.PUT("/topic-sets/"+topicSet.getId(), topicSet);
+            response = blockingClient.exchange(request, UpdateTopicSetDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<TopicSetDTO> updatedTopicOptional = response.getBody(TopicSetDTO.class);
+            assertTrue(updatedTopicOptional.isPresent());
+            TopicSetDTO updatedTopicSet = updatedTopicOptional.get();
+            assertNotEquals(date, updatedTopicSet.getDateCreated());
+            assertNotEquals(date, updatedTopicSet.getDateUpdated());
+            assertEquals("Xyz789", updatedTopicSet.getName());
+            assertEquals(createdDate, updatedTopicSet.getDateCreated());
+            assertNotEquals(updatedDate, updatedTopicSet.getDateUpdated());
         }
 
         @Test

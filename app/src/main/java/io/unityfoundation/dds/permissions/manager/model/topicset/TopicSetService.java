@@ -239,7 +239,9 @@ public class TopicSetService {
                 topicSet.getPermissionsGroup().getName(),
                 topicSet.getTopics().stream()
                         .map(topic -> Map.of(topic.getId(), topic.getName()))
-                        .collect(Collectors.toSet())
+                        .collect(Collectors.toSet()),
+                topicSet.getDateCreated(),
+                topicSet.getDateUpdated()
         );
     }
 
