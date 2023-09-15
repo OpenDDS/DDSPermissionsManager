@@ -41,7 +41,7 @@ public class TopicSet {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Group permissionsGroup;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Topic> topics = new HashSet<>();
 
 
