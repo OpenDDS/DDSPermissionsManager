@@ -19,6 +19,7 @@
 	export let title;
 	export let email = false;
 	export let topicName = false;
+	export let topicSetName = false;
 	export let applicationName = false;
 	export let groupNewName = false;
 	export let group = false;
@@ -26,16 +27,19 @@
 	export let actionAddUser = false;
 	export let actionAddSuperUser = false;
 	export let actionAddTopic = false;
+	export let actionAddTopicSet = false;
 	export let actionAddApplication = false;
 	export let actionAddGroup = false;
 	export let actionAssociateApplication = false;
 	export let actionEditUser = false;
 	export let actionEditApplication = false;
 	export let actionEditTopic = false;
+	export let actionEditTopicSet = false;
 	export let actionEditGroup = false;
 	export let actionDeleteUsers = false;
 	export let actionDeleteSuperUsers = false;
 	export let actionDeleteTopics = false;
+	export let actionDeleteTopicsFromTopicSet = false;
 	export let actionDeleteGrants = false;
 	export let actionDeleteGroups = false;
 	export let actionDeleteApplications = false;
@@ -45,6 +49,8 @@
 	export let noneditable = false;
 	export let emailValue = '';
 	export let newTopicName = '';
+	export let newTopicSetName = '';
+	export let originalTopicSetName = '';
 	export let groupId = '';
 	export let anyApplicationCanRead = false;
 	export let searchGroups = '';
@@ -296,6 +302,30 @@
 		}
 	};
 
+	const actionAddTopicSetEvent = async () => {
+		let newTopicSet = {
+			newTopicSetName: newTopicSetName,
+			selectedGroup: selectedGroup
+		};
+
+		invalidTopic = !validateNameLength(newTopicSetName, 'topic');
+		if (invalidTopic) {
+			errorMessageName = errorMessages['topic-sets']['name.cannot_be_less_than_three_characters'];
+			return;
+		}
+
+		const validTopicName = await validateTopicName();
+		if (!validTopicName) {
+			errorMessageTopic = errorMessages['topic-sets']['exists'];
+			return;
+		}
+
+		if (!invalidTopic) {
+			dispatch('addTopicSet', newTopicSet);
+			closeModal();
+		}
+	};
+
 	const actionAddApplicationEvent = async () => {
 		let newApplication = {
 			appName: appName,
@@ -481,6 +511,34 @@
 					if (event.which === returnKey) {
 						newTopicName = newTopicName.trim();
 						actionAddTopicEvent();
+					}
+				}}
+				on:click={() => {
+					errorMessageTopic = '';
+					errorMessageName = '';
+				}}
+			/>
+		{/if}
+
+		{#if topicSetName}
+			<div style="float: right; font-size: 0.75rem; margin-bottom: -0.1rem">*</div>
+			<!-- svelte-ignore a11y-autofocus -->
+			<input
+				data-cy="topic-name"
+				autofocus
+				placeholder={messages['modal']['input.topic-set.placeholder']}
+				class:invalid={invalidTopic}
+				style="background: rgb(246, 246, 246); width: 13.2rem; margin-right: 2rem"
+				bind:value={newTopicSetName}
+				on:blur={() => {
+					newTopicSetName = newTopicSetName.trim();
+				}}
+				on:keydown={(event) => {
+					errorMessageName = '';
+
+					if (event.which === returnKey) {
+						newTopicSetName = newTopicSetName.trim();
+						actionAddTopicSetEvent();
 					}
 				}}
 				on:click={() => {
@@ -1070,6 +1128,48 @@
 		</button>
 	{/if}
 
+	{#if actionAddTopicSet}
+		<span style="font-size:0.7rem; float: right; margin:0 2rem 0.5rem 0"
+			>{messages['modal']['required.field.message.three']}</span
+		>
+		<hr />
+		<button
+			data-cy="button-add-topic"
+			class="action-button"
+			disabled={newTopicSetName.length < minNameLength || !selectedGroup}
+			class:action-button-invalid={newTopicSetName.length < minNameLength || !selectedGroup}
+			on:click={() => actionAddTopicSetEvent()}
+			on:keydown={(event) => {
+				if (event.which === returnKey) {
+					actionAddTopicSetEvent();
+				}
+			}}
+		>
+			{messages['modal']['button.add.topic-set.label']}
+		</button>
+	{/if}
+
+	{#if actionEditTopicSet}
+		<span style="font-size:0.7rem; float: right; margin:0 2rem 0.5rem 0"
+			>{messages['modal']['required.field.message.three']}</span
+		>
+		<hr />
+		<button
+			data-cy="button-add-topic"
+			class="action-button"
+			disabled={newTopicSetName.length < minNameLength || originalTopicSetName === newTopicSetName}
+			class:action-button-invalid={newTopicSetName.length < minNameLength}
+			on:click={() => actionAddTopicSetEvent()}
+			on:keydown={(event) => {
+				if (event.which === returnKey) {
+					actionAddTopicSetEvent();
+				}
+			}}
+		>
+			{messages['modal']['button.edit.topic-set.label']}
+		</button>
+	{/if}
+
 	{#if actionAddApplication}
 		<span style="font-size:0.7rem; float: right; margin:0 2rem 0.5rem 0"
 			>{messages['modal']['required.field.message.three']}</span
@@ -1263,22 +1363,22 @@
 	{/if}
 
 	{#if actionApplicationChange}
-	<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
-		{messages['modal']['application.update.message']}
-	</p>
-	<!-- svelte-ignore a11y-autofocus -->
-	<button
-		data-cy="refresh-page"
-		autofocus
-		class="action-button"
-		on:click={() => dispatch('reloadContent')}
-		on:keydown={(event) => {
-			if (event.which === returnKey) {
-				dispatch('reloadContent');
-			}
-		}}>Reload content</button
-	>
-{/if}
+		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
+			{messages['modal']['application.update.message']}
+		</p>
+		<!-- svelte-ignore a11y-autofocus -->
+		<button
+			data-cy="refresh-page"
+			autofocus
+			class="action-button"
+			on:click={() => dispatch('reloadContent')}
+			on:keydown={(event) => {
+				if (event.which === returnKey) {
+					dispatch('reloadContent');
+				}
+			}}>Reload content</button
+		>
+	{/if}
 
 	{#if actionDeleteSuperUsers}
 		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
@@ -1301,6 +1401,24 @@
 	{#if actionDeleteTopics}
 		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
 			{messages['modal']['delete.warning']}
+		</p>
+		<!-- svelte-ignore a11y-autofocus -->
+		<button
+			data-cy="delete-topic"
+			autofocus
+			class="action-button"
+			on:click={() => dispatch('deleteTopics')}
+			on:keydown={(event) => {
+				if (event.which === returnKey) {
+					dispatch('deleteTopics');
+				}
+			}}>{title}</button
+		>
+	{/if}
+
+	{#if actionDeleteTopicsFromTopicSet}
+		<p style="margin: 0 1.7rem 1rem 2rem; font-size:0.9rem; font-stretch: condensed; ">
+			{messages['modal']['delete.message']}
 		</p>
 		<!-- svelte-ignore a11y-autofocus -->
 		<button

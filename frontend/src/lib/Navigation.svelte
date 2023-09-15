@@ -5,6 +5,9 @@
 	import groupsSVG from '../icons/groups.svg';
 	import topicsSVG from '../icons/topics.svg';
 	import appsSVG from '../icons/apps.svg';
+	import grantsSVG from '../icons/grants.svg';
+	import expirationsSVG from '../icons/expirations.svg';
+	import topicSetsSVG from '../icons/topicsets.svg';
 	import searchSVG from '../icons/search.svg';
 	import { page } from '$app/stores';
 	import groupContext from '../stores/groupContext';
@@ -27,6 +30,7 @@
 	import detailView from '../stores/detailView';
 	import universalSearchList from '../stores/universalSearchList';
 	import messages from '$lib/messages.json';
+	import topicSets from '../stores/topicSets';
 
 	const itemsPerPage = 10;
 
@@ -46,6 +50,23 @@
 			topicsTotalSize.set(resTopics.data.totalSize);
 		}
 		topicsA.set(resTopics.data.content);
+	};
+
+
+	const preloadTopicSets = async (page = 0) => {
+		let resTopicSets;
+		if ($groupContext) {
+			resTopicSets = await httpAdapter.get(
+					`/topic-sets?page=${page}&size=${itemsPerPage}&group=${$groupContext.id}`
+				);
+		} else {
+			resTopicSets = await httpAdapter.get(`/topic-sets?page=${page}&size=${itemsPerPage}`);
+		}
+		if (resTopicSets.data) {
+			topicsTotalPages.set(resTopicSets.data.totalPages);
+			topicsTotalSize.set(resTopicSets.data.totalSize);
+		}
+		topicSets.set(resTopicSets?.data?.content);
 	};
 
 	const preloadApps = async (page = 0) => {
@@ -196,12 +217,39 @@
 				<img src={searchSVG} alt="search" class="menu-icon" />{messages['navigation']['item.five']}
 			</a>
 		</li>
+
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<li class:active={$page.url.pathname === '/grants/'} on:mouseenter={() => {}}>
+			<a sveltekit:prefetch href="/grants">
+				<img src={grantsSVG} alt="grants" class="menu-icon" />{messages['navigation']['item.six']}
+			</a>
+		</li>
+
+		<div class="nested-list">
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<li class:active={$page.url.pathname === '/expirations/'} on:mouseenter={() => {}}>
+				<a sveltekit:prefetch href="/expirations">
+					<img src={expirationsSVG} alt="expirations" class="menu-icon" />{messages['navigation'][
+						'item.seven'
+					]}
+				</a>
+			</li>
+
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<li class:active={$page.url.pathname === '/topic-sets/'} on:mouseenter={() => {if (!$topicSets) preloadTopicSets();}} 			on:click={() => detailView.set('backToList')}>
+				<a sveltekit:prefetch href="/topic-sets">
+					<img src={topicSetsSVG} alt="topic-sets" class="menu-icon" />{messages['navigation'][
+						'item.eight'
+					]}
+				</a>
+			</li>
+		</div>
 	</ul>
 </nav>
 
 <style>
 	nav {
-		width: 14.4rem;
+		width: 18.4rem;
 		justify-content: center;
 		margin-top: 2.5rem;
 	}
@@ -250,5 +298,12 @@
 	.menu-icon {
 		scale: 65%;
 		margin: 0.1rem 0 0.1rem 0;
+	}
+
+	.nested-list {
+		margin-left: 2rem;
+		display: flex;
+		flex-direction: column;
+		height: 6rem;
 	}
 </style>

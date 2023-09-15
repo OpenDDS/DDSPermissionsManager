@@ -82,6 +82,10 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /topic-sets/**
+        http-method: GET
+        access:
+          - isAnonymous()
       - pattern: /users/**
         http-method: GET
         access:
