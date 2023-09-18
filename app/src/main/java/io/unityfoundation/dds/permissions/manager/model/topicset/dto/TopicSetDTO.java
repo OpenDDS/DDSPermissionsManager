@@ -13,9 +13,11 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.topicset.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,12 +30,20 @@ public class TopicSetDTO implements EntityDTO {
     private String groupName;
     private Set<Map<Long, String>> topics;
 
-    public TopicSetDTO(Long id, String name, Long groupId, String groupName, Set<Map<Long, String>> topics) {
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateCreated;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant dateUpdated;
+
+    public TopicSetDTO(Long id, String name, Long groupId, String groupName, Set<Map<Long, String>> topics, Instant dateCreated, Instant dateUpdated) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
         this.groupName = groupName;
         this.topics = topics;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
     }
 
     public Long getId() {
@@ -74,5 +84,21 @@ public class TopicSetDTO implements EntityDTO {
 
     public void setTopics(Set<Map<Long, String>> topics) {
         this.topics = topics;
+    }
+
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Instant getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Instant dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }

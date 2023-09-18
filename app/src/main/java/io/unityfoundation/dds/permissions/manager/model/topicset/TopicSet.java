@@ -15,12 +15,15 @@ package io.unityfoundation.dds.permissions.manager.model.topicset;
 
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.data.annotation.DateCreated;
+import io.micronaut.data.annotation.DateUpdated;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,6 +46,12 @@ public class TopicSet {
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Topic> topics = new HashSet<>();
+
+    @DateCreated
+    private Instant dateCreated;
+
+    @DateUpdated
+    private Instant dateUpdated;
 
 
     public TopicSet() {
@@ -99,5 +108,21 @@ public class TopicSet {
 
     public void addTopic(Topic topic) {
         topics.add(topic);
+    }
+
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Instant getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Instant dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }
