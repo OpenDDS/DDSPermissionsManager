@@ -12,6 +12,7 @@
 	import errorMessages from '$lib/errorMessages.json';
 	import editSVG from '../../icons/edit.svg';
 	import deleteSVG from '../../icons/delete.svg';
+	import featureFlagConfigStore from '../../stores/featureFlagConfig';
 
 	export let isApplicationAdmin,
 		selectedAppId,
@@ -155,6 +156,7 @@
 
 	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
 	const socket = new WebSocket(`${websocketURL}/applications/${selectedAppId}`);
+	const APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
 
 	const pauseSocketListener = () => {
 		applicationSocketIsPaused = true;
@@ -178,7 +180,7 @@
 	};
 
 	onMount(async () => {
-		subscribeApplicationMessage(socket);
+		if (APIisBroadcastingEvents) subscribeApplicationMessage(socket);
 		headerTitle.set(selectedAppName);
 		await getAppPermissions();
 		if (appCurrentGroupPublic === undefined) {
