@@ -854,6 +854,67 @@ public class TopicSetApiTest {
             topicSetXyz = topicSetAbcOptional.get();
             assertFalse(topicSetXyz.getTopics().isEmpty());
         }
+
+        @Test
+        void lastUpdatedFieldIsUpdatedAfterTopicAddAndRemove(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create group
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            // create topic
+            response = createTopic(theta.getId(), "MyTopicA");
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
+            assertTrue(aTopicOptional.isPresent());
+            TopicDTO aTopic = aTopicOptional.get();
+
+            // add member to group
+            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            // create topic set
+            response = createTopicSet("Xyz789", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicSetDTO> topicSetXyzOptional = response.getBody(TopicSetDTO.class);
+            assertTrue(topicSetXyzOptional.isPresent());
+            TopicSetDTO topicSetXyz = topicSetXyzOptional.get();
+
+            Instant createdDate = topicSetXyz.getDateCreated();
+            Instant updatedDate = topicSetXyz.getDateUpdated();
+            assertNotNull(createdDate);
+            assertNotNull(updatedDate);
+            assertEquals(createdDate, updatedDate);
+
+            // add topic to topic set
+            request = HttpRequest.POST("/topic-sets/" + topicSetXyz.getId() + "/" + aTopic.getId(), Map.of());
+            response = blockingClient.exchange(request, TopicSetDTO.class);
+            assertEquals(CREATED, response.getStatus());
+            topicSetXyzOptional = response.getBody(TopicSetDTO.class);
+            assertTrue(topicSetXyzOptional.isPresent());
+            TopicSetDTO updatedTopicSetXyz = topicSetXyzOptional.get();
+            assertFalse(updatedTopicSetXyz.getTopics().isEmpty());
+
+            Instant dateUpdated = updatedTopicSetXyz.getDateUpdated();
+            assertNotEquals(updatedDate, dateUpdated);
+
+            request = HttpRequest.DELETE("/topic-sets/" + topicSetXyz.getId() + "/" + aTopic.getId(), Map.of());
+            response = blockingClient.exchange(request, TopicSetDTO.class);
+            assertEquals(OK, response.getStatus());
+            topicSetXyzOptional = response.getBody(TopicSetDTO.class);
+            assertTrue(topicSetXyzOptional.isPresent());
+            updatedTopicSetXyz = topicSetXyzOptional.get();
+
+            assertNotEquals(dateUpdated, updatedTopicSetXyz.getDateUpdated());
+        }
     }
 
     @Nested

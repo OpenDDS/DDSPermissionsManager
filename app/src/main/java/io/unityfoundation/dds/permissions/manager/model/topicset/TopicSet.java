@@ -103,11 +103,13 @@ public class TopicSet {
     }
 
     public boolean removeTopic(Long topicId) {
+        this.dateUpdated = Instant.now();
         return topics.removeIf(topic -> topicId != null && topicId.equals(topic.getId()));
     }
 
     public void addTopic(Topic topic) {
         topics.add(topic);
+        this.dateUpdated = Instant.now();
     }
 
     public Instant getDateCreated() {
