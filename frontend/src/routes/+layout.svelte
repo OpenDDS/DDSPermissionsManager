@@ -9,6 +9,7 @@
 	import refreshPage from '../stores/refreshPage';
 	import lastRefresh from '../stores/lastRefresh';
 	import detailView from '../stores/detailView';
+	import featureFlagConfigStore from '../stores/featureFlagConfig';
 	import permissionsByGroup from '../stores/permissionsByGroup';
 	import groupAdminGroups from '../stores/groupAdminGroups';
 	import topicAdminTopics from '../stores/topicAdminTopics';
@@ -91,6 +92,8 @@
 		await refreshToken_Info();
 
 		setInterval(checkValidity, userValidityInterval);
+
+		await getFeatureFlagConfig();
 	});
 
 	const refreshToken = async () => {
@@ -101,6 +104,15 @@
 			await refreshToken_Info();
 		} catch (err) {
 			goto('/api/logout', true);
+		}
+	};
+
+	const getFeatureFlagConfig = async () => {
+		try {
+			const res = await httpAdapter.get('/config');
+			if (res.data) featureFlagConfigStore.set(res.data);
+		} catch (err) {
+			console.error(err);
 		}
 	};
 

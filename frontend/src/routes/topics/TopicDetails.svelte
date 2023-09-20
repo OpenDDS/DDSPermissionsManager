@@ -18,6 +18,7 @@
 	import permissionsByGroup from '../../stores/permissionsByGroup';
 	import groupContext from '../../stores/groupContext';
 	import nonEmptyInputField from '../../stores/nonEmptyInputField';
+	import featureFlagConfigStore from '../../stores/featureFlagConfig';
 
 	export let selectedTopicId, isTopicAdmin;
 
@@ -92,7 +93,6 @@
 	//Grant
 	let editGrant = false;
 
-
 	// Websocket
 	let topicSocketIsPaused = false;
 
@@ -118,6 +118,7 @@
 
 	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
 	const socket = new WebSocket(`${websocketURL}/topics/${selectedTopicId}`);
+	const APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
 
 	const subscribeTopicMessage = (topicSocket) => {
 		topicSocket.addEventListener('message', (event) => {
@@ -139,7 +140,7 @@
 
 	onMount(async () => {
 		try {
-			subscribeTopicMessage(socket);
+			if (APIisBroadcastingEvents) subscribeTopicMessage(socket);
 			await fetchAndUpdateTopic();
 		} catch (err) {
 			errorMessage(errorMessages['topic']['loading.detail.error.title'], err.message);
