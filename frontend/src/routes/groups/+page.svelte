@@ -26,7 +26,7 @@
 	import groupContext from '../../stores/groupContext';
 	import singleGroupCheck from '../../stores/singleGroupCheck';
 	import userEmail from '../../stores/userEmail';
-	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import tooltips from '$lib/tooltips.json';
 	import contextMessage from '../../stores/contextMessage';
 	import userValidityCheck from '../../stores/userValidityCheck';

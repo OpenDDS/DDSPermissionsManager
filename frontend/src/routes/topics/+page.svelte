@@ -29,7 +29,7 @@
 	import topicsTotalSize from '../../stores/topicsTotalSize';
 	import topicsTotalPages from '../../stores/topicsTotalPages';
 	import topicsA from '../../stores/topicsA';
-	import retrievedTimestamps from '../../stores/retrievedTimeStamps';
+	import retrievedTimestamps from '../../stores/retrievedTimeStamps.js';
 	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	export let data;

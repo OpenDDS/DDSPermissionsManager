@@ -24,7 +24,7 @@
 	import messages from '$lib/messages.json';
 	import superUsersTotalPages from '../../stores/superUsersTotalPages';
 	import superUsersTotalSize from '../../stores/superUsersTotalSize';
-	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import {updateRetrievalTimestamp} from '../../utils.js';
 
 	export let data, errors;

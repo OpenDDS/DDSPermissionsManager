@@ -30,7 +30,7 @@
 	import createItem from '../../stores/createItem';
 	import groupMembershipsTotalPages from '../../stores/groupMembershipsTotalPages';
 	import groupMembershipsTotalSize from '../../stores/groupMembershipsTotalSize';
-	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	// Group Context

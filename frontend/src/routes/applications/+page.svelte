@@ -33,7 +33,7 @@
 	import applicationsTotalPages from '../../stores/applicationsTotalPages';
 	import applicationsTotalSize from '../../stores/applicationsTotalSize';
 	import ApplicationDetails from './ApplicationDetails.svelte';
-	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	export let data, errors;
