@@ -1,3 +1,4 @@
+<!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import moment from 'moment';
 	import { onMount, onDestroy } from 'svelte';
