@@ -7,6 +7,7 @@
 	import refreshPage from '../../stores/refreshPage';
 	import Modal from '../../lib/Modal.svelte';
 	import TopicDetails from './TopicDetails.svelte';
+	import RetrievedTimestamp from './../../lib/RetrievedTimestamp.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import userValidityCheck from '../../stores/userValidityCheck';
@@ -28,6 +29,8 @@
 	import topicsTotalSize from '../../stores/topicsTotalSize';
 	import topicsTotalPages from '../../stores/topicsTotalPages';
 	import topicsA from '../../stores/topicsA';
+	import retrievedTimestamps from '../../stores/retrievedTimeStamps';
+	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	export let data;
 	export let errors;
@@ -167,6 +170,8 @@
 			}
 			topicsA.set(res.data.content);
 			topicsCurrentPage = page;
+
+			updateRetrievalTimestamp(retrievedTimestamps, 'topics');
 		} catch (err) {
 			userValidityCheck.set(true);
 
@@ -205,6 +210,8 @@
 		topicsTotalPages.set(res.data.totalPages);
 		if (res.data.totalSize !== undefined) topicsTotalSize.set(res.data.totalSize);
 		topicsCurrentPage = 0;
+
+		updateRetrievalTimestamp(retrievedTimestamps, 'topics');
 	};
 
 	const errorMessage = (errMsg, errObj) => {
@@ -802,6 +809,8 @@
 							}}
 						/>
 					</div>
+					<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['topics']} />
+
 					<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 				{/if}
 			{/if}

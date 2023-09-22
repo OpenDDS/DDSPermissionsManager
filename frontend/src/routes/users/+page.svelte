@@ -5,6 +5,7 @@
 	import { httpAdapter } from '../../appconfig';
 	import users from '../../stores/users';
 	import Modal from '../../lib/Modal.svelte';
+	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import refreshPage from '../../stores/refreshPage';
 	import { goto } from '$app/navigation';
@@ -23,6 +24,8 @@
 	import messages from '$lib/messages.json';
 	import superUsersTotalPages from '../../stores/superUsersTotalPages';
 	import superUsersTotalSize from '../../stores/superUsersTotalSize';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import {updateRetrievalTimestamp} from '../../utils.js';
 
 	export let data, errors;
 
@@ -119,6 +122,7 @@
 			}
 			users.set(res.data.content);
 			superUsersCurrentPage = page;
+			updateRetrievalTimestamp(retrievedTimestamps, 'superUsers');
 		} catch (err) {
 			if (err.response.status === 401)
 				errorMessage(
@@ -161,6 +165,7 @@
 		if (searchUserResults.data.totalSize !== undefined)
 			superUsersTotalSize.set(searchUserResults.data.totalSize);
 		superUsersCurrentPage = 0;
+		updateRetrievalTimestamp(retrievedTimestamps, 'superUsers');
 	};
 
 	const addSuperUser = async (userEmail) => {
@@ -176,8 +181,8 @@
 					);
 				else errorMessage(errorMessages['super_user']['saving.error.title'], err.message);
 			});
-
 		userValidityCheck.set(true);
+		updateRetrievalTimestamp(retrievedTimestamps, 'superUsers');
 	};
 
 	const deleteSelectedSuperUsers = async () => {
@@ -185,6 +190,7 @@
 			for (const superUser of superUsersRowsSelected) {
 				await httpAdapter.put(`/admins/remove_admin/${superUser.id}`);
 			}
+			updateRetrievalTimestamp(retrievedTimestamps, 'superUsers');
 		} catch (err) {
 			const decodedError = decodeError(Object.create(...err.response.data));
 
@@ -550,6 +556,8 @@
 					/>
 				</div>
 			{/if}
+
+			<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['superUsers']} />
 			<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 		{/await}
 	{/if}
