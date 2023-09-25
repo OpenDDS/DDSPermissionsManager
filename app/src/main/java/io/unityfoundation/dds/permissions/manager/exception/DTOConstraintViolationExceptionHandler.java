@@ -146,6 +146,24 @@ public class DTOConstraintViolationExceptionHandler implements ExceptionHandler<
                     code = ResponseStatusCodes.ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION;
                 }
             }
+        } else if (code.contains(".grantDurationDTO.")) {
+            if (code.endsWith(".name")) {
+                if (descriptor.getAnnotation() instanceof NotBlank) {
+                    code = ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL;
+                } else if (descriptor.getAnnotation() instanceof Size) {
+                    code = ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS;
+                }
+            } else if (code.endsWith(".groupId")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION;
+                }
+            } else if (code.endsWith(".durationInMilliseconds")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL;
+                } else if (descriptor.getAnnotation() instanceof PositiveOrZero) {
+                    code = ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE;
+                }
+            }
         } else if (code.endsWith("dto.permissionsGroup")) {
             if (descriptor.getAnnotation() instanceof NotNull) {
                 code = ResponseStatusCodes.GROUP_MEMBERSHIP_REQUIRES_GROUP_ASSOCIATION;

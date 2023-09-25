@@ -89,6 +89,16 @@ public interface ResponseStatusCodes {
     String ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL = "action-interval.name.cannot-be-less-than-three-characters";
     String ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION = "action-interval.cannot-update-group-association";
 
+    // grant duration
+    String GRANT_DURATION_NOT_FOUND = "grant-duration.not-found";
+    String GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION = "grant-duration.requires-group-association";
+    String GRANT_DURATION_ALREADY_EXISTS = "grant-duration.exists";
+    String GRANT_DURATION_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "grant-duration.name.cannot-be-less-than-three-characters";
+    String GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL = "grant-duration.name.cannot-be-less-than-three-characters";
+    String GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL = "grant-duration.durationInMilliseconds.cannot-be-blank-or-null";
+    String GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE = "grant-duration.durationInMilliseconds.cannot-be-a-negative-value";
+    String GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION = "grant-duration.cannot-update-group-association";
+
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
     String INVALID_TOKEN = "security.invalid-token";
