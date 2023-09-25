@@ -172,7 +172,7 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest1, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
+            bodyOptional = exception1.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             list = bodyOptional.get();
             assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));

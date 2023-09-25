@@ -86,7 +86,7 @@ public interface ResponseStatusCodes {
     String ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION = "action-interval.requires-group-association";
     String ACTION_INTERVAL_ALREADY_EXISTS = "action-interval.exists";
     String ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "action-interval.name.cannot-be-less-than-three-characters";
-    String ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL = "action-interval.name.cannot-be-less-than-three-characters";
+    String ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL = "action-interval.cannot-be-blank-or-null";
     String ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION = "action-interval.cannot-update-group-association";
 
     // grant duration
