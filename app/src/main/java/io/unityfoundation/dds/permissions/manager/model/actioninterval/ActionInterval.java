@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package io.unityfoundation.dds.permissions.manager.model.expirationpolicy;
+package io.unityfoundation.dds.permissions.manager.model.actioninterval;
 
 
 import io.micronaut.core.annotation.NonNull;
@@ -24,8 +24,8 @@ import javax.validation.constraints.Size;
 import java.time.Instant;
 
 @Entity
-@Table(name = "permissions_expiration_policy")
-public class ExpirationPolicy {
+@Table(name = "permissions_action_interval")
+public class ActionInterval {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,12 +37,9 @@ public class ExpirationPolicy {
     private String name;
 
     @NonNull
-    private Instant refreshDate;
-
-    @Nullable
     private Instant startDate;
 
-    @Nullable
+    @NonNull
     private Instant endDate;
 
     @NonNull
@@ -50,12 +47,11 @@ public class ExpirationPolicy {
     private Group permissionsGroup;
 
 
-    public ExpirationPolicy() {
+    public ActionInterval() {
     }
 
-    public ExpirationPolicy(@NonNull String name, @NonNull Instant refreshDate, @NonNull Group group) {
+    public ActionInterval(@NonNull String name, @NonNull Group group) {
         this.name = name;
-        this.refreshDate = refreshDate;
         this.permissionsGroup = group;
     }
 
@@ -88,15 +84,6 @@ public class ExpirationPolicy {
 
     public void setPermissionsGroup(@NonNull Group permissionsGroup) {
         this.permissionsGroup = permissionsGroup;
-    }
-
-    @NonNull
-    public Instant getRefreshDate() {
-        return refreshDate;
-    }
-
-    public void setRefreshDate(@NonNull Instant refreshDate) {
-        this.refreshDate = refreshDate;
     }
 
     @Nullable

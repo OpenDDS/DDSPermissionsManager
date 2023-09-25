@@ -15,7 +15,7 @@ package io.unityfoundation.dds.permissions.manager.testing.util;
 
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
-import io.unityfoundation.dds.permissions.manager.model.expirationpolicy.ExpirationPolicyRepository;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
@@ -34,26 +34,26 @@ public class DbCleanup {
     private final ApplicationPermissionRepository applicationPermissionRepository;
     private final GroupUserRepository groupUserRepository;
     private final TopicSetRepository topicSetRepository;
-    private final ExpirationPolicyRepository expirationPolicyRepository;
+    private final ActionIntervalRepository actionIntervalRepository;
 
     public DbCleanup(TopicRepository topicRepository, GroupRepository groupRepository,
                      ApplicationRepository applicationRepository, UserRepository userRepository,
                      ApplicationPermissionRepository applicationPermissionRepository, GroupUserRepository groupUserRepository,
-                     TopicSetRepository topicSetRepository, ExpirationPolicyRepository expirationPolicyRepository) {
+                     TopicSetRepository topicSetRepository, ActionIntervalRepository actionIntervalRepository) {
         this.topicRepository = topicRepository;
         this.groupRepository = groupRepository;
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.applicationPermissionRepository = applicationPermissionRepository;
         this.groupUserRepository = groupUserRepository;
-        this.expirationPolicyRepository = expirationPolicyRepository;
+        this.actionIntervalRepository = actionIntervalRepository;
         this.topicSetRepository = topicSetRepository;
     }
 
     @Transactional
     public void cleanup() {
         topicSetRepository.deleteAll();
-        expirationPolicyRepository.deleteAll();
+        actionIntervalRepository.deleteAll();
         groupUserRepository.deleteAll();
         applicationPermissionRepository.deleteAll();
         topicRepository.deleteAll();

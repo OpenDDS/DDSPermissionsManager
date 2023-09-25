@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package io.unityfoundation.dds.permissions.manager.model.expirationpolicy.dto;
+package io.unityfoundation.dds.permissions.manager.model.actioninterval.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.Introspected;
@@ -23,7 +23,7 @@ import javax.validation.constraints.Size;
 import java.time.Instant;
 
 @Introspected
-public class ExpirationPolicyDTO implements EntityDTO {
+public class ActionIntervalDTO implements EntityDTO {
 
     @NotBlank
     @Size(min = 3)
@@ -36,23 +36,20 @@ public class ExpirationPolicyDTO implements EntityDTO {
 
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Instant refreshDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant startDate;
 
+    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant endDate;
 
-    public ExpirationPolicyDTO() {
+    public ActionIntervalDTO() {
     }
 
-    public ExpirationPolicyDTO(Long id, String name, Long groupId, String groupName, Instant refreshDate, Instant startDate, Instant endDate) {
+    public ActionIntervalDTO(Long id, String name, Long groupId, String groupName, Instant startDate, Instant endDate) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
         this.groupName = groupName;
-        this.refreshDate = refreshDate;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -87,14 +84,6 @@ public class ExpirationPolicyDTO implements EntityDTO {
 
     public void setGroupName(String groupName) {
         this.groupName = groupName;
-    }
-
-    public Instant getRefreshDate() {
-        return refreshDate;
-    }
-
-    public void setRefreshDate(Instant refreshDate) {
-        this.refreshDate = refreshDate;
     }
 
     public Instant getStartDate() {

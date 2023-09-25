@@ -26,8 +26,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.expirationpolicy.dto.CreateExpirationPolicyDTO;
-import io.unityfoundation.dds.permissions.manager.model.expirationpolicy.dto.ExpirationPolicyDTO;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,9 +51,9 @@ import java.util.stream.Stream;
 import static io.micronaut.http.HttpStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Property(name = "spec.name", value = "ExpirationPolicyApiTest")
+@Property(name = "spec.name", value = "ActionIntervalApiTest")
 @MicronautTest
-public class ExpirationPolicyApiTest {
+public class ActionIntervalApiTest {
 
     private BlockingHttpClient blockingClient;
 
@@ -83,12 +84,12 @@ public class ExpirationPolicyApiTest {
         blockingClient = client.toBlocking();
     }
 
-    @Requires(property = "spec.name", value = "ExpirationPolicyApiTest")
+    @Requires(property = "spec.name", value = "ActionIntervalApiTest")
     @Singleton
     static class MockAuthenticationFetcher extends AuthenticationFetcherReplacement {
     }
 
-    @Requires(property = "spec.name", value = "ExpirationPolicyApiTest")
+    @Requires(property = "spec.name", value = "ActionIntervalApiTest")
     @Replaces(SecurityService.class)
     @Singleton
     static class MockSecurityService extends SecurityServiceReplacement {
@@ -107,18 +108,18 @@ public class ExpirationPolicyApiTest {
         //create
         @Test
         void cannotCreateOnItsOwnWithoutAGroupAssociation() {
-            CreateExpirationPolicyDTO abcDTO = new CreateExpirationPolicyDTO();
+            CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
             abcDTO.setName("abc");
 
-            HttpRequest<?> request = HttpRequest.POST("/expiration_policies", abcDTO);
+            HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(request, ExpirationPolicyDTO.class);
+                blockingClient.exchange(request, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.EXPIRATION_POLICY_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
         }
 
         @Test
@@ -131,10 +132,10 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createExpirationPolicy("Abc123", theta.getId());
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicy = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicy.isPresent());
+            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionInterval.isPresent());
         }
 
         @Test
@@ -148,33 +149,33 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create expiration policies
-            CreateExpirationPolicyDTO expirationPolicyDTO = new CreateExpirationPolicyDTO();
-            expirationPolicyDTO.setGroupId(theta.getId());
+            // create action intervals
+            CreateActionIntervalDTO actionIntervalDTO = new CreateActionIntervalDTO();
+            actionIntervalDTO.setGroupId(theta.getId());
 
-            request = HttpRequest.POST("/expiration_policies/", expirationPolicyDTO);
+            request = HttpRequest.POST("/action_intervals/", actionIntervalDTO);
 
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(finalRequest, ExpirationPolicyDTO.class);
+                blockingClient.exchange(finalRequest, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.EXPIRATION_POLICY_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
 
-            expirationPolicyDTO.setName("     ");
-            request = HttpRequest.POST("/expiration_policies", expirationPolicyDTO);
+            actionIntervalDTO.setName("     ");
+            request = HttpRequest.POST("/action_intervals", actionIntervalDTO);
             HttpRequest<?> finalRequest1 = request;
             HttpClientResponseException exception1 = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(finalRequest1, ExpirationPolicyDTO.class);
+                blockingClient.exchange(finalRequest1, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
             bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.EXPIRATION_POLICY_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
         }
 
         @Test
@@ -188,13 +189,13 @@ public class ExpirationPolicyApiTest {
             SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createExpirationPolicy("A", theta.getId());
+                createActionInterval("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.EXPIRATION_POLICY_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
         }
 
         @Test
@@ -207,11 +208,11 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createExpirationPolicy("   Abc123  ", theta.getId());
+            response = createActionInterval("   Abc123  ", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicy = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicy.isPresent());
-            assertEquals("Abc123", expirationPolicy.get().getName());
+            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionInterval.isPresent());
+            assertEquals("Abc123", actionInterval.get().getName());
         }
 
         @Test
@@ -231,15 +232,15 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            response = createExpirationPolicy("Abc123", theta.getId());
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO abcExpirationPolicy = expirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalOptional.isPresent());
+            ActionIntervalDTO abcActionInterval = actionIntervalOptional.get();
 
             // update attempt
-            abcExpirationPolicy.setGroupId(zeta.getId());
-            request = HttpRequest.PUT("/expiration_policies/"+abcExpirationPolicy.getId(), abcExpirationPolicy);
+            abcActionInterval.setGroupId(zeta.getId());
+            request = HttpRequest.PUT("/action_intervals/"+abcActionInterval.getId(), abcActionInterval);
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -248,11 +249,11 @@ public class ExpirationPolicyApiTest {
             Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.EXPIRATION_POLICY_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
         }
 
         @Test
-        public void canUpdateNameAndRefreshDate() {
+        public void canUpdateNameAndDates() {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
@@ -262,30 +263,33 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO savedExpirationPolicy = expirationPolicyOptional.get();
-            assertEquals("Abc123", savedExpirationPolicy.getName());
+            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalOptional.isPresent());
+            ActionIntervalDTO savedActionInterval = actionIntervalOptional.get();
+            assertEquals("Abc123", savedActionInterval.getName());
 
-            // with different name
-            savedExpirationPolicy.setName("NewName123");
-            Instant newDateTime = Instant.ofEpochMilli(1675899232);
-            savedExpirationPolicy.setRefreshDate(newDateTime);
-            request = HttpRequest.PUT("/expiration_policies/"+savedExpirationPolicy.getId(), savedExpirationPolicy);
-            response = blockingClient.exchange(request, ExpirationPolicyDTO.class);
+            // with different name and dates
+            savedActionInterval.setName("NewName123");
+            Instant updateStartInstant = Instant.now().plus(2, ChronoUnit.DAYS);
+            savedActionInterval.setStartDate(updateStartInstant);
+            Instant updateEndInstant = Instant.now().plus(5, ChronoUnit.DAYS);
+            savedActionInterval.setEndDate(updateEndInstant);
+            request = HttpRequest.PUT("/action_intervals/"+savedActionInterval.getId(), savedActionInterval);
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> updatedExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(updatedExpirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO updatedExpirationPolicy = updatedExpirationPolicyOptional.get();
-            assertEquals("NewName123", updatedExpirationPolicy.getName());
-            assertEquals(newDateTime, updatedExpirationPolicy.getRefreshDate());
+            Optional<ActionIntervalDTO> updatedActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(updatedActionIntervalOptional.isPresent());
+            ActionIntervalDTO updatedActionInterval = updatedActionIntervalOptional.get();
+            assertEquals("NewName123", updatedActionInterval.getName());
+            assertEquals(updateStartInstant, updatedActionInterval.getStartDate());
+            assertEquals(updateEndInstant, updatedActionInterval.getEndDate());
         }
 
         @Test
-        public void cannotCreateExpirationPolicyWithSameNameInGroup() {
+        public void cannotCreateActionIntervalWithSameNameInGroup() {
             HttpResponse<?> response;
 
             response = createGroup("Theta");
@@ -294,27 +298,27 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO savedExpirationPolicy = expirationPolicyOptional.get();
-            assertEquals("Abc123", savedExpirationPolicy.getName());
+            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalOptional.isPresent());
+            ActionIntervalDTO savedActionInterval = actionIntervalOptional.get();
+            assertEquals("Abc123", savedActionInterval.getName());
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createExpirationPolicy("Abc123", theta.getId());
+                createActionInterval("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.EXPIRATION_POLICY_ALREADY_EXISTS.equals(group.get("code"))));
+            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.ACTION_INTERVAL_ALREADY_EXISTS.equals(group.get("code"))));
         }
 
         //show
         @Test
-        void canShowExpirationPolicyAssociatedToAGroup(){
+        void canShowActionIntervalAssociatedToAGroup(){
             HttpRequest<?> request;
             HttpResponse<?> response;
 
@@ -324,28 +328,29 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = expirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalOptional.isPresent());
+            ActionIntervalDTO xyzActionInterval = actionIntervalOptional.get();
 
-            // show expiration policy
-            request = HttpRequest.GET("/expiration_policies/"+xyzExpirationPolicy.getId());
-            response = blockingClient.exchange(request, ExpirationPolicyDTO.class);
+            // show action interval
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyShowResponse = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyShowResponse.isPresent());
-            assertNotNull(expirationPolicyShowResponse.get().getId());
-            assertNotNull(expirationPolicyShowResponse.get().getGroupId());
-            assertNotNull(expirationPolicyShowResponse.get().getGroupName());
-            assertNotNull(expirationPolicyShowResponse.get().getRefreshDate());
+            Optional<ActionIntervalDTO> actionIntervalShowResponse = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalShowResponse.isPresent());
+            assertNotNull(actionIntervalShowResponse.get().getId());
+            assertNotNull(actionIntervalShowResponse.get().getGroupId());
+            assertNotNull(actionIntervalShowResponse.get().getGroupName());
+            assertNotNull(actionIntervalShowResponse.get().getStartDate());
+            assertNotNull(actionIntervalShowResponse.get().getEndDate());
         }
 
-        // list all expiration policies from all groups
+        // list all action intervals from all groups
         @Test
-        void canListAllExpirationPoliciesAndExpirationPoliciesWithSameNameCanExistSitewide(){
-            // Group - Expiration Policiess
+        void canListAllActionIntervalsAndActionIntervalsWithSameNameCanExistSitewide(){
+            // Group - Action Intervals
             // ---
             // Green - Xyz789
             // Yellow - Abc123 & Xyz789
@@ -365,28 +370,28 @@ public class ExpirationPolicyApiTest {
             assertTrue(yellowOptional.isPresent());
             SimpleGroupDTO yellow = yellowOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", yellow.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", green.getId());
+            response = createActionInterval("Xyz789", green.getId());
             assertEquals(OK, response.getStatus());
 
             // site-wide test
-            response = createExpirationPolicy("Xyz789", yellow.getId());
+            response = createActionInterval("Xyz789", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/expiration_policies");
+            request = HttpRequest.GET("/action_intervals");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(3, expirationPolicyPage.get().getContent().size());
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(3, actionIntervalPage.get().getContent().size());
         }
 
         @Test
-        void canListAllExpirationPoliciesWithFilter(){
-            // Group - Expiration Policies
+        void canListAllActionIntervalsWithFilter(){
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -406,33 +411,33 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
-            request = HttpRequest.GET("/expiration_policies?filter=xyz");
+            request = HttpRequest.GET("/action_intervals?filter=xyz");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
 
             // group search
-            request = HttpRequest.GET("/expiration_policies?filter=heta");
+            request = HttpRequest.GET("/action_intervals?filter=heta");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
         }
 
         @Test
-        void canLisExpirationPoliciesWithGroupId(){
-            // Group - Expiration Policies
+        void canLisActionIntervalsWithGroupId(){
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -452,52 +457,52 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> abcOptional = response.getBody(ExpirationPolicyDTO.class);
+            Optional<ActionIntervalDTO> abcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcOptional.isPresent());
-            ExpirationPolicyDTO abcExpirationPolicy = abcOptional.get();
+            ActionIntervalDTO abcActionInterval = abcOptional.get();
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzOptional = response.getBody(ExpirationPolicyDTO.class);
+            Optional<ActionIntervalDTO> xyzOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = xyzOptional.get();
+            ActionIntervalDTO xyzActionInterval = xyzOptional.get();
 
-            // can list both expiration policies
-            request = HttpRequest.GET("/expiration_policies?group="+theta.getId());
+            // can list both action intervals
+            request = HttpRequest.GET("/action_intervals?group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            Map map = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals(map.get("id"), xyzExpirationPolicy.getId().intValue());
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            Map map = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals(map.get("id"), xyzActionInterval.getId().intValue());
 
-            request = HttpRequest.GET("/expiration_policies?group="+zeta.getId());
+            request = HttpRequest.GET("/action_intervals?group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            map = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals(map.get("id"), abcExpirationPolicy.getId().intValue());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            map = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals(map.get("id"), abcActionInterval.getId().intValue());
 
             // in addition to group, support filter param
-            request = HttpRequest.GET("/expiration_policies?filter=abc&group="+zeta.getId());
+            request = HttpRequest.GET("/action_intervals?filter=abc&group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            map = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals(map.get("id"), abcExpirationPolicy.getId().intValue());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            map = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals(map.get("id"), abcActionInterval.getId().intValue());
         }
 
         @Test
-        void canListAllExpirationPoliciesNameInAscendingOrderByDefault(){
-            // Group - Expiration Policies
+        void canListAllActionIntervalsNameInAscendingOrderByDefault(){
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789 & Def456
             // Zeta - Abc123 & Def456
@@ -517,43 +522,43 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Def456", zeta.getId());
+            response = createActionInterval("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Def456", theta.getId());
+            response = createActionInterval("Def456", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/expiration_policies");
+            request = HttpRequest.GET("/action_intervals");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            List<Map> expirationPolicies = expirationPolicyPage.get().getContent();
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            List<Map> actionIntervals = actionIntervalPage.get().getContent();
 
-            // expiration policy names sorted
-            List<String> expirationPolicyNames = expirationPolicies.stream()
+            // action interval names sorted
+            List<String> actionIntervalNames = actionIntervals.stream()
                     .flatMap(map -> Stream.of((String) map.get("name")))
                     .collect(Collectors.toList());
-            assertEquals(expirationPolicyNames.stream().sorted().collect(Collectors.toList()), expirationPolicyNames);
+            assertEquals(actionIntervalNames.stream().sorted().collect(Collectors.toList()), actionIntervalNames);
 
-            // group names should be sorted by expiration policy
-            List<String> defExpirationPolicies = expirationPolicies.stream().filter(map -> {
-                String expirationPolicyName = (String) map.get("name");
-                return expirationPolicyName.equals("Def456");
+            // group names should be sorted by action interval
+            List<String> defActionIntervals = actionIntervals.stream().filter(map -> {
+                String actionIntervalName = (String) map.get("name");
+                return actionIntervalName.equals("Def456");
             }).flatMap(map -> Stream.of((String) map.get("groupName"))).collect(Collectors.toList());
-            assertEquals(defExpirationPolicies.stream().sorted().collect(Collectors.toList()), defExpirationPolicies);
+            assertEquals(defActionIntervals.stream().sorted().collect(Collectors.toList()), defActionIntervals);
         }
 
         @Test
-        void canListAllExpirationPoliciesNameInDescendingOrder(){
-            // Group - Expiration Policies
+        void canListAllActionIntervalsNameInDescendingOrder(){
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123 & Def456
@@ -573,27 +578,27 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Def456", zeta.getId());
+            response = createActionInterval("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/expiration_policies?sort=name,desc");
+            request = HttpRequest.GET("/action_intervals?sort=name,desc");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            List<Map> expirationPolicies = expirationPolicyPage.get().getContent();
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            List<Map> actionIntervals = actionIntervalPage.get().getContent();
 
-            List<String> expirationPolicyNames = expirationPolicies.stream()
+            List<String> actionIntervalNames = actionIntervals.stream()
                     .flatMap(map -> Stream.of((String) map.get("name")))
                     .collect(Collectors.toList());
-            assertEquals(expirationPolicyNames.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList()), expirationPolicyNames);
+            assertEquals(actionIntervalNames.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList()), actionIntervalNames);
         }
 
         //delete
@@ -623,7 +628,7 @@ public class ExpirationPolicyApiTest {
 
         // create
         @Test
-        void canCreateExpirationPolicy(){
+        void canCreateActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -642,14 +647,14 @@ public class ExpirationPolicyApiTest {
 
             loginAsNonAdmin();
 
-            // create expiration policy
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action interval
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
         }
 
         // delete
         @Test
-        void canDeleteExpirationPolicy(){
+        void canDeleteActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -667,16 +672,16 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policy
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action interval
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicy = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicy.isPresent());
+            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionInterval.isPresent());
 
             loginAsNonAdmin();
 
             // delete attempt
-            request = HttpRequest.DELETE("/expiration_policies/"+expirationPolicy.get().getId(), Map.of());
+            request = HttpRequest.DELETE("/action_intervals/"+actionInterval.get().getId(), Map.of());
             response = blockingClient.exchange(request);
             assertEquals(NO_CONTENT, response.getStatus());
         }
@@ -703,7 +708,7 @@ public class ExpirationPolicyApiTest {
 
         // create
         @Test
-        void cannotCreateExpirationPolicy(){
+        void cannotCreateActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -722,9 +727,9 @@ public class ExpirationPolicyApiTest {
 
             loginAsNonAdmin();
 
-            // create expiration policy
+            // create action interval
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createExpirationPolicy("Abc123", theta.getId());
+                createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -735,7 +740,7 @@ public class ExpirationPolicyApiTest {
 
         // delete
         @Test
-        void cannotDeleteExpirationPolicy(){
+        void cannotDeleteActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -752,17 +757,17 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policy
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action interval
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> abcTopiSetcOptional = response.getBody(ExpirationPolicyDTO.class);
+            Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
-            ExpirationPolicyDTO abcExpirationPolicy = abcTopiSetcOptional.get();
+            ActionIntervalDTO abcActionInterval = abcTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
             // delete attempt
-            HttpRequest<?> request2 = HttpRequest.DELETE("/expiration_policies/"+abcExpirationPolicy.getId(), Map.of());
+            HttpRequest<?> request2 = HttpRequest.DELETE("/action_intervals/"+abcActionInterval.getId(), Map.of());
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(request2);
             });
@@ -775,11 +780,11 @@ public class ExpirationPolicyApiTest {
 
         // show
         @Test
-        void canShowExpirationPolicyWithAssociatedGroup(){
+        void canShowActionIntervalWithAssociatedGroup(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Expiration Policies - Members
+            // Group - Action Intervals - Members
             // ---
             // Theta - Xyz789 - jjones
             // Zeta - Abc123 - None
@@ -804,31 +809,31 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policies
-            createExpirationPolicy("Abc123", zeta.getId());
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            // create action intervals
+            createActionInterval("Abc123", zeta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = xyzExpirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
+            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies/"+xyzExpirationPolicy.getId());
-            response = blockingClient.exchange(request, ExpirationPolicyDTO.class);
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> expirationPolicyResponseOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(expirationPolicyResponseOptional.isPresent());
-            assertEquals("Xyz789", expirationPolicyResponseOptional.get().getName());
-            assertEquals("Theta", expirationPolicyResponseOptional.get().getGroupName());
+            Optional<ActionIntervalDTO> actionIntervalResponseOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalResponseOptional.isPresent());
+            assertEquals("Xyz789", actionIntervalResponseOptional.get().getName());
+            assertEquals("Theta", actionIntervalResponseOptional.get().getGroupName());
         }
 
         @Test
-        void cannotShowExpirationPolicyIfExpirationPolicyBelongsToAGroupIAmNotAMemberOf(){
+        void cannotShowActionIntervalIfActionIntervalBelongsToAGroupIAmNotAMemberOf(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Expiration Policies - Members
+            // Group - Action Intervals - Members
             // ---
             // Theta - Xyz789 - jjones
             // Omega - Abc123 - None
@@ -854,22 +859,22 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", omega.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", omega.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> abcExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(abcExpirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO abcExpirationPolicy = abcExpirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(abcActionIntervalOptional.isPresent());
+            ActionIntervalDTO abcActionInterval = abcActionIntervalOptional.get();
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = xyzExpirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
+            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies/"+abcExpirationPolicy.getId());
+            request = HttpRequest.GET("/action_intervals/"+abcActionInterval.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -883,11 +888,11 @@ public class ExpirationPolicyApiTest {
 
         // list
         @Test
-        void canListAllExpirationPoliciesLimitedToMembership(){
+        void canListAllActionIntervalsLimitedToMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Expiration Policies
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -912,35 +917,35 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> abcExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(abcExpirationPolicyOptional.isPresent());
+            Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(abcActionIntervalOptional.isPresent());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies");
+            request = HttpRequest.GET("/action_intervals");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            Map expectedExpirationPolicy = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedExpirationPolicy.get("name"));
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedActionInterval.get("name"));
         }
 
         @Test
-        void canListExpirationPoliciesWithFilterLimitedToGroupMembership(){
+        void canListActionIntervalsWithFilterLimitedToGroupMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Expiration Policies
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -965,50 +970,50 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policies
-            createExpirationPolicy("Abc123", zeta.getId());
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            // create action intervals
+            createActionInterval("Abc123", zeta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
 
             loginAsNonAdmin();
 
             // support case-insensitive
-            request = HttpRequest.GET("/expiration_policies?filter=xyz");
+            request = HttpRequest.GET("/action_intervals?filter=xyz");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            Map expectedExpirationPolicy = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedExpirationPolicy.get("name"));
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedActionInterval.get("name"));
 
             // Negative case
-            request = HttpRequest.GET("/expiration_policies?filter=abc");
+            request = HttpRequest.GET("/action_intervals?filter=abc");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(0, expirationPolicyPage.get().getContent().size());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(0, actionIntervalPage.get().getContent().size());
 
             // group search
-            request = HttpRequest.GET("/expiration_policies?filter=heta");
+            request = HttpRequest.GET("/action_intervals?filter=heta");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            expectedExpirationPolicy = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedExpirationPolicy.get("name"));
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedActionInterval.get("name"));
         }
 
         @Test
-        void canListExpirationPoliciesWithGroupParameterLimitedToGroupMembership(){
+        void canListActionIntervalsWithGroupParameterLimitedToGroupMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Expiration Policies
+            // Group - Action Intervals
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -1033,49 +1038,49 @@ public class ExpirationPolicyApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create expiration policies
-            createExpirationPolicy("Abc123", zeta.getId());
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            // create action intervals
+            createActionInterval("Abc123", zeta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
 
             loginAsNonAdmin();
 
             // group search
-            request = HttpRequest.GET("/expiration_policies?group="+theta.getId());
+            request = HttpRequest.GET("/action_intervals?group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            Map expectedExpirationPolicy = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedExpirationPolicy.get("name"));
+            Optional<Page> actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedActionInterval.get("name"));
 
             // filter param support
-            request = HttpRequest.GET("/expiration_policies?filter=xyz&group="+theta.getId());
+            request = HttpRequest.GET("/action_intervals?filter=xyz&group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(1, expirationPolicyPage.get().getContent().size());
-            expectedExpirationPolicy = (Map) expirationPolicyPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedExpirationPolicy.get("name"));
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(1, actionIntervalPage.get().getContent().size());
+            expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedActionInterval.get("name"));
 
             // Negative cases
-            request = HttpRequest.GET("/expiration_policies?group="+zeta.getId());
+            request = HttpRequest.GET("/action_intervals?group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(0, expirationPolicyPage.get().getContent().size());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(0, actionIntervalPage.get().getContent().size());
 
-            request = HttpRequest.GET("/expiration_policies?filter=abc&group="+zeta.getId());
+            request = HttpRequest.GET("/action_intervals?filter=abc&group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            expirationPolicyPage = response.getBody(Page.class);
-            assertTrue(expirationPolicyPage.isPresent());
-            assertEquals(0, expirationPolicyPage.get().getContent().size());
+            actionIntervalPage = response.getBody(Page.class);
+            assertTrue(actionIntervalPage.isPresent());
+            assertEquals(0, actionIntervalPage.get().getContent().size());
         }
     }
 
@@ -1100,7 +1105,7 @@ public class ExpirationPolicyApiTest {
 
         // create
         @Test
-        void cannotCreateExpirationPolicy(){
+        void cannotCreateActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1115,9 +1120,9 @@ public class ExpirationPolicyApiTest {
 
             loginAsNonAdmin();
 
-            // create expiration policies
+            // create action intervals
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createExpirationPolicy("Abc123", theta.getId());
+                createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1128,7 +1133,7 @@ public class ExpirationPolicyApiTest {
 
         // delete
         @Test
-        void cannotDeleteExpirationPolicy(){
+        void cannotDeleteActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1142,17 +1147,17 @@ public class ExpirationPolicyApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", theta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> abcTopiSetcOptional = response.getBody(ExpirationPolicyDTO.class);
+            Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
-            ExpirationPolicyDTO abcExpirationPolicy = abcTopiSetcOptional.get();
+            ActionIntervalDTO abcActionInterval = abcTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
             // delete attempt
-            request = HttpRequest.DELETE("/expiration_policies/"+abcExpirationPolicy.getId(), Map.of());
+            request = HttpRequest.DELETE("/action_intervals/"+abcActionInterval.getId(), Map.of());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1166,7 +1171,7 @@ public class ExpirationPolicyApiTest {
 
         // show
         @Test
-        void cannotShowExpirationPolicyWithAssociatedGroup(){
+        void cannotShowActionIntervalWithAssociatedGroup(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1186,19 +1191,19 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzTopiSetcOptional = response.getBody(ExpirationPolicyDTO.class);
+            Optional<ActionIntervalDTO> xyzTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzTopiSetcOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = xyzTopiSetcOptional.get();
+            ActionIntervalDTO xyzActionInterval = xyzTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies/"+xyzExpirationPolicy.getId());
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1225,7 +1230,7 @@ public class ExpirationPolicyApiTest {
         }
 
         @Test
-        void cannotListAllExpirationPolicies(){
+        void cannotListAllActionIntervals(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1250,18 +1255,18 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies");
+            request = HttpRequest.GET("/action_intervals");
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1270,7 +1275,7 @@ public class ExpirationPolicyApiTest {
         }
 
         @Test
-        void cannotShowAExpirationPolicyWithGroupAssociation(){
+        void cannotShowAActionIntervalWithGroupAssociation(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1295,19 +1300,19 @@ public class ExpirationPolicyApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
-            // create expiration policies
-            response = createExpirationPolicy("Abc123", zeta.getId());
+            // create action intervals
+            response = createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createExpirationPolicy("Xyz789", theta.getId());
+            response = createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ExpirationPolicyDTO> xyzExpirationPolicyOptional = response.getBody(ExpirationPolicyDTO.class);
-            assertTrue(xyzExpirationPolicyOptional.isPresent());
-            ExpirationPolicyDTO xyzExpirationPolicy = xyzExpirationPolicyOptional.get();
+            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(xyzActionIntervalOptional.isPresent());
+            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/expiration_policies/"+xyzExpirationPolicy.getId());
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1334,13 +1339,14 @@ public class ExpirationPolicyApiTest {
         return blockingClient.exchange(request, GroupUserResponseDTO.class);
     }
 
-    private HttpResponse<?> createExpirationPolicy(String name, Long groupId) {
-        CreateExpirationPolicyDTO abcDTO = new CreateExpirationPolicyDTO();
+    private HttpResponse<?> createActionInterval(String name, Long groupId) {
+        CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
         abcDTO.setName(name);
         abcDTO.setGroupId(groupId);
-        abcDTO.setRefreshDate(Instant.now());
+        abcDTO.setStartDate(Instant.now());
+        abcDTO.setEndDate(Instant.now().plus(1, ChronoUnit.DAYS));
 
-        HttpRequest<?> request = HttpRequest.POST("/expiration_policies", abcDTO);
-        return blockingClient.exchange(request, ExpirationPolicyDTO.class);
+        HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
+        return blockingClient.exchange(request, ActionIntervalDTO.class);
     }
 }

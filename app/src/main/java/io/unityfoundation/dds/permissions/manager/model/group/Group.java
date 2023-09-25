@@ -17,7 +17,7 @@ package io.unityfoundation.dds.permissions.manager.model.group;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
-import io.unityfoundation.dds.permissions.manager.model.expirationpolicy.ExpirationPolicy;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
 import org.hibernate.annotations.OnDelete;
@@ -63,7 +63,7 @@ public class Group {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<ExpirationPolicy> expirationPolicies = new HashSet<>();
+    private Set<ActionInterval> actionIntervals = new HashSet<>();
 
     public Group() {
     }
@@ -146,21 +146,21 @@ public class Group {
         topicSets.add(topicSet);
     }
 
-    public Set<ExpirationPolicy> getExpirationPolicies() {
-        if (expirationPolicies == null) return null;
-        return Collections.unmodifiableSet(expirationPolicies);
+    public Set<ActionInterval> getActionIntervals() {
+        if (actionIntervals == null) return null;
+        return Collections.unmodifiableSet(actionIntervals);
     }
 
-    public void setExpirationPolicies(Set<ExpirationPolicy> expirationPolicies) {
-        this.expirationPolicies = expirationPolicies;
+    public void setActionIntervals(Set<ActionInterval> actionIntervals) {
+        this.actionIntervals = actionIntervals;
     }
 
-    public boolean removeExpirationPolicy(Long expirationPolicyId) {
-        return expirationPolicies.removeIf(expirationPolicy -> expirationPolicyId != null && expirationPolicyId.equals(expirationPolicy.getId()));
+    public boolean removeActionInterval(Long actionIntervalId) {
+        return actionIntervals.removeIf(actionInterval -> actionIntervalId != null && actionIntervalId.equals(actionInterval.getId()));
     }
 
-    public void addExpirationPolicy(ExpirationPolicy expirationPolicy) {
-        expirationPolicies.add(expirationPolicy);
+    public void addActionInterval(ActionInterval actionInterval) {
+        actionIntervals.add(actionInterval);
     }
 
     @PrePersist

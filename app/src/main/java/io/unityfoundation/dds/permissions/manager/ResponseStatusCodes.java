@@ -81,13 +81,13 @@ public interface ResponseStatusCodes {
     String TOPIC_SET_ALREADY_EXISTS = "topic-set.exists";
     String TOPIC_SET_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "topic-set.name.cannot-be-less-than-three-characters";
 
-    // expiration policy
-    String EXPIRATION_POLICY_NOT_FOUND = "expiration-policy.not-found";
-    String EXPIRATION_POLICY_REQUIRES_GROUP_ASSOCIATION = "expiration-policy.requires-group-association";
-    String EXPIRATION_POLICY_ALREADY_EXISTS = "expiration-policy.exists";
-    String EXPIRATION_POLICY_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "expiration-policy.name.cannot-be-less-than-three-characters";
-    String EXPIRATION_POLICY_NAME_CANNOT_BE_BLANK_OR_NULL = "expiration-policy.name.cannot-be-less-than-three-characters";
-    String EXPIRATION_POLICY_CANNOT_UPDATE_GROUP_ASSOCIATION = "expiration-policy.cannot-update-group-association";
+    // action interval
+    String ACTION_INTERVAL_NOT_FOUND = "action-interval.not-found";
+    String ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION = "action-interval.requires-group-association";
+    String ACTION_INTERVAL_ALREADY_EXISTS = "action-interval.exists";
+    String ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "action-interval.name.cannot-be-less-than-three-characters";
+    String ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL = "action-interval.name.cannot-be-less-than-three-characters";
+    String ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION = "action-interval.cannot-update-group-association";
 
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
