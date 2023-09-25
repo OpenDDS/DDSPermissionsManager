@@ -1,6 +1,7 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import Select from 'svelte-select';
+	import moment from 'moment';
 	import { isAuthenticated, isAdmin } from '../../stores/authentication';
 	import { onMount } from 'svelte';
 	import editSVG from '../../icons/edit.svg';
@@ -21,6 +22,7 @@
 		selectedTopicsSetGroupName,
 		selectedTopicsSetGroupId,
 		selectedTopicApplications = [],
+		selectedTopicSetUpdateDate,
 		topicCurrentGroupPublic;
 	// Selection
 	let grantsRowsSelected = [],
@@ -79,6 +81,7 @@
 		selectedTopicsSetName = $topicSetsDetails.name;
 		selectedTopicsSetGroupName = $topicSetsDetails.groupName;
 		selectedTopicsSetGroupId = $topicSetsDetails.groupId;
+		selectedTopicSetUpdateDate = $topicSetsDetails.dateUpdated;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicsSetGroupName);
 		headerTitle.set(selectedTopicsSetName);
@@ -211,6 +214,11 @@
 			errorMessage(errorMessages['topic']['deleting.error.title'], err.message);
 		}
 	};
+
+	$: timeAgo = moment($topicSetsDetails.dateUpdated).fromNow();
+	$: browserFormat = new Date($topicSetsDetails.dateUpdated).toLocaleString();
+
+	//
 </script>
 
 {#if $isAuthenticated}
@@ -256,6 +264,10 @@
 			{/if}
 		</div>
 
+		{#if $topicSetsDetails.dateUpdated}
+			<p style="font-weight: 200; margin-bottom: 2rem;">Last updated {timeAgo} ({browserFormat})</p>
+		{/if}
+		<div style="font-size:1.3rem; margin-bottom: 1rem">Topics</div>
 		<div class="search-delete-container">
 			<div class="search-wrapper">
 				<Select
@@ -495,10 +507,6 @@
 		width: 100%;
 		min-width: fit-content;
 		margin-right: 1rem;
-	}
-
-	p {
-		font-size: large;
 	}
 
 	.no-topics {
