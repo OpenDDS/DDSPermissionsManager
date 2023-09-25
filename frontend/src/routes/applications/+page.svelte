@@ -6,6 +6,7 @@
 	import permissionsByGroup from '../../stores/permissionsByGroup';
 	import refreshPage from '../../stores/refreshPage';
 	import Modal from '../../lib/Modal.svelte';
+	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import applications from '../../stores/applications';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
@@ -32,6 +33,8 @@
 	import applicationsTotalPages from '../../stores/applicationsTotalPages';
 	import applicationsTotalSize from '../../stores/applicationsTotalSize';
 	import ApplicationDetails from './ApplicationDetails.svelte';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
+	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	export let data, errors;
 
@@ -231,6 +234,8 @@
 			}
 			applications.set(res.data.content);
 			applicationsCurrentPage = page;
+
+			updateRetrievalTimestamp(retrievedTimestamps, 'applications');
 		} catch (err) {
 			userValidityCheck.set(true);
 			applications.set();
@@ -315,6 +320,7 @@
 		if (searchAppResults.data.totalSize !== undefined)
 			applicationsTotalSize.set(searchAppResults.data.totalSize);
 		applicationsCurrentPage = 0;
+		updateRetrievalTimestamp(retrievedTimestamps, 'applications');
 	};
 
 	const addApplication = async (
@@ -345,6 +351,7 @@
 				group: forwardedSelectedGroup
 			});
 			addApplicationVisible = false;
+			updateRetrievalTimestamp(retrievedTimestamps, 'applications');
 		} catch (err) {
 			if (err.response.data && err.response.status === 400) {
 				const decodedError = decodeError(Object.create(...err.response.data));
@@ -364,6 +371,7 @@
 			for (const app of applicationsRowsSelected) {
 				await httpAdapter.delete(`/applications/${app.id}`);
 			}
+			updateRetrievalTimestamp(retrievedTimestamps, 'applications');
 		} catch (err) {
 			const decodedError = decodeError(Object.create(...err.response.data));
 			errorMessage(
@@ -957,7 +965,8 @@
 									deleteTopicApplicationAssociation(e.detail);
 								}}
 								on:reloadAllApps={() => reloadAllApps()}
-								on:loadApplicationDetail={() => loadApplicationDetail(selectedAppId, selectedAppGroupId)}
+								on:loadApplicationDetail={() =>
+									loadApplicationDetail(selectedAppId, selectedAppGroupId)}
 							/>
 
 							<div style="display: inline-flex; height: 7rem; margin-left: -1rem">
@@ -1390,6 +1399,7 @@
 						/>
 					</div>
 				{/if}
+				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['applications']} />
 				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 			{/if}
 		{/await}

@@ -7,6 +7,7 @@
 	import refreshPage from '../../stores/refreshPage';
 	import Modal from '../../lib/Modal.svelte';
 	import TopicSetDetails from './TopicSetDetails.svelte';
+	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import userValidityCheck from '../../stores/userValidityCheck';
@@ -28,6 +29,8 @@
 	import topicsTotalSize from '../../stores/topicsTotalSize';
 	import topicsTotalPages from '../../stores/topicsTotalPages';
 	import topicSets from '../../stores/topicSets';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps';
+	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	// Group Context
 	$: if ($groupContext?.id) reloadAllTopicSets();
@@ -161,6 +164,7 @@
 			}
 			topicSets.set(res.data.content);
 			topicsCurrentPage = page;
+			updateRetrievalTimestamp(retrievedTimestamps, 'topic-sets');
 		} catch (err) {
 			userValidityCheck.set(true);
 
@@ -199,6 +203,7 @@
 		topicsTotalPages.set(res.data.totalPages);
 		if (res.data.totalSize !== undefined) topicsTotalSize.set(res.data.totalSize);
 		topicsCurrentPage = 0;
+		updateRetrievalTimestamp(retrievedTimestamps, 'topic-sets');
 	};
 
 	const errorMessage = (errMsg, errObj) => {
@@ -224,6 +229,7 @@
 			for (const topic of topicSetRowsSelected) {
 				await httpAdapter.delete(`/topic-sets/${topic.id}`);
 			}
+			updateRetrievalTimestamp(retrievedTimestamps, 'topic-sets');
 		} catch (err) {
 			errorMessage(errorMessages['topic-sets']['deleting.error.title'], err.message);
 		}
@@ -775,6 +781,7 @@
 							}}
 						/>
 					</div>
+				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['topic-sets']} />
 					<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 				{/if}
 			{/if}

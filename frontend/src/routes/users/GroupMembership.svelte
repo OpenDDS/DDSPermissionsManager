@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { httpAdapter } from '../../appconfig';
 	import { browser } from '$app/environment';
+	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import groupAdminGroups from '../../stores/groupAdminGroups';
 	import groupMembershipList from '../../stores/groupMembershipList';
 	import userValidityCheck from '../../stores/userValidityCheck';
@@ -29,6 +30,8 @@
 	import createItem from '../../stores/createItem';
 	import groupMembershipsTotalPages from '../../stores/groupMembershipsTotalPages';
 	import groupMembershipsTotalSize from '../../stores/groupMembershipsTotalSize';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
+	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	// Group Context
 	$: if ($groupContext?.id) reloadGroupMemberships();
@@ -212,6 +215,7 @@
 				groupMembershipList.set();
 			}
 			groupMembershipsCurrentPage = page;
+			updateRetrievalTimestamp(retrievedTimestamps, 'users');
 		} catch (err) {
 			userValidityCheck.set(true);
 
@@ -306,6 +310,7 @@
 			`/group_membership?filter=${searchStr}&size=${groupMembershipsPerPage}`
 		);
 		createGroupMembershipList(res.data.content, res.data.totalPages, res.data.totalSize);
+		updateRetrievalTimestamp(retrievedTimestamps, 'users');
 	};
 
 	const searchGroup = async (searchGroupStr) => {
@@ -917,6 +922,8 @@
 						}}
 					/>
 				</div>
+
+				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['users']} />
 			{/if}
 		{/await}
 	{/if}

@@ -5,6 +5,7 @@
 	import { httpAdapter } from '../../appconfig';
 	import groups from '../../stores/groups';
 	import Modal from '../../lib/Modal.svelte';
+	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import refreshPage from '../../stores/refreshPage';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
@@ -25,6 +26,7 @@
 	import groupContext from '../../stores/groupContext';
 	import singleGroupCheck from '../../stores/singleGroupCheck';
 	import userEmail from '../../stores/userEmail';
+	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import tooltips from '$lib/tooltips.json';
 	import contextMessage from '../../stores/contextMessage';
 	import userValidityCheck from '../../stores/userValidityCheck';
@@ -35,6 +37,7 @@
 	import createItem from '../../stores/createItem';
 	import modalOpen from '../../stores/modalOpen';
 	import GroupDetails from './GroupDetails.svelte';
+	import { updateRetrievalTimestamp } from '../../utils.js';
 
 	export let data;
 	export let errors;
@@ -167,6 +170,8 @@
 			groups.set(res.data.content);
 			groupsTotalPages.set(res.data.totalPages);
 			groupsCurrentPage = page;
+
+			updateRetrievalTimestamp(retrievedTimestamps, 'groups');
 		} catch (err) {
 			userValidityCheck.set(true);
 
@@ -203,6 +208,8 @@
 		groupsTotalPages.set(res.data.totalPages);
 		if (res.data.totalSize !== undefined) groupsTotalSize.set(res.data.totalSize);
 		groupsCurrentPage = 0;
+
+		updateRetrievalTimestamp(retrievedTimestamps, 'groups');
 	};
 
 	const errorMessage = (errMsg, errObj) => {
@@ -1016,6 +1023,7 @@
 						}}
 					/>
 				</div>
+				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['groups']} />
 				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 			{/if}
 		{/await}
