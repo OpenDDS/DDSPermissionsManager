@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package io.unityfoundation.dds.permissions.manager.model.expirationpolicy;
+package io.unityfoundation.dds.permissions.manager.model.actioninterval;
 
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.model.Page;
@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ExpirationPolicyRepository extends PageableRepository<ExpirationPolicy, Long> {
-    Page<ExpirationPolicy> findAllByPermissionsGroupIdIn(List<Long> groupIds, Pageable pageable);
+public interface ActionIntervalRepository extends PageableRepository<ActionInterval, Long> {
+    Page<ActionInterval> findAllByPermissionsGroupIdIn(List<Long> groupIds, Pageable pageable);
 
-    Page<ExpirationPolicy> findAllByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName, Pageable pageable);
+    Page<ActionInterval> findAllByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName, Pageable pageable);
 
     List<Long> findIdByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName);
 
-    Page<ExpirationPolicy> findAllByIdInAndPermissionsGroupIdIn(List<Long> topicSets, List<Long> groupIds, Pageable pageable);
+    Page<ActionInterval> findAllByIdInAndPermissionsGroupIdIn(List<Long> actionIntervalIds, List<Long> groupIds, Pageable pageable);
 
-    Optional<ExpirationPolicy> findByNameAndPermissionsGroup(String name, Group group);
+    Optional<ActionInterval> findByNameAndPermissionsGroup(String name, Group group);
 }
