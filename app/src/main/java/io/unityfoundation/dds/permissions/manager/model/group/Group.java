@@ -18,6 +18,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
 import org.hibernate.annotations.OnDelete;
@@ -64,6 +65,10 @@ public class Group {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ActionInterval> actionIntervals = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<GrantDuration> grantDurations = new HashSet<>();
 
     public Group() {
     }
@@ -161,6 +166,23 @@ public class Group {
 
     public void addActionInterval(ActionInterval actionInterval) {
         actionIntervals.add(actionInterval);
+    }
+
+    public Set<GrantDuration> getGrantDurations() {
+        if (grantDurations == null) return null;
+        return Collections.unmodifiableSet(grantDurations);
+    }
+
+    public void setGrantDurations(Set<GrantDuration> grantDurations) {
+        this.grantDurations = grantDurations;
+    }
+
+    public boolean removeGrantDurations(Long grantDurationId) {
+        return grantDurations.removeIf(grantDuration -> grantDurationId != null && grantDurationId.equals(grantDuration.getId()));
+    }
+
+    public void addGrantDurations(GrantDuration grantDuration) {
+        grantDurations.add(grantDuration);
     }
 
     @PrePersist

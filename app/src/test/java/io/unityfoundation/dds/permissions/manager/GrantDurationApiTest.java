@@ -26,8 +26,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
@@ -42,8 +42,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,9 +49,9 @@ import java.util.stream.Stream;
 import static io.micronaut.http.HttpStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Property(name = "spec.name", value = "ActionIntervalApiTest")
+@Property(name = "spec.name", value = "GrantDurationApiTest")
 @MicronautTest
-public class ActionIntervalApiTest {
+public class GrantDurationApiTest {
 
     private BlockingHttpClient blockingClient;
 
@@ -84,12 +82,12 @@ public class ActionIntervalApiTest {
         blockingClient = client.toBlocking();
     }
 
-    @Requires(property = "spec.name", value = "ActionIntervalApiTest")
+    @Requires(property = "spec.name", value = "GrantDurationApiTest")
     @Singleton
     static class MockAuthenticationFetcher extends AuthenticationFetcherReplacement {
     }
 
-    @Requires(property = "spec.name", value = "ActionIntervalApiTest")
+    @Requires(property = "spec.name", value = "GrantDurationApiTest")
     @Replaces(SecurityService.class)
     @Singleton
     static class MockSecurityService extends SecurityServiceReplacement {
@@ -108,18 +106,18 @@ public class ActionIntervalApiTest {
         //create
         @Test
         void cannotCreateOnItsOwnWithoutAGroupAssociation() {
-            CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
+            CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
             abcDTO.setName("abc");
 
-            HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
+            HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(request, ActionIntervalDTO.class);
+                blockingClient.exchange(request, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
         }
 
         @Test
@@ -132,10 +130,10 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("Abc123", theta.getId());
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionInterval.isPresent());
+            Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDuration.isPresent());
         }
 
         @Test
@@ -149,33 +147,76 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create action intervals
-            CreateActionIntervalDTO actionIntervalDTO = new CreateActionIntervalDTO();
-            actionIntervalDTO.setGroupId(theta.getId());
+            // create grant durations
+            CreateGrantDurationDTO grantDurationDTO = new CreateGrantDurationDTO();
+            grantDurationDTO.setGroupId(theta.getId());
 
-            request = HttpRequest.POST("/action_intervals/", actionIntervalDTO);
+            request = HttpRequest.POST("/grant_durations/", grantDurationDTO);
 
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(finalRequest, ActionIntervalDTO.class);
+                blockingClient.exchange(finalRequest, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
 
-            actionIntervalDTO.setName("     ");
-            request = HttpRequest.POST("/action_intervals", actionIntervalDTO);
+            grantDurationDTO.setName("     ");
+            request = HttpRequest.POST("/grant_durations", grantDurationDTO);
             HttpRequest<?> finalRequest1 = request;
             HttpClientResponseException exception1 = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                blockingClient.exchange(finalRequest1, ActionIntervalDTO.class);
+                blockingClient.exchange(finalRequest1, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception1.getResponse().getBody(List.class);
+            bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+        }
+
+        @Test
+        public void cannotCreateWithWithAValueLessThanZeroOrNull() {
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            // create grant durations
+            CreateGrantDurationDTO grantDurationDTO = new CreateGrantDurationDTO();
+            grantDurationDTO.setGroupId(theta.getId());
+            grantDurationDTO.setName("MyDuration");
+
+            request = HttpRequest.POST("/grant_durations/", grantDurationDTO);
+
+            // null case
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest, GrantDurationDTO.class);
+            });
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
+            assertTrue(bodyOptional.isPresent());
+            List<Map> list = bodyOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+
+            // negative case
+            grantDurationDTO.setDurationInMilliseconds(-2000L);
+            request = HttpRequest.POST("/grant_durations", grantDurationDTO);
+            HttpRequest<?> finalRequest1 = request;
+            HttpClientResponseException exception1 = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest1, GrantDurationDTO.class);
+            });
+            assertEquals(BAD_REQUEST, exception1.getStatus());
+            Optional<List> negativeOptional = exception1.getResponse().getBody(List.class);
+            assertTrue(negativeOptional.isPresent());
+            List<Map> negativeList = negativeOptional.get();
+            assertTrue(negativeList.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE.equals(map.get("code"))));
         }
 
         @Test
@@ -189,13 +230,13 @@ public class ActionIntervalApiTest {
             SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("A", theta.getId());
+                createGrantDuration("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
         }
 
         @Test
@@ -208,11 +249,11 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("   Abc123  ", theta.getId());
+            response = createGrantDuration("   Abc123  ", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionInterval.isPresent());
-            assertEquals("Abc123", actionInterval.get().getName());
+            Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDuration.isPresent());
+            assertEquals("Abc123", grantDuration.get().getName());
         }
 
         @Test
@@ -232,15 +273,15 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            response = createActionInterval("Abc123", theta.getId());
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalOptional.isPresent());
-            ActionIntervalDTO abcActionInterval = actionIntervalOptional.get();
+            Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationOptional.isPresent());
+            GrantDurationDTO abcGrantDuration = grantDurationOptional.get();
 
             // update attempt
-            abcActionInterval.setGroupId(zeta.getId());
-            request = HttpRequest.PUT("/action_intervals/"+abcActionInterval.getId(), abcActionInterval);
+            abcGrantDuration.setGroupId(zeta.getId());
+            request = HttpRequest.PUT("/grant_durations/"+abcGrantDuration.getId(), abcGrantDuration);
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -249,7 +290,7 @@ public class ActionIntervalApiTest {
             Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
         }
 
         @Test
@@ -263,33 +304,30 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalOptional.isPresent());
-            ActionIntervalDTO savedActionInterval = actionIntervalOptional.get();
-            assertEquals("Abc123", savedActionInterval.getName());
+            Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationOptional.isPresent());
+            GrantDurationDTO savedGrantDuration = grantDurationOptional.get();
+            assertEquals("Abc123", savedGrantDuration.getName());
 
             // with different name and dates
-            savedActionInterval.setName("NewName123");
-            Instant updateStartInstant = Instant.now().plus(2, ChronoUnit.DAYS);
-            savedActionInterval.setStartDate(updateStartInstant);
-            Instant updateEndInstant = Instant.now().plus(5, ChronoUnit.DAYS);
-            savedActionInterval.setEndDate(updateEndInstant);
-            request = HttpRequest.PUT("/action_intervals/"+savedActionInterval.getId(), savedActionInterval);
-            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            savedGrantDuration.setName("NewName123");
+            Long updateDuration = 5000L;
+            savedGrantDuration.setDurationInMilliseconds(updateDuration);
+            request = HttpRequest.PUT("/grant_durations/"+savedGrantDuration.getId(), savedGrantDuration);
+            response = blockingClient.exchange(request, GrantDurationDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> updatedActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(updatedActionIntervalOptional.isPresent());
-            ActionIntervalDTO updatedActionInterval = updatedActionIntervalOptional.get();
-            assertEquals("NewName123", updatedActionInterval.getName());
-            assertEquals(updateStartInstant, updatedActionInterval.getStartDate());
-            assertEquals(updateEndInstant, updatedActionInterval.getEndDate());
+            Optional<GrantDurationDTO> updatedGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(updatedGrantDurationOptional.isPresent());
+            GrantDurationDTO updatedGrantDuration = updatedGrantDurationOptional.get();
+            assertEquals("NewName123", updatedGrantDuration.getName());
+            assertEquals(updateDuration, updatedGrantDuration.getDurationInMilliseconds());
         }
 
         @Test
-        public void cannotCreateActionIntervalWithSameNameInGroup() {
+        public void cannotCreateGrantDurationWithSameNameInGroup() {
             HttpResponse<?> response;
 
             response = createGroup("Theta");
@@ -298,27 +336,27 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalOptional.isPresent());
-            ActionIntervalDTO savedActionInterval = actionIntervalOptional.get();
-            assertEquals("Abc123", savedActionInterval.getName());
+            Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationOptional.isPresent());
+            GrantDurationDTO savedGrantDuration = grantDurationOptional.get();
+            assertEquals("Abc123", savedGrantDuration.getName());
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
             assertTrue(bodyOptional.isPresent());
             List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.ACTION_INTERVAL_ALREADY_EXISTS.equals(group.get("code"))));
+            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.GRANT_DURATION_ALREADY_EXISTS.equals(group.get("code"))));
         }
 
         //show
         @Test
-        void canShowActionIntervalAssociatedToAGroup(){
+        void canShowGrantDurationAssociatedToAGroup(){
             HttpRequest<?> request;
             HttpResponse<?> response;
 
@@ -328,29 +366,28 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = actionIntervalOptional.get();
+            Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationOptional.isPresent());
+            GrantDurationDTO xyzGrantDuration = grantDurationOptional.get();
 
-            // show action interval
-            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
-            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            // show grant duration
+            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
+            response = blockingClient.exchange(request, GrantDurationDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalShowResponse = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalShowResponse.isPresent());
-            assertNotNull(actionIntervalShowResponse.get().getId());
-            assertNotNull(actionIntervalShowResponse.get().getGroupId());
-            assertNotNull(actionIntervalShowResponse.get().getGroupName());
-            assertNotNull(actionIntervalShowResponse.get().getStartDate());
-            assertNotNull(actionIntervalShowResponse.get().getEndDate());
+            Optional<GrantDurationDTO> grantDurationShowResponse = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationShowResponse.isPresent());
+            assertNotNull(grantDurationShowResponse.get().getId());
+            assertNotNull(grantDurationShowResponse.get().getGroupId());
+            assertNotNull(grantDurationShowResponse.get().getGroupName());
+            assertNotNull(grantDurationShowResponse.get().getDurationInMilliseconds());
         }
 
-        // list all action intervals from all groups
+        // list all grant durations from all groups
         @Test
-        void canListAllActionIntervalsAndActionIntervalsWithSameNameCanExistSitewide(){
-            // Group - Action Intervals
+        void canListAllGrantDurationsAndGrantDurationsWithSameNameCanExistSitewide(){
+            // Group - Grant Durations
             // ---
             // Green - Xyz789
             // Yellow - Abc123 & Xyz789
@@ -370,28 +407,28 @@ public class ActionIntervalApiTest {
             assertTrue(yellowOptional.isPresent());
             SimpleGroupDTO yellow = yellowOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", yellow.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", green.getId());
+            response = createGrantDuration("Xyz789", green.getId());
             assertEquals(OK, response.getStatus());
 
             // site-wide test
-            response = createActionInterval("Xyz789", yellow.getId());
+            response = createGrantDuration("Xyz789", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/action_intervals");
+            request = HttpRequest.GET("/grant_durations");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(3, actionIntervalPage.get().getContent().size());
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(3, grantDurationPage.get().getContent().size());
         }
 
         @Test
-        void canListAllActionIntervalsWithFilter(){
-            // Group - Action Intervals
+        void canListAllGrantDurationsWithFilter(){
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -411,33 +448,33 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
-            request = HttpRequest.GET("/action_intervals?filter=xyz");
+            request = HttpRequest.GET("/grant_durations?filter=xyz");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
 
             // group search
-            request = HttpRequest.GET("/action_intervals?filter=heta");
+            request = HttpRequest.GET("/grant_durations?filter=heta");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
         }
 
         @Test
-        void canLisActionIntervalsWithGroupId(){
-            // Group - Action Intervals
+        void canLisGrantDurationsWithGroupId(){
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -457,52 +494,52 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> abcOptional = response.getBody(ActionIntervalDTO.class);
+            Optional<GrantDurationDTO> abcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcOptional.isPresent());
-            ActionIntervalDTO abcActionInterval = abcOptional.get();
+            GrantDurationDTO abcGrantDuration = abcOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzOptional = response.getBody(ActionIntervalDTO.class);
+            Optional<GrantDurationDTO> xyzOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = xyzOptional.get();
+            GrantDurationDTO xyzGrantDuration = xyzOptional.get();
 
-            // can list both action intervals
-            request = HttpRequest.GET("/action_intervals?group="+theta.getId());
+            // can list both grant durations
+            request = HttpRequest.GET("/grant_durations?group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            Map map = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals(map.get("id"), xyzActionInterval.getId().intValue());
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            Map map = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals(map.get("id"), xyzGrantDuration.getId().intValue());
 
-            request = HttpRequest.GET("/action_intervals?group="+zeta.getId());
+            request = HttpRequest.GET("/grant_durations?group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            map = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals(map.get("id"), abcActionInterval.getId().intValue());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            map = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals(map.get("id"), abcGrantDuration.getId().intValue());
 
             // in addition to group, support filter param
-            request = HttpRequest.GET("/action_intervals?filter=abc&group="+zeta.getId());
+            request = HttpRequest.GET("/grant_durations?filter=abc&group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            map = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals(map.get("id"), abcActionInterval.getId().intValue());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            map = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals(map.get("id"), abcGrantDuration.getId().intValue());
         }
 
         @Test
-        void canListAllActionIntervalsNameInAscendingOrderByDefault(){
-            // Group - Action Intervals
+        void canListAllGrantDurationsNameInAscendingOrderByDefault(){
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789 & Def456
             // Zeta - Abc123 & Def456
@@ -522,43 +559,43 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", zeta.getId());
+            response = createGrantDuration("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", theta.getId());
+            response = createGrantDuration("Def456", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/action_intervals");
+            request = HttpRequest.GET("/grant_durations");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            List<Map> actionIntervals = actionIntervalPage.get().getContent();
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            List<Map> grantDurations = grantDurationPage.get().getContent();
 
-            // action interval names sorted
-            List<String> actionIntervalNames = actionIntervals.stream()
+            // grant duration names sorted
+            List<String> grantDurationNames = grantDurations.stream()
                     .flatMap(map -> Stream.of((String) map.get("name")))
                     .collect(Collectors.toList());
-            assertEquals(actionIntervalNames.stream().sorted().collect(Collectors.toList()), actionIntervalNames);
+            assertEquals(grantDurationNames.stream().sorted().collect(Collectors.toList()), grantDurationNames);
 
-            // group names should be sorted by action interval
-            List<String> defActionIntervals = actionIntervals.stream().filter(map -> {
-                String actionIntervalName = (String) map.get("name");
-                return actionIntervalName.equals("Def456");
+            // group names should be sorted by grant duration
+            List<String> defGrantDurations = grantDurations.stream().filter(map -> {
+                String grantDurationName = (String) map.get("name");
+                return grantDurationName.equals("Def456");
             }).flatMap(map -> Stream.of((String) map.get("groupName"))).collect(Collectors.toList());
-            assertEquals(defActionIntervals.stream().sorted().collect(Collectors.toList()), defActionIntervals);
+            assertEquals(defGrantDurations.stream().sorted().collect(Collectors.toList()), defGrantDurations);
         }
 
         @Test
-        void canListAllActionIntervalsNameInDescendingOrder(){
-            // Group - Action Intervals
+        void canListAllGrantDurationsNameInDescendingOrder(){
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123 & Def456
@@ -578,27 +615,27 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", zeta.getId());
+            response = createGrantDuration("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            request = HttpRequest.GET("/action_intervals?sort=name,desc");
+            request = HttpRequest.GET("/grant_durations?sort=name,desc");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            List<Map> actionIntervals = actionIntervalPage.get().getContent();
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            List<Map> grantDurations = grantDurationPage.get().getContent();
 
-            List<String> actionIntervalNames = actionIntervals.stream()
+            List<String> grantDurationNames = grantDurations.stream()
                     .flatMap(map -> Stream.of((String) map.get("name")))
                     .collect(Collectors.toList());
-            assertEquals(actionIntervalNames.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList()), actionIntervalNames);
+            assertEquals(grantDurationNames.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList()), grantDurationNames);
         }
 
         //delete
@@ -628,7 +665,7 @@ public class ActionIntervalApiTest {
 
         // create
         @Test
-        void canCreateActionInterval(){
+        void canCreateGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -647,14 +684,14 @@ public class ActionIntervalApiTest {
 
             loginAsNonAdmin();
 
-            // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant duration
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
         }
 
         // delete
         @Test
-        void canDeleteActionInterval(){
+        void canDeleteGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -672,16 +709,16 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant duration
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionInterval.isPresent());
+            Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDuration.isPresent());
 
             loginAsNonAdmin();
 
             // delete attempt
-            request = HttpRequest.DELETE("/action_intervals/"+actionInterval.get().getId(), Map.of());
+            request = HttpRequest.DELETE("/grant_durations/"+grantDuration.get().getId(), Map.of());
             response = blockingClient.exchange(request);
             assertEquals(NO_CONTENT, response.getStatus());
         }
@@ -708,7 +745,7 @@ public class ActionIntervalApiTest {
 
         // create
         @Test
-        void cannotCreateActionInterval(){
+        void cannotCreateGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -727,9 +764,9 @@ public class ActionIntervalApiTest {
 
             loginAsNonAdmin();
 
-            // create action interval
+            // create grant duration
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -740,7 +777,7 @@ public class ActionIntervalApiTest {
 
         // delete
         @Test
-        void cannotDeleteActionInterval(){
+        void cannotDeleteGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -757,17 +794,17 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant duration
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
+            Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
-            ActionIntervalDTO abcActionInterval = abcTopiSetcOptional.get();
+            GrantDurationDTO abcGrantDuration = abcTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
             // delete attempt
-            HttpRequest<?> request2 = HttpRequest.DELETE("/action_intervals/"+abcActionInterval.getId(), Map.of());
+            HttpRequest<?> request2 = HttpRequest.DELETE("/grant_durations/"+abcGrantDuration.getId(), Map.of());
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(request2);
             });
@@ -780,11 +817,11 @@ public class ActionIntervalApiTest {
 
         // show
         @Test
-        void canShowActionIntervalWithAssociatedGroup(){
+        void canShowGrantDurationWithAssociatedGroup(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Action Intervals - Members
+            // Group - Grant Durations - Members
             // ---
             // Theta - Xyz789 - jjones
             // Zeta - Abc123 - None
@@ -809,31 +846,31 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            // create grant durations
+            createGrantDuration("Abc123", zeta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
+            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
-            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
+            response = blockingClient.exchange(request, GrantDurationDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalResponseOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalResponseOptional.isPresent());
-            assertEquals("Xyz789", actionIntervalResponseOptional.get().getName());
-            assertEquals("Theta", actionIntervalResponseOptional.get().getGroupName());
+            Optional<GrantDurationDTO> grantDurationResponseOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationResponseOptional.isPresent());
+            assertEquals("Xyz789", grantDurationResponseOptional.get().getName());
+            assertEquals("Theta", grantDurationResponseOptional.get().getGroupName());
         }
 
         @Test
-        void cannotShowActionIntervalIfActionIntervalBelongsToAGroupIAmNotAMemberOf(){
+        void cannotShowGrantDurationIfGrantDurationBelongsToAGroupIAmNotAMemberOf(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Action Intervals - Members
+            // Group - Grant Durations - Members
             // ---
             // Theta - Xyz789 - jjones
             // Omega - Abc123 - None
@@ -859,22 +896,22 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action intervals
-            response = createActionInterval("Abc123", omega.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", omega.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(abcActionIntervalOptional.isPresent());
-            ActionIntervalDTO abcActionInterval = abcActionIntervalOptional.get();
+            Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(abcGrantDurationOptional.isPresent());
+            GrantDurationDTO abcGrantDuration = abcGrantDurationOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
+            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals/"+abcActionInterval.getId());
+            request = HttpRequest.GET("/grant_durations/"+abcGrantDuration.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -888,11 +925,11 @@ public class ActionIntervalApiTest {
 
         // list
         @Test
-        void canListAllActionIntervalsLimitedToMembership(){
+        void canListAllGrantDurationsLimitedToMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Action Intervals
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -917,35 +954,35 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(abcActionIntervalOptional.isPresent());
+            Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(abcGrantDurationOptional.isPresent());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals");
+            request = HttpRequest.GET("/grant_durations");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedActionInterval.get("name"));
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedGrantDuration.get("name"));
         }
 
         @Test
-        void canListActionIntervalsWithFilterLimitedToGroupMembership(){
+        void canListGrantDurationsWithFilterLimitedToGroupMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Action Intervals
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -970,50 +1007,50 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            // create grant durations
+            createGrantDuration("Abc123", zeta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
 
             loginAsNonAdmin();
 
             // support case-insensitive
-            request = HttpRequest.GET("/action_intervals?filter=xyz");
+            request = HttpRequest.GET("/grant_durations?filter=xyz");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedActionInterval.get("name"));
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedGrantDuration.get("name"));
 
             // Negative case
-            request = HttpRequest.GET("/action_intervals?filter=abc");
+            request = HttpRequest.GET("/grant_durations?filter=abc");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(0, actionIntervalPage.get().getContent().size());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(0, grantDurationPage.get().getContent().size());
 
             // group search
-            request = HttpRequest.GET("/action_intervals?filter=heta");
+            request = HttpRequest.GET("/grant_durations?filter=heta");
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedActionInterval.get("name"));
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedGrantDuration.get("name"));
         }
 
         @Test
-        void canListActionIntervalsWithGroupParameterLimitedToGroupMembership(){
+        void canListGrantDurationsWithGroupParameterLimitedToGroupMembership(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            // Group - Action Intervals
+            // Group - Grant Durations
             // ---
             // Theta - Xyz789
             // Zeta - Abc123
@@ -1038,49 +1075,49 @@ public class ActionIntervalApiTest {
             response = addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            // create grant durations
+            createGrantDuration("Abc123", zeta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
 
             loginAsNonAdmin();
 
             // group search
-            request = HttpRequest.GET("/action_intervals?group="+theta.getId());
+            request = HttpRequest.GET("/grant_durations?group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            Optional<Page> actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            Map expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedActionInterval.get("name"));
+            Optional<Page> grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedGrantDuration.get("name"));
 
             // filter param support
-            request = HttpRequest.GET("/action_intervals?filter=xyz&group="+theta.getId());
+            request = HttpRequest.GET("/grant_durations?filter=xyz&group="+theta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(1, actionIntervalPage.get().getContent().size());
-            expectedActionInterval = (Map) actionIntervalPage.get().getContent().get(0);
-            assertEquals("Xyz789", expectedActionInterval.get("name"));
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(1, grantDurationPage.get().getContent().size());
+            expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
+            assertEquals("Xyz789", expectedGrantDuration.get("name"));
 
             // Negative cases
-            request = HttpRequest.GET("/action_intervals?group="+zeta.getId());
+            request = HttpRequest.GET("/grant_durations?group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(0, actionIntervalPage.get().getContent().size());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(0, grantDurationPage.get().getContent().size());
 
-            request = HttpRequest.GET("/action_intervals?filter=abc&group="+zeta.getId());
+            request = HttpRequest.GET("/grant_durations?filter=abc&group="+zeta.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
-            actionIntervalPage = response.getBody(Page.class);
-            assertTrue(actionIntervalPage.isPresent());
-            assertEquals(0, actionIntervalPage.get().getContent().size());
+            grantDurationPage = response.getBody(Page.class);
+            assertTrue(grantDurationPage.isPresent());
+            assertEquals(0, grantDurationPage.get().getContent().size());
         }
     }
 
@@ -1105,7 +1142,7 @@ public class ActionIntervalApiTest {
 
         // create
         @Test
-        void cannotCreateActionInterval(){
+        void cannotCreateGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1120,9 +1157,9 @@ public class ActionIntervalApiTest {
 
             loginAsNonAdmin();
 
-            // create action intervals
+            // create grant durations
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1133,7 +1170,7 @@ public class ActionIntervalApiTest {
 
         // delete
         @Test
-        void cannotDeleteActionInterval(){
+        void cannotDeleteGrantDuration(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1147,17 +1184,17 @@ public class ActionIntervalApiTest {
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
+            Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
-            ActionIntervalDTO abcActionInterval = abcTopiSetcOptional.get();
+            GrantDurationDTO abcGrantDuration = abcTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
             // delete attempt
-            request = HttpRequest.DELETE("/action_intervals/"+abcActionInterval.getId(), Map.of());
+            request = HttpRequest.DELETE("/grant_durations/"+abcGrantDuration.getId(), Map.of());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1171,7 +1208,7 @@ public class ActionIntervalApiTest {
 
         // show
         @Test
-        void cannotShowActionIntervalWithAssociatedGroup(){
+        void cannotShowGrantDurationWithAssociatedGroup(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1191,19 +1228,19 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
+            Optional<GrantDurationDTO> xyzTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzTopiSetcOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = xyzTopiSetcOptional.get();
+            GrantDurationDTO xyzGrantDuration = xyzTopiSetcOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1230,7 +1267,7 @@ public class ActionIntervalApiTest {
         }
 
         @Test
-        void cannotListAllActionIntervals(){
+        void cannotListAllGrantDurations(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1255,18 +1292,18 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals");
+            request = HttpRequest.GET("/grant_durations");
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1275,7 +1312,7 @@ public class ActionIntervalApiTest {
         }
 
         @Test
-        void cannotShowAActionIntervalWithGroupAssociation(){
+        void cannotShowAGrantDurationWithGroupAssociation(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
@@ -1300,19 +1337,19 @@ public class ActionIntervalApiTest {
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
-            // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            // create grant durations
+            response = createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(xyzActionIntervalOptional.isPresent());
-            ActionIntervalDTO xyzActionInterval = xyzActionIntervalOptional.get();
+            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(xyzGrantDurationOptional.isPresent());
+            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
 
             loginAsNonAdmin();
 
-            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
             HttpRequest<?> finalRequest = request;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
@@ -1339,14 +1376,13 @@ public class ActionIntervalApiTest {
         return blockingClient.exchange(request, GroupUserResponseDTO.class);
     }
 
-    private HttpResponse<?> createActionInterval(String name, Long groupId) {
-        CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
+    private HttpResponse<?> createGrantDuration(String name, Long groupId) {
+        CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
         abcDTO.setName(name);
         abcDTO.setGroupId(groupId);
-        abcDTO.setStartDate(Instant.now());
-        abcDTO.setEndDate(Instant.now().plus(1, ChronoUnit.DAYS));
+        abcDTO.setDurationInMilliseconds(30000L);
 
-        HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
-        return blockingClient.exchange(request, ActionIntervalDTO.class);
+        HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
+        return blockingClient.exchange(request, GrantDurationDTO.class);
     }
 }
