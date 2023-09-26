@@ -8,6 +8,7 @@
 	import grantsSVG from '../icons/grants.svg';
 	import expirationsSVG from '../icons/expirations.svg';
 	import topicSetsSVG from '../icons/topicsets.svg';
+	import timerSVG from '../icons/timer.svg';
 	import searchSVG from '../icons/search.svg';
 	import { page } from '$app/stores';
 	import groupContext from '../stores/groupContext';
@@ -227,10 +228,19 @@
 
 		<div class="nested-list">
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li class:active={$page.url.pathname === '/expirations/'} on:mouseenter={() => {}}>
-				<a sveltekit:prefetch href="/expirations">
-					<img src={expirationsSVG} alt="expirations" class="menu-icon" />{messages['navigation'][
+			<li class:active={$page.url.pathname === '/durations/'} on:mouseenter={() => {}}>
+				<a sveltekit:prefetch href="/durations">
+					<img src={expirationsSVG} alt="durations" class="menu-icon" />{messages['navigation'][
 						'item.seven'
+					]}
+				</a>
+			</li>
+
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<li class:active={$page.url.pathname === '/action-intervals/'} on:mouseenter={() => {}} 			on:click={() => detailView.set('backToList')}>
+				<a sveltekit:prefetch href="/action-intervals">
+					<img src={timerSVG} alt="action-intervals" class="menu-icon" />{messages['navigation'][
+						'item.eight'
 					]}
 				</a>
 			</li>
@@ -239,7 +249,7 @@
 			<li class:active={$page.url.pathname === '/topic-sets/'} on:mouseenter={() => {if (!$topicSets) preloadTopicSets();}} 			on:click={() => detailView.set('backToList')}>
 				<a sveltekit:prefetch href="/topic-sets">
 					<img src={topicSetsSVG} alt="topic-sets" class="menu-icon" />{messages['navigation'][
-						'item.eight'
+						'item.nine'
 					]}
 				</a>
 			</li>
@@ -304,6 +314,6 @@
 		margin-left: 2rem;
 		display: flex;
 		flex-direction: column;
-		height: 6rem;
+		height: 8rem;
 	}
 </style>
