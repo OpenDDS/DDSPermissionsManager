@@ -282,8 +282,9 @@
         "item.four": "My Applications",
         "item.five": "Search",
         "item.six": "My Grants",
-        "item.seven": "My Expirations",
-        "item.eight": "My Topic Sets"
+        "item.seven": "Durations",
+        "item.eight": "Action Intervals",
+        "item.nine": "Topic Sets"
     },
 
     "modal":
