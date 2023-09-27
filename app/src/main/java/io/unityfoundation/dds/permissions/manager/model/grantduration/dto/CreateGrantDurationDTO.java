@@ -33,6 +33,8 @@ public class CreateGrantDurationDTO implements EntityDTO {
     @PositiveOrZero
     private Long durationInMilliseconds;
 
+    private String durationMetadata;
+
 
     public CreateGrantDurationDTO() {
     }
@@ -64,5 +66,13 @@ public class CreateGrantDurationDTO implements EntityDTO {
 
     public void setDurationInMilliseconds(Long durationInMilliseconds) {
         this.durationInMilliseconds = durationInMilliseconds;
+    }
+
+    public String getDurationMetadata() {
+        return durationMetadata;
+    }
+
+    public void setDurationMetadata(String durationMetadata) {
+        this.durationMetadata = durationMetadata;
     }
 }

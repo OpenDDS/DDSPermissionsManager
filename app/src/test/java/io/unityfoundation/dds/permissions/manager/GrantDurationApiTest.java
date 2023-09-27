@@ -305,17 +305,23 @@ public class GrantDurationApiTest {
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", theta.getId());
+            response = createGrantDuration("Abc123", theta.getId(), "MONTHS");
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationOptional.isPresent());
             GrantDurationDTO savedGrantDuration = grantDurationOptional.get();
             assertEquals("Abc123", savedGrantDuration.getName());
+            assertEquals("MONTHS", savedGrantDuration.getDurationMetadata());
 
-            // with different name and dates
+
+            // with different name, dates, duration metadata
             savedGrantDuration.setName("NewName123");
+
             Long updateDuration = 5000L;
             savedGrantDuration.setDurationInMilliseconds(updateDuration);
+
+            savedGrantDuration.setDurationMetadata("WEEKS");
+
             request = HttpRequest.PUT("/grant_durations/"+savedGrantDuration.getId(), savedGrantDuration);
             response = blockingClient.exchange(request, GrantDurationDTO.class);
             assertEquals(OK, response.getStatus());
@@ -324,6 +330,7 @@ public class GrantDurationApiTest {
             GrantDurationDTO updatedGrantDuration = updatedGrantDurationOptional.get();
             assertEquals("NewName123", updatedGrantDuration.getName());
             assertEquals(updateDuration, updatedGrantDuration.getDurationInMilliseconds());
+            assertEquals("WEEKS", updatedGrantDuration.getDurationMetadata());
         }
 
         @Test
@@ -1377,10 +1384,15 @@ public class GrantDurationApiTest {
     }
 
     private HttpResponse<?> createGrantDuration(String name, Long groupId) {
+        return createGrantDuration(name, groupId, null);
+    }
+
+    private HttpResponse<?> createGrantDuration(String name, Long groupId, String durationMetadata) {
         CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
         abcDTO.setName(name);
         abcDTO.setGroupId(groupId);
         abcDTO.setDurationInMilliseconds(30000L);
+        abcDTO.setDurationMetadata(durationMetadata);
 
         HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
         return blockingClient.exchange(request, GrantDurationDTO.class);

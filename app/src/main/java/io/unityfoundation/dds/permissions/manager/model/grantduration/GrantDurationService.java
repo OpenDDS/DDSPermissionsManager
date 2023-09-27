@@ -138,6 +138,7 @@ public class GrantDurationService {
                 grantDurationDTO.getName(),
                 groupOptional.get());
         newGrantDuration.setDurationInMilliseconds(grantDurationDTO.getDurationInMilliseconds());
+        newGrantDuration.setDurationMetadata(grantDurationDTO.getDurationMetadata());
 
         GrantDurationDTO responseTopicDTO = createDTO(grantDurationRepository.save(newGrantDuration));
         return HttpResponse.ok(responseTopicDTO);
@@ -166,6 +167,7 @@ public class GrantDurationService {
         GrantDuration grantDuration = grantDurationOptional.get();
         grantDuration.setName(grantDurationDTO.getName().trim());
         grantDuration.setDurationInMilliseconds(grantDurationDTO.getDurationInMilliseconds());
+        grantDuration.setDurationMetadata(grantDurationDTO.getDurationMetadata());
 
         GrantDurationDTO dto = createDTO(grantDurationRepository.update(grantDuration));
         return HttpResponse.ok(dto);
@@ -187,7 +189,9 @@ public class GrantDurationService {
                 grantDuration.getName(),
                 grantDuration.getPermissionsGroup().getId(),
                 grantDuration.getPermissionsGroup().getName(),
-                grantDuration.getDurationInMilliseconds());
+                grantDuration.getDurationInMilliseconds(),
+                grantDuration.getDurationMetadata()
+        );
     }
 
     private void checkExistenceAndAdminAuthorization(Optional<GrantDuration> grantDurationOptional) {
