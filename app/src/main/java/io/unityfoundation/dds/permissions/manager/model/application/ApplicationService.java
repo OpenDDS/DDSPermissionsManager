@@ -26,6 +26,7 @@ import io.micronaut.security.token.jwt.generator.claims.JWTClaimsSetGenerator;
 import io.micronaut.security.token.jwt.validator.AuthenticationJWTClaimsSetAdapter;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantService;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermission;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ReadPartition;
@@ -80,7 +81,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeMessage;
 import javax.security.auth.x500.X500Principal;
-import javax.transaction.Transactional;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -119,6 +119,7 @@ public class ApplicationService {
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
     private final ApplicationPermissionService applicationPermissionService;
+    private final ApplicationGrantService applicationGrantService;
     private final PassphraseGenerator passphraseGenerator;
     private final BCryptPasswordEncoderService passwordEncoderService;
     private final ApplicationSecretsClient applicationSecretsClient;
@@ -131,8 +132,7 @@ public class ApplicationService {
 
     public ApplicationService(ApplicationRepository applicationRepository, GroupRepository groupRepository,
                               ApplicationPermissionService applicationPermissionService,
-                              SecurityUtil securityUtil, GroupUserService groupUserService,
-                              PassphraseGenerator passphraseGenerator,
+                              SecurityUtil securityUtil, GroupUserService groupUserService, ApplicationGrantService applicationGrantService, PassphraseGenerator passphraseGenerator,
                               BCryptPasswordEncoderService passwordEncoderService, ApplicationSecretsClient applicationSecretsClient,
                               TemplateService templateService, JwtTokenGenerator jwtTokenGenerator,
                               JWTClaimsSetGenerator jwtClaimsSetGenerator, XMLEscaper xmlEscaper, OnUpdateApplicationWebSocket onUpdateApplicationWebSocket) {
@@ -141,6 +141,7 @@ public class ApplicationService {
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
         this.applicationPermissionService = applicationPermissionService;
+        this.applicationGrantService = applicationGrantService;
         this.passphraseGenerator = passphraseGenerator;
         this.passwordEncoderService = passwordEncoderService;
         this.applicationSecretsClient = applicationSecretsClient;
@@ -317,6 +318,7 @@ public class ApplicationService {
 
         // TODO - Need to investigate cascade management to eliminate this
         applicationPermissionService.deleteAllByApplication(application);
+        applicationGrantService.deleteAllByApplication(application);
 
         applicationRepository.deleteById(id);
         onUpdateApplicationWebSocket.broadcastResourceEvent(OnUpdateApplicationWebSocket.APPLICATION_DELETED, id);

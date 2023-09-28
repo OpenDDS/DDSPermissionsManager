@@ -73,6 +73,10 @@ public interface ResponseStatusCodes {
     String APPLICATION_PERMISSION_ALREADY_EXISTS = "application.permission.exists";
 
     // application grants
+    String APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL = "application-grant.name.cannot-be-blank-or-null";
+    String APPLICATION_GRANT_REQUIRES_GROUP_ASSOCIATION = "application-grant.requires-group-association";
+    String APPLICATION_GRANT_REQUIRES_DURATION_ASSOCIATION = "application-grant.requires-grant-duration-association";
+    String APPLICATION_GRANT_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "application-grant.name.cannot-be-less-than-three-characters";
     String APPLICATION_GRANT_NOT_FOUND = "application-grant.not-found";
     String APPLICATION_GRANT_GROUP_NOT_FOUND = "application-grant.group.not-found";
     String APPLICATION_GRANT_GRANT_DURATION_NOT_FOUND = "application-grant.grant-duration.not-found";

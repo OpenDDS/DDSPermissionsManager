@@ -67,7 +67,7 @@ public class ApplicationGrantService {
 
     public Page<GrantDTO> findAll(Pageable pageable, String filter, Long group) {
         if (!pageable.isSorted()) {
-            pageable = pageable.order("permissionsGroup.name");
+            pageable = pageable.order("name").order("permissionsGroup.name");
         }
 
         Page<ApplicationGrant> page = getApplicationGrantsPage(pageable, filter, group);
@@ -227,7 +227,7 @@ public class ApplicationGrantService {
                 grantDTO.getName().trim(), applicationGrantOptional.get().getPermissionsGroup());
         if (searchGrantByNameAndGroup.isPresent() &&
                 searchGrantByNameAndGroup.get().getId() != applicationGrantOptional.get().getId()) {
-            throw new DPMException(ResponseStatusCodes.APPLICATION_ALREADY_EXISTS);
+            throw new DPMException(ResponseStatusCodes.APPLICATION_GRANT_ALREADY_EXISTS);
         }
 
         Optional<GrantDuration> grantDurationOptional = grantDurationRepository.findById(grantDTO.getGrantDurationId());

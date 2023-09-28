@@ -59,14 +59,14 @@ public class ApplicationGrantController {
 
     @Put("/{grantId}")
     @ExecuteOn(TaskExecutors.IO)
-    public HttpResponse<GrantDTO> updateAccess(Long grantId,
+    public HttpResponse<GrantDTO> update(Long grantId,
                                                @Valid @Body UpdateGrantDTO grantDTO) {
         return applicationGrantService.update(grantId, grantDTO);
     }
 
     @Delete("/{grantId}")
     @ExecuteOn(TaskExecutors.IO)
-    public HttpResponse removeAccess(Long grantId) {
+    public HttpResponse delete(Long grantId) {
         return applicationGrantService.deleteById(grantId);
     }
 }

@@ -14,6 +14,7 @@
 package io.unityfoundation.dds.permissions.manager.testing.util;
 
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
@@ -35,11 +36,12 @@ public class DbCleanup {
     private final GroupUserRepository groupUserRepository;
     private final TopicSetRepository topicSetRepository;
     private final ActionIntervalRepository actionIntervalRepository;
+    private final ApplicationGrantRepository applicationGrantRepository;
 
     public DbCleanup(TopicRepository topicRepository, GroupRepository groupRepository,
                      ApplicationRepository applicationRepository, UserRepository userRepository,
                      ApplicationPermissionRepository applicationPermissionRepository, GroupUserRepository groupUserRepository,
-                     TopicSetRepository topicSetRepository, ActionIntervalRepository actionIntervalRepository) {
+                     TopicSetRepository topicSetRepository, ActionIntervalRepository actionIntervalRepository, ApplicationGrantRepository applicationGrantRepository) {
         this.topicRepository = topicRepository;
         this.groupRepository = groupRepository;
         this.applicationRepository = applicationRepository;
@@ -48,6 +50,7 @@ public class DbCleanup {
         this.groupUserRepository = groupUserRepository;
         this.actionIntervalRepository = actionIntervalRepository;
         this.topicSetRepository = topicSetRepository;
+        this.applicationGrantRepository = applicationGrantRepository;
     }
 
     @Transactional
@@ -56,6 +59,7 @@ public class DbCleanup {
         actionIntervalRepository.deleteAll();
         groupUserRepository.deleteAll();
         applicationPermissionRepository.deleteAll();
+        applicationGrantRepository.deleteAll();
         topicRepository.deleteAll();
         applicationRepository.deleteAll();
         groupRepository.deleteAll();
