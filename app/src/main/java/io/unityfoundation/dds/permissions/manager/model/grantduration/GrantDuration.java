@@ -39,6 +39,8 @@ public class GrantDuration {
     @PositiveOrZero
     private Long durationInMilliseconds;
 
+    private String durationMetadata;
+
     @NonNull
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Group permissionsGroup;
@@ -90,5 +92,13 @@ public class GrantDuration {
 
     public void setDurationInMilliseconds(@NonNull Long durationInMilliseconds) {
         this.durationInMilliseconds = durationInMilliseconds;
+    }
+
+    public String getDurationMetadata() {
+        return durationMetadata;
+    }
+
+    public void setDurationMetadata(String durationMetadata) {
+        this.durationMetadata = durationMetadata;
     }
 }
