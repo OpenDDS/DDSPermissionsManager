@@ -26,8 +26,9 @@ public class GrantDTO implements EntityDTO {
     private final Long groupId;
     private final String groupName;
     private final Long durationInMilliseconds;
+    private final String durationMetadata;
 
-    public GrantDTO(Long id, String name, Long applicationId, String applicationName, String applicationGroupName, Long groupId, String groupName, Long durationInMilliseconds) {
+    public GrantDTO(Long id, String name, Long applicationId, String applicationName, String applicationGroupName, Long groupId, String groupName, Long durationInMilliseconds, String durationMetadata) {
         this.id = id;
         this.name = name;
         this.applicationId = applicationId;
@@ -36,6 +37,7 @@ public class GrantDTO implements EntityDTO {
         this.groupId = groupId;
         this.groupName = groupName;
         this.durationInMilliseconds = durationInMilliseconds;
+        this.durationMetadata = durationMetadata;
     }
 
 
@@ -70,5 +72,9 @@ public class GrantDTO implements EntityDTO {
 
     public Long getDurationInMilliseconds() {
         return durationInMilliseconds;
+    }
+
+    public String getDurationMetadata() {
+        return durationMetadata;
     }
 }
