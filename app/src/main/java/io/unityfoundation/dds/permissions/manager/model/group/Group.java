@@ -18,6 +18,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
@@ -69,6 +70,10 @@ public class Group {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<GrantDuration> grantDurations = new HashSet<>();
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<ApplicationGrant> applicationGrants = new HashSet<>();
 
     public Group() {
     }
@@ -183,6 +188,23 @@ public class Group {
 
     public void addGrantDurations(GrantDuration grantDuration) {
         grantDurations.add(grantDuration);
+    }
+
+    public Set<ApplicationGrant> getApplicationGrants() {
+        if (applicationGrants == null) return null;
+        return Collections.unmodifiableSet(applicationGrants);
+    }
+
+    public void setApplicationGrants(Set<ApplicationGrant> applicationGrants) {
+        this.applicationGrants = applicationGrants;
+    }
+
+    public boolean removeApplicationGrant(Long applicationGrantId) {
+        return applicationGrants.removeIf(applicationGrant -> applicationGrantId != null && applicationGrantId.equals(applicationGrant.getId()));
+    }
+
+    public void addApplicationGrant(ApplicationGrant applicationGrant) {
+        applicationGrants.add(applicationGrant);
     }
 
     @PrePersist
