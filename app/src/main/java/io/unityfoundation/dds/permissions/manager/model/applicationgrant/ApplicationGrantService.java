@@ -184,7 +184,8 @@ public class ApplicationGrantService {
                 applicationGrant.getPermissionsApplication().getPermissionsGroup().getName(),
                 applicationGrant.getPermissionsGroup().getId(),
                 applicationGrant.getPermissionsGroup().getName(),
-                applicationGrant.getGrantDuration().getDurationInMilliseconds()
+                applicationGrant.getGrantDuration().getDurationInMilliseconds(),
+                applicationGrant.getGrantDuration().getDurationMetadata()
         );
     }
 

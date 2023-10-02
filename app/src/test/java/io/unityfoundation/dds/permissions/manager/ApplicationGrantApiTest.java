@@ -206,11 +206,12 @@ public class ApplicationGrantApiTest {
             Long applicationGroupId = applicationOne.getPermissionsGroup().getId();
 
             // create grant duration
-            response = createGrantDuration("30s Duration", applicationGroupId);
+            response = createGrantDuration("30s Duration", applicationGroupId, "WEEKS");
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
             assertEquals("30s Duration", durationOptional.get().getName());
+            assertEquals("WEEKS", durationOptional.get().getDurationMetadata());
 
             // generate grant token for application
             request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOneId);
@@ -225,6 +226,8 @@ public class ApplicationGrantApiTest {
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
+            assertEquals(30000, grantOptional.get().getDurationInMilliseconds());
+            assertEquals("WEEKS", grantOptional.get().getDurationMetadata());
 
             // update the grant
             UpdateGrantDTO updateGrantDTO = new UpdateGrantDTO();
@@ -1092,10 +1095,15 @@ public class ApplicationGrantApiTest {
     }
 
     private HttpResponse<?> createGrantDuration(String name, Long groupId) {
+        return createGrantDuration(name, groupId, null);
+    }
+
+    private HttpResponse<?> createGrantDuration(String name, Long groupId, String durationMetadata) {
         CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
         abcDTO.setName(name);
         abcDTO.setGroupId(groupId);
         abcDTO.setDurationInMilliseconds(30000L);
+        abcDTO.setDurationMetadata(durationMetadata);
 
 
         HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
