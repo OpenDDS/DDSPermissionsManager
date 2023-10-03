@@ -5,20 +5,19 @@
 	import { onMount, onDestroy } from 'svelte';
 	import SegmentedButton, { Segment } from '@smui/segmented-button';
 	import { Label } from '@smui/common';
-	import { httpAdapter } from '../../appconfig';
 	import closeSVG from '../../icons/close.svg';
 	import errorMessages from '$lib/errorMessages.json';
 	import messages from '$lib/messages.json';
 	import errorMessageAssociation from '../../stores/errorMessageAssociation';
 	import groupContext from '../../stores/groupContext';
 	import modalOpen from '../../stores/modalOpen';
-	import nonEmptyInputField from '../../stores/nonEmptyInputField';
-	import tooltips from '$lib/tooltips.json';
-	import groupnotpublicSVG from '../../icons/groupnotpublic.svg';
+	import { convertFromMilliseconds, getDurationInMilliseconds } from '../../utils';
 
 	export let title;
 
-	export let topicCurrentPublic = false;
+	export let selectedGrantDuration = {};
+	export let actionAddGrandDuration = false;
+	export let actionEditGrandDuration = false;
 	export let newGrantDurationName = '';
 	export let duration = 0;
 	export let errorDescription = '';
@@ -31,20 +30,8 @@
 
 	// Constants
 	const returnKey = 13;
-	const groupsToCompare = 7;
 	const minNameLength = 3;
-	const maxCharactersLength = 4000;
 
-	// Forms
-
-	let appName = '';
-	let newGroupName = '';
-	let newGroupDescription = '';
-	let newGroupPublic;
-	let newAppName = '';
-	let newAppDescription = '';
-
-	let newAppPublic, topicCurrentPublicInitial, appCurrentPublicInitial;
 
 	// Bind Token
 	let bindToken;
@@ -52,24 +39,13 @@
 	let invalidToken = false;
 
 	// Error Handling
-	let invalidTopic = false;
-	let invalidGroup = false;
-	let invalidApplicationName = false;
-	let invalidTopicName = false;
-	let invalidEmail = false;
-	let errorMessageGroup = '';
-	let errorMessageApplication = '';
-	let errorMessageTopic = '';
-	let errorMessageEmail = '';
+	let invalidDuration = false;
+	let errorMessageDuration = '';
 	let errorMessageName = '';
-	let validRegex = /^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$/;
 
 	// SearchBox
 	let selectedGroup;
 
-	// Tooltip
-	let groupNotPublicTooltip,
-		groupNotPublicMouseEnter = false;
 
 	// Bind Token Decode
 	$: if (bindToken?.length > 0) {
@@ -81,21 +57,16 @@
 
 	onMount(() => {
 		modalOpen.set(true);
-		if ($groupContext) selectedGroup = $groupContext.id;
-		topicCurrentPublicInitial = topicCurrentPublic;
-
-		// Sort the values left in the unsaved partitions input field
-		if ($nonEmptyInputField) {
-			nonEmptyInputField.set(
-				$nonEmptyInputField.sort((a, b) => {
-					if (a.startsWith('Read:') && b.startsWith('Write:')) {
-						return -1;
-					} else if (a.startsWith('Write:') && b.startsWith('Read:')) {
-						return 1;
-					}
-					return 0;
-				})
+		if (actionAddGrandDuration) {
+			if ($groupContext) selectedGroup = $groupContext.id;
+		}
+		if (actionEditGrandDuration) {
+			newGrantDurationName = selectedGrantDuration.name;
+			duration = convertFromMilliseconds(
+				selectedGrantDuration.durationInMilliseconds,
+				selectedGrantDuration.durationMetadata
 			);
+			selectedSegment = selectedGrantDuration.durationMetadata;
 		}
 	});
 
@@ -115,59 +86,10 @@
 		dispatch('cancel');
 	}
 
-    const getSegmentFromDuration = (durationInMilliseconds) => {
-        let segment = 'Minute';
-        if (durationInMilliseconds >= 31556952000) {
-            segment = 'Year';
-        } else if (durationInMilliseconds >= 2629746000) {
-            segment = 'Month';
-        } else if (durationInMilliseconds >= 86400000) {
-            segment = 'Day';
-        }
-        return segment;
-    }
 
-    const convertToMilliseconds = (durationInMilliseconds, segment) => {
-        let convertedDuration = 0;
-        switch (segment) {
-            case 'Minute':
-                convertedDuration = durationInMilliseconds / 60000;
-                break;
-            case 'Day':
-                convertedDuration = durationInMilliseconds / 86400000;
-                break;
-            case 'Month':
-                convertedDuration = durationInMilliseconds / 2629746000;
-                break;
-            case 'Year':
-                convertedDuration = durationInMilliseconds / 31556952000;
-                break;
-        }
-        return convertedDuration;
-    }
-
-    const getDurationInMilliseconds = (typedDuration, selectedSegment) => {
-        let durationInMilliseconds = 0;
-        switch (selectedSegment) {
-            case 'Minute':
-                durationInMilliseconds = typedDuration * 60000;
-                break;
-            case 'Day':
-                durationInMilliseconds = typedDuration * 86400000;
-                break;
-            case 'Month':
-                durationInMilliseconds = typedDuration * 2629746000;
-                break;
-            case 'Year':
-                durationInMilliseconds = typedDuration * 31556952000;
-                break;
-        }
-        return durationInMilliseconds;
-    }
 
 	const actionAddGrantDurationEvent = async () => {
-        
-        const durationInMilliseconds = getDurationInMilliseconds(duration, selectedSegment);
+		const durationInMilliseconds = getDurationInMilliseconds(duration, selectedSegment);
 
 		let newGrandDuration = {
 			name: newGrantDurationName,
@@ -176,14 +98,35 @@
 			groupId: selectedGroup
 		};
 
-		invalidTopic = !validateNameLength(newGrantDurationName, 'durations');
-		if (invalidTopic) {
-			errorMessageName = errorMessages['topic-sets']['name.cannot_be_less_than_three_characters'];
+		invalidDuration = !validateNameLength(newGrantDurationName, 'durations');
+		if (invalidDuration) {
+			errorMessageName = errorMessages['durations']['name.cannot_be_less_than_three_characters'];
 			return;
 		}
 
-        dispatch('addGrantDuration', newGrandDuration);
-			closeModal();
+		dispatch('addGrantDuration', newGrandDuration);
+		closeModal();
+	};
+
+    const actionEditGrantDurationEvent = async () => {
+		const durationInMilliseconds = getDurationInMilliseconds(duration, selectedSegment);
+
+		let updatedGrantDuration = {
+            ...selectedGrantDuration,
+			name: newGrantDurationName,
+			durationMetadata: selectedSegment,
+			durationInMilliseconds: durationInMilliseconds,
+		};
+
+
+		invalidDuration = !validateNameLength(newGrantDurationName, 'durations');
+		if (invalidDuration) {
+			errorMessageName = errorMessages['durations']['name.cannot_be_less_than_three_characters'];
+			return;
+		}
+
+		dispatch('editGrantDuration', updatedGrantDuration);
+		closeModal();
 	};
 
 	const decodeToken = async (token) => {
@@ -232,7 +175,7 @@
 				id="name"
 				data-cy="grant-duration-name"
 				autofocus
-				class:invalid={invalidTopic}
+				class:invalid={invalidDuration}
 				style="background: rgb(246, 246, 246); width: 13.2rem; margin-right: 2rem"
 				bind:value={newGrantDurationName}
 				on:blur={() => {
@@ -247,25 +190,44 @@
 					}
 				}}
 				on:click={() => {
-					errorMessageTopic = '';
+					errorMessageDuration = '';
 					errorMessageName = '';
 				}}
 			/>
 		</div>
-		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
-			<span
-				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
-				>Group:</span
-			>
-			<input
-				data-cy="group-name"
-				id="group-context"
-				readonly
-				disabled
-				style="background: rgb(246, 246, 246); width: 13.2rem;"
-				bind:value={$groupContext.name}
-			/>
-		</div>
+		{#if actionAddGrandDuration}
+			<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
+				<span
+					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
+					>Group:</span
+				>
+				<input
+					data-cy="group-name"
+					id="group-context"
+					readonly
+					disabled
+					style="background: rgb(246, 246, 246); width: 13.2rem;"
+					bind:value={$groupContext.name}
+				/>
+			</div>
+		{/if}
+
+		{#if actionEditGrandDuration}
+			<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
+				<span
+					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
+					>Group:</span
+				>
+				<input
+					data-cy="group-name"
+					id="group-context"
+					readonly
+					disabled
+					style="background: rgb(246, 246, 246); width: 13.2rem;"
+					value={selectedGrantDuration.groupName}
+				/>
+			</div>
+		{/if}
 
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 			<span
@@ -278,6 +240,7 @@
 				</Segment>
 			</SegmentedButton>
 		</div>
+
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 			<span
 				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
@@ -286,10 +249,10 @@
 			<!-- svelte-ignore a11y-autofocus -->
 			<input
 				id="name"
-				data-cy="grant-duration-name"
+				data-cy="grant-duration"
 				type="number"
 				autofocus
-				class:invalid={invalidTopic}
+				class:invalid={invalidDuration}
 				style="background: rgb(246, 246, 246); width: 5rem; margin-right: 2rem"
 				bind:value={duration}
 				on:blur={() => {
@@ -304,7 +267,7 @@
 					}
 				}}
 				on:click={() => {
-					errorMessageTopic = '';
+					errorMessageDuration = '';
 					errorMessageName = '';
 				}}
 			/>
@@ -312,28 +275,48 @@
 				>{duration || 0} {duration > 1 ? `${selectedSegment}s` : selectedSegment}</span
 			>
 		</div>
-		<button
-			data-cy="button-add-topic"
-			class="action-button"
-			disabled={newGrantDurationName.length < minNameLength || !selectedGroup}
-			class:action-button-invalid={newGrantDurationName.length < minNameLength || !selectedGroup}
-			on:click={() => actionAddGrantDurationEvent()}
-			on:keydown={(event) => {
-				if (event.which === returnKey) {
-					actionAddGrantDurationEvent();
-				}
-			}}
-		>
-			Add Duration
-		</button>
+		{#if actionAddGrandDuration}
+			<!-- content here -->
+			<button
+				data-cy="button-add-duration"
+				class="action-button"
+				disabled={newGrantDurationName.length < minNameLength || !selectedGroup  || !duration}
+				class:action-button-invalid={newGrantDurationName.length < minNameLength || !duration}
+				on:click={() => actionAddGrantDurationEvent()}
+				on:keydown={(event) => {
+					if (event.which === returnKey) {
+						actionAddGrantDurationEvent();
+					}
+				}}
+			>
+				Add Duration
+			</button>
+		{/if}
 
-		{#if errorMessageTopic?.substring(0, errorMessageTopic?.indexOf(' ')) === messages['modal']['error.message.topic.substring'] && errorMessageTopic?.length > 0}
+		{#if actionEditGrandDuration}
+			<button
+				data-cy="button-add-duration"
+				class="action-button"
+				disabled={newGrantDurationName.length < minNameLength || !duration}
+				class:action-button-invalid={newGrantDurationName.length < minNameLength || !duration}
+				on:click={() => actionEditGrantDurationEvent()}
+				on:keydown={(event) => {
+					if (event.which === returnKey) {
+						actionEditGrantDurationEvent();
+					}
+				}}
+			>
+				Update Duration
+			</button>
+		{/if}
+
+		{#if errorMessageDuration?.substring(0, errorMessageDuration?.indexOf(' ')) === messages['modal']['error.message.topic.substring'] && errorMessageDuration?.length > 0}
 			<span
 				class="error-message"
 				style="	top: 10.5rem; right: 2.2rem"
-				class:hidden={errorMessageTopic?.length === 0}
+				class:hidden={errorMessageDuration?.length === 0}
 			>
-				{errorMessageTopic}
+				{errorMessageDuration}
 			</span>
 		{/if}
 
@@ -398,6 +381,11 @@
 		font-weight: 500;
 		color: #6750a4;
 		cursor: pointer;
+	}
+
+	.action-button-invalid {
+		color: grey;
+		cursor: default;
 	}
 
 	.action-button:focus {
