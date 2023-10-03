@@ -71,6 +71,21 @@
         "updating.access.type.error.title": "Error Updating Application Access Type"
     },
 
+    "durations":
+    {
+        "not_found": "Grant Duration not found",
+        "update_not_allowed": "Grant Duration update not allowed",
+        "requires_group_association": "Grant Duration requires group association",
+        "name.cannot_be_blank_or_null": "Grant Duration name cannot be blank or invalid",
+        "name.cannot_be_less_than_three_characters": "Grant Duration cannot be less than 3 characters",
+        "exists": "Grant Duration already exists",
+        "loading.error.title": "Error Loading Grant Durations",
+        "loading.detail.error.title": "Error Loading Grant Duration Details",
+        "deleting.error.title": "Error Deleting Grant Duration",
+        "adding.error.title": "Error Adding Grant Duration",
+        "updating.access.type.error.title": "Error Updating Application Access Type"
+    },
+
     "topic-sets":
     {
         "not_found": "Topic Set not found",

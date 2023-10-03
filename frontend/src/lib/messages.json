@@ -239,6 +239,29 @@
         "application.changed.title": "Application updated"
     },
 
+    "durations":
+    {
+        "title": "My Grant Durations",
+        "tab.title": "My Grant Durations | DDS Permissions Manager",
+        "add": "Add Grant Duration",
+        "edit": "Edit Grant Duration",
+        "delete.title": "Delete",
+        "delete.single": "Grant Duration",
+        "delete.multiple": "Grant Durations",
+        "search.placeholder": "Search",
+        "search.clear.button": "Clear",
+        "add.tooltip.topic.admin.required": "Grant Duration Admin permission required",
+        "add.tooltip.select.group": "Select a group to add a Grant Duration",
+        "delete.tooltip": "Select topics to delete",
+        "delete.tooltip.topic.admin.required": "Grant Duration Admin permissions required",
+        "table.column.one": "Grant Duration",
+        "table.column.two": "Group",
+        "empty.topics": "No Grant Duration Found.",
+        "empty.topics.action": "Select a group to get started.",
+        "empty.topics.action.two": "Click here",
+        "empty.topics.action.result": "to create a new Grant Duration."
+    },
+
     "group.context":
     {
         "combobox.placeholder": "Select Group",
