@@ -86,6 +86,20 @@
         "updating.access.type.error.title": "Error Updating Application Access Type"
     },
 
+    "action-intervals":
+    {
+        "not_found": "Action Interval not found",
+        "update_not_allowed": "Action Interval update not allowed",
+        "requires_group_association": "Action Interval requires group association",
+        "name.cannot_be_blank_or_null": "Action Interval name cannot be blank or invalid",
+        "name.cannot_be_less_than_three_characters": "Action Interval cannot be less than 3 characters",
+        "exists": "Action Interval already exists",
+        "loading.error.title": "Error Loading Action Intervals",
+        "loading.detail.error.title": "Error Loading Action Interval Details",
+        "deleting.error.title": "Error Deleting Action Interval",
+        "adding.error.title": "Error Adding Action Interval"
+    },
+
     "topic-sets":
     {
         "not_found": "Topic Set not found",

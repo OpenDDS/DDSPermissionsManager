@@ -239,10 +239,10 @@
 		"delete.multiple": "Grant Durations",
 		"search.placeholder": "Search",
 		"search.clear.button": "Clear",
-		"add.tooltip.duration.admin.required": "Grant Duration Admin permission required",
+		"add.tooltip.duration.admin.required": "Topic Admin permission required",
 		"add.tooltip.select.group": "Select a group to add a Grant Duration",
 		"delete.tooltip": "Select duration to delete",
-		"delete.tooltip.duration.admin.required": "Grant Duration Admin permissions required",
+		"delete.tooltip.duration.admin.required": "Topic Admin permissions required",
 		"table.column.one": "Duration Name",
 		"table.column.two": "Group",
 		"table.column.three": "Duration",
@@ -250,6 +250,30 @@
 		"empty.durations.action": "Select a group to get started.",
 		"empty.durations.action.two": "Click here",
 		"empty.durations.action.result": "to create a new Grant Duration."
+	},
+
+	"action-intervals": {
+		"title": "My Action Intervals",
+		"tab.title": "My Action Intervals | DDS Permissions Manager",
+		"add": "Add Action Interval",
+		"edit": "Edit Action Interval",
+		"delete.title": "Delete",
+		"delete.single": "Action Interval",
+		"delete.multiple": "Action Intervals",
+		"search.placeholder": "Search",
+		"search.clear.button": "Clear",
+		"add.tooltip.action-interval.admin.required": "Topic Admin permission required",
+		"add.tooltip.select.group": "Select a group to add a Grant Duration",
+		"delete.tooltip": "Select duration to delete",
+		"delete.tooltip.action-interval.admin.required": "Topic Admin permissions required",
+		"table.column.one": "Action Interval Name",
+		"table.column.two": "Group",
+		"table.column.three": "Start Date",
+		"table.column.four": "End Date",
+		"empty.action-intervals": "No Action Interval Found.",
+		"empty.action-intervals.action": "Select a group to get started.",
+		"empty.action-intervals.action.two": "Click here",
+		"empty.action-intervals.action.result": "to create a new Action Interval."
 	},
 
 	"group.context": {
