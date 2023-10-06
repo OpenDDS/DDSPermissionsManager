@@ -62,6 +62,10 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /smui.css
+        http-method: GET
+        access:
+          - isAnonymous()
       - pattern: /
         http-method: GET
         access:
@@ -83,6 +87,10 @@ micronaut:
         access:
           - isAnonymous()
       - pattern: /topic-sets/**
+        http-method: GET
+        access:
+          - isAnonymous()
+      - pattern: /durations/**
         http-method: GET
         access:
           - isAnonymous()
