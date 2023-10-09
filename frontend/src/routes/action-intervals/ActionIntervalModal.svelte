@@ -3,28 +3,28 @@
 	import { fade, fly } from 'svelte/transition';
 	import { createEventDispatcher } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
-	import SegmentedButton, { Segment } from '@smui/segmented-button';
-	import { Label } from '@smui/common';
+	import { DateInput } from 'date-picker-svelte';
 	import closeSVG from '../../icons/close.svg';
 	import errorMessages from '$lib/errorMessages.json';
 	import messages from '$lib/messages.json';
 	import errorMessageAssociation from '../../stores/errorMessageAssociation';
 	import groupContext from '../../stores/groupContext';
 	import modalOpen from '../../stores/modalOpen';
-	import { convertFromMilliseconds, getDurationInMilliseconds } from '../../utils';
 
 	export let title;
 
-	export let selectedGrantDuration = {};
-	export let actionAddGrandDuration = false;
-	export let actionEditGrandDuration = false;
-	export let newGrantDurationName = '';
-	export let duration = 0;
+	export let selectedActionInterval = {};
+	export let actionAddActionInterval = false;
+	export let actionEditActionInterval = false;
+	export let newActionIntervalName = '';
 	export let errorDescription = '';
 	export let reminderDescription = '';
 	export let errorMsg = false;
 	export let reminderMsg = false;
 	export let closeModalText = messages['modal']['close.modal.label'];
+
+	let startDate = new Date();
+	let endDate = new Date();
 
 	const dispatch = createEventDispatcher();
 
@@ -32,20 +32,18 @@
 	const returnKey = 13;
 	const minNameLength = 3;
 
-
 	// Bind Token
 	let bindToken;
 	let tokenApplicationName, tokenApplicationGroup, tokenApplicationEmail;
 	let invalidToken = false;
 
 	// Error Handling
-	let invalidDuration = false;
-	let errorMessageDuration = '';
+	let invalidName = false;
+	let errorMessageActionInterval = '';
 	let errorMessageName = '';
 
 	// SearchBox
 	let selectedGroup;
-
 
 	// Bind Token Decode
 	$: if (bindToken?.length > 0) {
@@ -57,16 +55,13 @@
 
 	onMount(() => {
 		modalOpen.set(true);
-		if (actionAddGrandDuration) {
+		if (actionAddActionInterval) {
 			if ($groupContext) selectedGroup = $groupContext.id;
 		}
-		if (actionEditGrandDuration) {
-			newGrantDurationName = selectedGrantDuration.name;
-			duration = convertFromMilliseconds(
-				selectedGrantDuration.durationInMilliseconds,
-				selectedGrantDuration.durationMetadata
-			);
-			selectedSegment = selectedGrantDuration.durationMetadata;
+		if (actionEditActionInterval) {
+			newActionIntervalName = selectedActionInterval.name;
+			startDate = new Date(selectedActionInterval.startDate);
+			endDate = new Date(selectedActionInterval.endDate);
 		}
 	});
 
@@ -86,46 +81,41 @@
 		dispatch('cancel');
 	}
 
-
-
-	const actionAddGrantDurationEvent = async () => {
-		const durationInMilliseconds = getDurationInMilliseconds(duration, selectedSegment);
-
-		let newGrandDuration = {
-			name: newGrantDurationName,
-			durationMetadata: selectedSegment,
-			durationInMilliseconds: durationInMilliseconds,
-			groupId: selectedGroup
+	const actionAddActionIntervalEvent = async () => {
+		let newActionInterval = {
+			name: newActionIntervalName,
+			groupId: selectedGroup,
+			startDate: startDate,
+			endDate: endDate
 		};
 
-		invalidDuration = !validateNameLength(newGrantDurationName, 'durations');
-		if (invalidDuration) {
-			errorMessageName = errorMessages['durations']['name.cannot_be_less_than_three_characters'];
+		invalidName = !validateNameLength(newActionIntervalName, 'actionIntervals');
+		if (invalidName) {
+			errorMessageName =
+				errorMessages['action-intervals']['name.cannot_be_less_than_three_characters'];
 			return;
 		}
 
-		dispatch('addGrantDuration', newGrandDuration);
+		dispatch('addActionInterval', newActionInterval);
 		closeModal();
 	};
 
-    const actionEditGrantDurationEvent = async () => {
-		const durationInMilliseconds = getDurationInMilliseconds(duration, selectedSegment);
-
-		let updatedGrantDuration = {
-            ...selectedGrantDuration,
-			name: newGrantDurationName,
-			durationMetadata: selectedSegment,
-			durationInMilliseconds: durationInMilliseconds,
+	const actionEditActionIntervalEvent = async () => {
+		let updatedActionInterval = {
+			...selectedActionInterval,
+			name: newActionIntervalName,
+			startDate: startDate,
+			endDate: endDate
 		};
 
-
-		invalidDuration = !validateNameLength(newGrantDurationName, 'durations');
-		if (invalidDuration) {
-			errorMessageName = errorMessages['durations']['name.cannot_be_less_than_three_characters'];
+		invalidName = !validateNameLength(newActionIntervalName, 'actionIntervals');
+		if (invalidName) {
+			errorMessageName =
+				errorMessages['action-intervals']['name.cannot_be_less_than_three_characters'];
 			return;
 		}
 
-		dispatch('editGrantDuration', updatedGrantDuration);
+		dispatch('editActionInterval', updatedActionInterval);
 		closeModal();
 	};
 
@@ -144,9 +134,6 @@
 		tokenApplicationGroup = res.groupName;
 		tokenApplicationEmail = res.email;
 	};
-
-	let choices = ['Minute', 'Day', 'Month', 'Year'];
-	let selectedSegment = 'Minute';
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -168,37 +155,36 @@
 		<!-- svelte-ignore a11y-autofocus -->
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 			<span
-				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
-				>Duration Name:</span
+				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 9.2rem; text-align: right"
+				>Action Interval Name:</span
 			>
 			<input
 				id="name"
-				data-cy="grant-duration-name"
+				data-cy="action-interval-name-input"
 				autofocus
-				class:invalid={invalidDuration}
+				class:invalid={invalidName}
 				style="background: rgb(246, 246, 246); width: 13.2rem; margin-right: 2rem"
-				bind:value={newGrantDurationName}
+				bind:value={newActionIntervalName}
 				on:blur={() => {
-					newGrantDurationName = newGrantDurationName.trim();
+					newActionIntervalName = newActionIntervalName.trim();
 				}}
 				on:keydown={(event) => {
 					errorMessageName = '';
 
 					if (event.which === returnKey) {
-						newGrantDurationName = newGrantDurationName.trim();
-						// actionAddGrantDurationEvent();
+						newActionIntervalName = newActionIntervalName.trim();
 					}
 				}}
 				on:click={() => {
-					errorMessageDuration = '';
+					errorMessageActionInterval = '';
 					errorMessageName = '';
 				}}
 			/>
 		</div>
-		{#if actionAddGrandDuration}
+		{#if actionAddActionInterval}
 			<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 				<span
-					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
+					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 9.2rem; text-align: right"
 					>Group:</span
 				>
 				<input
@@ -212,10 +198,10 @@
 			</div>
 		{/if}
 
-		{#if actionEditGrandDuration}
+		{#if actionEditActionInterval}
 			<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 				<span
-					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
+					style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 9.2rem; text-align: right"
 					>Group:</span
 				>
 				<input
@@ -224,101 +210,73 @@
 					readonly
 					disabled
 					style="background: rgb(246, 246, 246); width: 13.2rem;"
-					value={selectedGrantDuration.groupName}
+					value={selectedActionInterval.groupName}
 				/>
 			</div>
 		{/if}
 
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 			<span
-				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem;padding-right: 1rem; min-width: 7.5rem"
-				>Duration Length:</span
+				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem;padding-right: 1rem; min-width: 9.2rem; text-align: right"
+				>Start Date:</span
 			>
-			<SegmentedButton segments={choices} let:segment singleSelect bind:selected={selectedSegment}>
-				<Segment {segment}>
-					<Label>{segment}</Label>
-				</Segment>
-			</SegmentedButton>
+
+			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={startDate} />
 		</div>
 
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
 			<span
-				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
-				>Duration:</span
+				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem;padding-right: 1rem; min-width: 9.2rem; text-align: right"
+				>End Date:</span
 			>
-			<!-- svelte-ignore a11y-autofocus -->
-			<input
-				id="name"
-				data-cy="grant-duration"
-				type="number"
-				autofocus
-				class:invalid={invalidDuration}
-				style="background: rgb(246, 246, 246); width: 5rem; margin-right: 2rem"
-				bind:value={duration}
-				on:blur={() => {
-					newGrantDurationName = newGrantDurationName.trim();
-				}}
-				on:keydown={(event) => {
-					errorMessageName = '';
 
-					if (event.which === returnKey) {
-						newGrantDurationName = newGrantDurationName.trim();
-						// actionAddGrantDurationEvent();
-					}
-				}}
-				on:click={() => {
-					errorMessageDuration = '';
-					errorMessageName = '';
-				}}
-			/>
-			<span style="line-height: 2rem"
-				>{duration || 0} {duration > 1 ? `${selectedSegment}s` : selectedSegment}</span
-			>
+			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={endDate} />
 		</div>
 
 		<hr />
-		{#if actionAddGrandDuration}
+
+		{#if actionAddActionInterval}
 			<!-- content here -->
 			<button
-				data-cy="button-add-duration"
+				data-cy="button-add-action-interval"
 				class="action-button"
-				disabled={newGrantDurationName.length < minNameLength || !selectedGroup  || !duration}
-				class:action-button-invalid={newGrantDurationName.length < minNameLength || !duration}
-				on:click={() => actionAddGrantDurationEvent()}
+				disabled={newActionIntervalName.length < minNameLength || !selectedGroup}
+				class:action-button-invalid={newActionIntervalName.length < minNameLength}
+				on:click={() => actionAddActionIntervalEvent()}
 				on:keydown={(event) => {
 					if (event.which === returnKey) {
-						actionAddGrantDurationEvent();
+						actionAddActionIntervalEvent();
 					}
 				}}
 			>
-				Add Duration
+				Add Action Interval
 			</button>
 		{/if}
 
-		{#if actionEditGrandDuration}
+		{#if actionEditActionInterval}
 			<button
-				data-cy="button-add-duration"
+				data-cy="button-add-action-interval"
 				class="action-button"
-				disabled={newGrantDurationName.length < minNameLength || !duration}
-				class:action-button-invalid={newGrantDurationName.length < minNameLength || !duration}
-				on:click={() => actionEditGrantDurationEvent()}
+				disabled={newActionIntervalName.length < minNameLength}
+				class:action-button-invalid={newActionIntervalName.length < minNameLength}
+				on:click={() => actionEditActionIntervalEvent()}
 				on:keydown={(event) => {
 					if (event.which === returnKey) {
-						actionEditGrantDurationEvent();
+						actionEditActionIntervalEvent();
 					}
 				}}
 			>
-				Update Duration
+				Edit Action Interval
 			</button>
 		{/if}
 
-		{#if errorMessageDuration?.substring(0, errorMessageDuration?.indexOf(' ')) === messages['modal']['error.message.topic.substring'] && errorMessageDuration?.length > 0}
+		{#if errorMessageActionInterval?.substring(0, errorMessageActionInterval?.indexOf(' ')) === messages['modal']['error.message.topic.substring'] && errorMessageActionInterval?.length > 0}
 			<span
 				class="error-message"
 				style="	top: 10.5rem; right: 2.2rem"
-				class:hidden={errorMessageDuration?.length === 0}
+				class:hidden={errorMessageActionInterval?.length === 0}
 			>
-				{errorMessageDuration}
+				{errorMessageActionInterval}
 			</span>
 		{/if}
 
@@ -415,7 +373,6 @@
 		border-radius: 15px;
 		z-index: 100;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
-		overflow-y: auto;
 	}
 
 	.content {
@@ -462,5 +419,8 @@
 
 	.condensed {
 		font-stretch: extra-condensed;
+	}
+	:root {
+		--date-input-width: 14rem;
 	}
 </style>

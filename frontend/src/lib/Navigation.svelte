@@ -230,7 +230,7 @@
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<li class:active={$page.url.pathname === '/durations/'} on:mouseenter={() => {}}>
 				<a sveltekit:prefetch href="/durations">
-					<img src={expirationsSVG} alt="durations" class="menu-icon" />{messages['navigation'][
+					<img src={timerSVG} alt="durations" class="menu-icon" />{messages['navigation'][
 						'item.seven'
 					]}
 				</a>
@@ -239,7 +239,7 @@
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
 			<li class:active={$page.url.pathname === '/action-intervals/'} on:mouseenter={() => {}} 			on:click={() => detailView.set('backToList')}>
 				<a sveltekit:prefetch href="/action-intervals">
-					<img src={timerSVG} alt="action-intervals" class="menu-icon" />{messages['navigation'][
+					<img src={expirationsSVG} alt="action-intervals" class="menu-icon" />{messages['navigation'][
 						'item.eight'
 					]}
 				</a>

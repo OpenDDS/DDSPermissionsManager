@@ -94,6 +94,10 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /action-intervals/**
+        http-method: GET
+        access:
+          - isAnonymous()
       - pattern: /users/**
         http-method: GET
         access:
