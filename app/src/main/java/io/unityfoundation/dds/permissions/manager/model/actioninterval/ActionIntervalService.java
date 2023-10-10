@@ -158,7 +158,8 @@ public class ActionIntervalService {
         Optional<ActionInterval> searchActionIntervalByNameAndGroup = actionIntervalRepository.findByNameAndPermissionsGroup(
                 actionIntervalDTO.getName().trim(), groupOptional.get());
 
-        if (searchActionIntervalByNameAndGroup.isPresent()) {
+        if (searchActionIntervalByNameAndGroup.isPresent() &&
+                searchActionIntervalByNameAndGroup.get().getId() != actionIntervalOptional.get().getId()) {
             throw new DPMException(ResponseStatusCodes.ACTION_INTERVAL_ALREADY_EXISTS);
         }else if (!Objects.equals(actionIntervalOptional.get().getPermissionsGroup().getId(), actionIntervalDTO.getGroupId())) {
             throw new DPMException(ResponseStatusCodes.ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION);
