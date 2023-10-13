@@ -90,6 +90,10 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /grants/**
+        http-method: GET
+        access:
+          - isAnonymous()
       - pattern: /durations/**
         http-method: GET
         access:

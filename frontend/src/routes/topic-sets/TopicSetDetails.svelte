@@ -372,7 +372,7 @@
 								/>
 							</td>
 						{/if}
-						<td style="min-width: 7rem">{messages['topic-sets.detail']['table.column.one']}</td>
+						<td class="header-column" style="min-width: 7rem">{messages['topic-sets.detail']['table.column.one']}</td>
 					</tr>
 				</thead>
 				<tbody>
@@ -512,5 +512,9 @@
 	.no-topics {
 		margin-top: 4rem;
 		margin-left: 1rem;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

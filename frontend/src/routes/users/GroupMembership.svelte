@@ -667,19 +667,19 @@
 										/>
 									</td>
 								{/if}
-								<td style="font-stretch:ultra-condensed; width:fit-content">
+								<td class="header-column" style="font-stretch:ultra-condensed; width:fit-content">
 									{messages['user']['table.user.column.one']}
 								</td>
-								<td style="font-stretch:ultra-condensed; width:fit-content">
+								<td class="header-column" style="font-stretch:ultra-condensed; width:fit-content">
 									{messages['user']['table.user.column.two']}
 								</td>
-								<td style="font-stretch:ultra-condensed; width:5.25rem">
+								<td class="header-column" style="font-stretch:ultra-condensed; width:6.25rem">
 									<center>{messages['user']['table.user.column.three']}</center>
 								</td>
-								<td style="font-stretch:ultra-condensed; width:5rem">
+								<td class="header-column" style="font-stretch:ultra-condensed; width:6rem">
 									<center>{messages['user']['table.user.column.four']}</center>
 								</td>
-								<td style="font-stretch:ultra-condensed; width:7.4rem">
+								<td class="header-column" style="font-stretch:ultra-condensed; width:7.8rem">
 									<center>{messages['user']['table.user.column.five']}</center>
 								</td>
 								<td /><td />
@@ -954,5 +954,9 @@
 
 	p {
 		font-size: large;
+	} 
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

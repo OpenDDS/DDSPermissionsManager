@@ -417,7 +417,7 @@
 											checked={superUsersAllRowsSelectedTrue}
 										/>
 									</td>
-									<td>{messages['user']['table.super.user.column.one']}</td>
+									<td class="header-column">{messages['user']['table.super.user.column.one']}</td>
 									<td />
 								</tr>
 							</thead>
@@ -580,5 +580,9 @@
 
 	p {
 		font-size: large;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>
