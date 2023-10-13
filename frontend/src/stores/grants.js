@@ -13,6 +13,6 @@
 // limitations under the License.
 import { writable } from 'svelte/store';
 
-const grantDurations = writable([]);
+const grants = writable(null);
 
-export default grantDurations;
+export default grants;

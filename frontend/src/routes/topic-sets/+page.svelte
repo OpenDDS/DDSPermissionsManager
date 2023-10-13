@@ -566,8 +566,8 @@
 												/>
 											</td>
 										{/if}
-										<td style="min-width: 7rem">{messages['topic-sets']['table.column.one']}</td>
-										<td>{messages['topic-sets']['table.column.two']}</td>
+										<td class="header-column" style="min-width: 7rem">{messages['topic-sets']['table.column.one']}</td>
+										<td class="header-column">{messages['topic-sets']['table.column.two']}</td>
 									</tr>
 								</thead>
 								<tbody>
@@ -807,5 +807,9 @@
 
 	p {
 		font-size: large;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

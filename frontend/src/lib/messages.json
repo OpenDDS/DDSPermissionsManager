@@ -263,8 +263,8 @@
 		"search.placeholder": "Search",
 		"search.clear.button": "Clear",
 		"add.tooltip.action-interval.admin.required": "Topic Admin permission required",
-		"add.tooltip.select.group": "Select a group to add a Grant Duration",
-		"delete.tooltip": "Select duration to delete",
+		"add.tooltip.select.group": "Select a group to add a Action Interval",
+		"delete.tooltip": "Select Action Interval to delete",
 		"delete.tooltip.action-interval.admin.required": "Topic Admin permissions required",
 		"table.column.one": "Action Interval Name",
 		"table.column.two": "Group",
@@ -274,6 +274,31 @@
 		"empty.action-intervals.action": "Select a group to get started.",
 		"empty.action-intervals.action.two": "Click here",
 		"empty.action-intervals.action.result": "to create a new Action Interval."
+	},
+
+	"grants": {
+		"title": "My Grants",
+		"tab.title": "My Grants | DDS Permissions Manager",
+		"add": "Add Grant",
+		"edit": "Edit Grant",
+		"delete.title": "Delete",
+		"delete.single": "Grant",
+		"delete.multiple": "Grants",
+		"search.placeholder": "Search",
+		"search.clear.button": "Clear",
+		"add.tooltip.grants.admin.required": "Topic Admin permission required",
+		"add.tooltip.select.group": "Select a group to add a Grant",
+		"delete.tooltip": "Select Grant to delete",
+		"delete.tooltip.grants.admin.required": "Topic Admin permissions required",
+		"table.column.one": "Grant Name",
+		"table.column.two": "Group",
+		"table.column.three": "Duration",
+		"table.column.four": "Application",
+		"table.column.five": "Application Group",
+		"empty.grants": "No Grants Found.",
+		"empty.grants.action": "Select a group to get started.",
+		"empty.grants.action.two": "Click here",
+		"empty.grants.action.result": "to create a new Grant."
 	},
 
 	"group.context": {

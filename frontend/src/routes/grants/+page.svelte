@@ -23,23 +23,21 @@
 	import groupContext from '../../stores/groupContext';
 	import showSelectGroupContext from '../../stores/showSelectGroupContext';
 	import singleGroupCheck from '../../stores/singleGroupCheck';
-	import createItem from '../../stores/createItem';
 	import topicsTotalSize from '../../stores/topicsTotalSize';
 	import topicsTotalPages from '../../stores/topicsTotalPages';
-	import grantDurations from '../../stores/grantDurations';
+	import grants from '../../stores/grants';
 	import retrievedTimestamps from '../../stores/retrievedTimestamps';
 	import { updateRetrievalTimestamp } from '../../utils.js';
-	import DurationModal from './DurationModal.svelte';
-	import groupAdminGroups from '../../stores/groupAdminGroups';
+	import GrantModal from './GrantModal.svelte';
 	import { convertFromMilliseconds } from '../../utils';
 
 	// Group Context
-	$: if ($groupContext?.id) reloadAllGrantDurations();
+	$: if ($groupContext?.id) reloadAllGrants();
 
 	$: if ($groupContext === 'clear') {
 		groupContext.set();
 		singleGroupCheck.set();
-		reloadAllGrantDurations();
+		reloadAllGrants();
 	}
 
 	// Redirects the User to the Login screen if not authenticated
@@ -50,20 +48,20 @@
 	}
 
 	// Locks the background scroll when modal is open
-	$: if (browser && (addDurationVisible || deleteDurationVisible || errorMessageVisible)) {
+	$: if (browser && (addGrantVisible || deleteGrantVisible || errorMessageVisible)) {
 		document.body.classList.add('modal-open');
-	} else if (browser && !(addDurationVisible || deleteDurationVisible || errorMessageVisible)) {
+	} else if (browser && !(addGrantVisible || deleteGrantVisible || errorMessageVisible)) {
 		document.body.classList.remove('modal-open');
 	}
 
 	// checkboxes selection
-	$: if ($grantDurations?.length === grantDurationRowsSelected?.length) {
-		grantDurationRowsSelectedTrue = false;
-		grantDurationAllRowsSelectedTrue = true;
-	} else if (grantDurationRowsSelected?.length > 0) {
-		grantDurationRowsSelectedTrue = true;
+	$: if ($grants?.length === grantRowsSelected?.length) {
+		grantRowsSelectedTrue = false;
+		grantAllRowsSelectedTrue = true;
+	} else if (grantRowsSelected?.length > 0) {
+		grantRowsSelectedTrue = true;
 	} else {
-		grantDurationAllRowsSelectedTrue = false;
+		grantAllRowsSelectedTrue = false;
 	}
 
 	// Messages
@@ -82,10 +80,10 @@
 	const searchStringLength = 3;
 
 	// Tables
-	let grantDurationRowsSelected = [];
-	let grantDurationRowsSelectedTrue = false;
-	let grantDurationAllRowsSelectedTrue = false;
-	let grantDurationsPerPage = 10;
+	let grantRowsSelected = [];
+	let grantRowsSelectedTrue = false;
+	let grantAllRowsSelectedTrue = false;
+	let gransPerPage = 10;
 
 	// Search
 	let searchString;
@@ -98,56 +96,55 @@
 	let errorMsg, errorObject;
 
 	//Pagination
-	let durationsCurrentPage = 0;
+	let grantsCurrentPage = 0;
 
 	// Modals
 	let errorMessageVisible = false;
-	let durationsListVisible = true;
-	let editDurationVisible = false;
-	let addDurationVisible = false;
-	let deleteDurationVisible = false;
-	let selectedGrantDuration = {};
+	let grantsListVisible = true;
+	let editGrantVisible = false;
+	let addGrantVisible = false;
+	let deleteGrantVisible = false;
+	let selectedGrant = {};
 
 	// Search
 	$: if (searchString?.trim().length < searchStringLength) {
 		clearTimeout(timer);
 		timer = setTimeout(() => {
-			reloadAllGrantDurations();
+			reloadAllGrants();
 		}, waitTime);
 	}
 
-	const reloadAllGrantDurations = async (page = 0) => {
+	const reloadAllGrants = async (page = 0) => {
 		try {
 			let res;
 			if (searchString && searchString.length >= searchStringLength) {
 				res = await httpAdapter.get(
-					`/grant_durations?page=${page}&size=${grantDurationsPerPage}&filter=${searchString}`
+					`/application_grants?page=${page}&size=${gransPerPage}&filter=${searchString}`
 				);
 			} else if ($groupContext) {
 				res = await httpAdapter.get(
-					`/grant_durations?page=${page}&size=${grantDurationsPerPage}&group=${$groupContext.id}`
+					`/application_grants?page=${page}&size=${gransPerPage}&group=${$groupContext.id}`
 				);
 			} else {
-				res = await httpAdapter.get(`/grant_durations?page=${page}&size=${grantDurationsPerPage}`);
+				res = await httpAdapter.get(`/application_grants?page=${page}&size=${gransPerPage}`);
 			}
 			if (res.data) {
 				topicsTotalPages.set(res.data.totalPages);
 				topicsTotalSize.set(res.data.totalSize);
 			}
-			grantDurations.set(res.data.content);
-			durationsCurrentPage = page;
-			updateRetrievalTimestamp(retrievedTimestamps, 'durations');
+			grants.set(res.data.content);
+			grantsCurrentPage = page;
+			updateRetrievalTimestamp(retrievedTimestamps, 'grants');
 		} catch (err) {
 			userValidityCheck.set(true);
 
-			errorMessage(errormessages['durations']['loading.error.title'], err.message);
+			errorMessage(errorMessages['grants']['loading.error.title'], err.message);
 		}
 	};
 
 	onMount(async () => {
-		headerTitle.set(messages['durations']['title']);
-
-		await reloadAllGrantDurations();
+		headerTitle.set(messages['grants']['title']);
+		await reloadAllGrants();
 
 		if ($permissionsByGroup) {
 			isTopicAdmin = $permissionsByGroup?.some(
@@ -169,72 +166,80 @@
 	};
 
 	const editDuration = (grantDuration) => {
-		selectedGrantDuration = grantDuration;
-		addDurationVisible = false;
-		editDurationVisible = true;
+		selectedGrant = grantDuration;
+		addGrantVisible = false;
+		editGrantVisible = true;
 	};
 
-	const deleteSelectedDurations = async () => {
+	const deleteSelectedGrants = async () => {
 		try {
-			for (const duration of grantDurationRowsSelected) {
-				await httpAdapter.delete(`/grant_durations/${duration.id}`);
+			for (const duration of grantRowsSelected) {
+				await httpAdapter.delete(`/application_grants/${duration.id}`);
 			}
 			updateRetrievalTimestamp(retrievedTimestamps, 'durations');
 		} catch (err) {
-			errorMessage(errorMessages['durations']['deleting.error.title'], err.message);
+			errorMessage(errorMessages['grants']['deleting.error.title'], err.message);
 		}
 	};
 
-	const deselectAllDurationsCheckboxes = () => {
-		grantDurationAllRowsSelectedTrue = false;
-		grantDurationRowsSelectedTrue = false;
-		grantDurationRowsSelected = [];
-		let checkboxes = document.querySelectorAll('.durations-checkbox');
+	const deselectAllGrantsCheckboxes = () => {
+		grantAllRowsSelectedTrue = false;
+		grantRowsSelectedTrue = false;
+		grantRowsSelected = [];
+		let checkboxes = document.querySelectorAll('.grants-checkbox');
 		checkboxes.forEach((checkbox) => (checkbox.checked = false));
 	};
 
 	const numberOfSelectedCheckboxes = () => {
-		let checkboxes = document.querySelectorAll('.durations-checkbox');
+		let checkboxes = document.querySelectorAll('.grants-checkbox');
 		checkboxes = Array.from(checkboxes);
 		return checkboxes.filter((checkbox) => checkbox.checked === true).length;
 	};
 
-	const addGrantDuration = async (newGrantDuration) => {
-		const res = await httpAdapter.post(`/grant_durations`, newGrantDuration).catch((err) => {
-			addDurationVisible = false;
-			errorMessage(errorMessages['durations']['adding.error.title'], err.message);
+	const addGrant = async (newGrant) => {
+		const config = {
+			headers: {
+				accept: 'application/json',
+				APPLICATION_GRANT_TOKEN: newGrant.applicationGrantToken
+			}
+		};
+		delete newGrant['applicationGrantToken']
+
+		const res = await httpAdapter.post(`/application_grants`, newGrant, config).catch((err) => {
+			addGrantVisible = false;
+			errorMessage(errorMessages['grants']['adding.error.title'], err.message);
 		});
 
-		addDurationVisible = false;
+		addGrantVisible = false;
 
 		if (res === undefined) {
 			errorMessage(
-				errorMessages['durations']['adding.error.title'],
-				errorMessages['durations']['exists']
+				errorMessages['grants']['adding.error.title'],
+				errorMessages['grants']['exists']
 			);
 		} else {
-			reloadAllGrantDurations();
+			reloadAllGrants();
 		}
 	};
 
-	const editGrantDuration = async (grantDuration) => {
+	const updateGrant = async (editedGrant) => {
 		const res = await httpAdapter
-			.put(`/grant_durations/${selectedGrantDuration.id}`, grantDuration)
+			.put(`/application_grants/${selectedGrant.id}`, editedGrant)
 			.catch((err) => {
-				addDurationVisible = false;
-				errorMessage(errorMessages['durations']['adding.error.title'], err.message);
+				addGrantVisible = false;
+				errorMessage(errorMessages['grants']['adding.error.title'], err.message);
 			});
 
-		addDurationVisible = false;
+		addGrantVisible = false;
 
 		if (res === undefined) {
 			errorMessage(
-				errorMessages['durations']['adding.error.title'],
-				errorMessages['durations']['exists']
+				errorMessages['grants']['adding.error.title'],
+				errorMessages['grants']['exists']
 			);
 		} else {
-			reloadAllGrantDurations();
-			selectedGrantDuration = {};
+			reloadAllGrants();
+			selectedGrant = {};
 		}
 	};
 
@@ -250,7 +255,7 @@
 </script>
 
 <svelte:head>
-	<title>{messages['durations']['tab.title']}</title>
+	<title>{messages['grants']['tab.title']}</title>
 	<meta name="description" content="DDS Permissions Manager Durations" />
 </svelte:head>
 
@@ -270,59 +275,59 @@
 				/>
 			{/if}
 
-			{#if addDurationVisible}
-				<DurationModal
-					title={messages['durations']['add']}
-					actionAddGrandDuration={true}
-					on:cancel={() => (addDurationVisible = false)}
-					on:addGrantDuration={(e) => {
-						addGrantDuration(e.detail);
+			{#if addGrantVisible}
+				<GrantModal
+					title={messages['grants']['add']}
+					actionAddGrant={true}
+					on:cancel={() => (addGrantVisible = false)}
+					on:addGrant={(e) => {
+						addGrant(e.detail);
 					}}
 				/>
 			{/if}
 
-			{#if editDurationVisible}
-				<DurationModal
-					title={messages['durations']['add']}
-					actionEditGrandDuration={true}
-					on:cancel={() => (editDurationVisible = false)}
-					{selectedGrantDuration}
-					on:editGrantDuration={(e) => {
-						editGrantDuration(e.detail);
+			{#if editGrantVisible}
+				<GrantModal
+					title={messages['grants']['edit']}
+					actionEditGrant={true}
+					on:cancel={() => (editGrantVisible = false)}
+					selectedGrant={selectedGrant}
+					on:editGrant={(e) => {
+						updateGrant(e.detail);
 					}}
 				/>
 			{/if}
 
-			{#if deleteDurationVisible}
+			{#if deleteGrantVisible}
 				<Modal
 					actionDeleteTopics={true}
-					title="{messages['durations']['delete.title']} {grantDurationRowsSelected.length > 1
-						? messages['durations']['delete.multiple']
-						: messages['durations']['delete.single']}"
+					title="{messages['grants']['delete.title']} {grantRowsSelected.length > 1
+						? messages['grants']['delete.multiple']
+						: messages['grants']['delete.single']}"
 					on:cancel={() => {
-						if (grantDurationRowsSelected?.length === 1 && numberOfSelectedCheckboxes() === 0)
-							grantDurationRowsSelected = [];
-						deleteDurationVisible = false;
+						if (grantRowsSelected?.length === 1 && numberOfSelectedCheckboxes() === 0)
+							grantRowsSelected = [];
+						deleteGrantVisible = false;
 					}}
 					on:deleteTopics={async () => {
-						await deleteSelectedDurations();
-						reloadAllGrantDurations();
-						deselectAllDurationsCheckboxes();
-						deleteDurationVisible = false;
+						await deleteSelectedGrants();
+						reloadAllGrants();
+						deselectAllGrantsCheckboxes();
+						deleteGrantVisible = false;
 					}}
 				/>
 			{/if}
 
 			{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
 				<div class="content">
-					<h1 data-cy="durations">{messages['durations']['title']}</h1>
+					<h1 data-cy="durations">{messages['grants']['title']}</h1>
 
 					<form class="searchbox">
 						<input
 							data-cy="search-durations-table"
 							class="searchbox"
 							type="search"
-							placeholder={messages['durations']['search.placeholder']}
+							placeholder={messages['grants']['search.placeholder']}
 							bind:value={searchString}
 							on:blur={() => {
 								searchString = searchString?.trim();
@@ -341,7 +346,7 @@
 							class="button-blue"
 							style="cursor: pointer; width: 4rem; height: 2.1rem"
 							on:click={() => (searchString = '')}
-							>{messages['durations']['search.clear.button']}</button
+							>{messages['grants']['search.clear.button']}</button
 						>
 					{/if}
 
@@ -350,21 +355,21 @@
 						alt="options"
 						class="dot"
 						class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-							grantDurationRowsSelected.length === 0}
+							grantRowsSelected.length === 0}
 						style="margin-left: 0.5rem; margin-right: 1rem"
 						on:click={() => {
-							if (grantDurationRowsSelected.length > 0) deleteDurationVisible = true;
+							if (grantRowsSelected.length > 0) deleteGrantVisible = true;
 						}}
 						on:keydown={(event) => {
 							if (event.which === returnKey) {
-								if (grantDurationRowsSelected.length > 0) deleteDurationVisible = true;
+								if (grantRowsSelected.length > 0) deleteGrantVisible = true;
 							}
 						}}
 						on:mouseenter={() => {
 							deleteMouseEnter = true;
 							if ($isAdmin || isTopicAdmin) {
-								if (grantDurationRowsSelected.length === 0) {
-									deleteToolip = messages['durations']['delete.tooltip'];
+								if (grantRowsSelected.length === 0) {
+									deleteToolip = messages['grants']['delete.tooltip'];
 									const tooltip = document.querySelector('#delete-durations');
 									setTimeout(() => {
 										if (deleteMouseEnter) {
@@ -374,7 +379,7 @@
 									}, 1000);
 								}
 							} else {
-								deleteToolip = messages['durations']['delete.tooltip.duration.admin.required'];
+								deleteToolip = messages['grants']['delete.tooltip.duration.admin.required'];
 								const tooltip = document.querySelector('#delete-durations');
 								setTimeout(() => {
 									if (deleteMouseEnter) {
@@ -387,7 +392,7 @@
 						}}
 						on:mouseleave={() => {
 							deleteMouseEnter = false;
-							if (grantDurationRowsSelected.length === 0) {
+							if (grantRowsSelected.length === 0) {
 								const tooltip = document.querySelector('#delete-durations');
 								setTimeout(() => {
 									if (!deleteMouseEnter) {
@@ -423,7 +428,7 @@
 										(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
 									))
 							) {
-								addDurationVisible = true;
+								addGrantVisible = true;
 							} else if (
 								!$groupContext &&
 								($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
@@ -439,7 +444,7 @@
 											(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
 										))
 								) {
-									addDurationVisible = true;
+									addGrantVisible = true;
 								} else if (
 									!$groupContext &&
 									($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
@@ -459,7 +464,7 @@
 									!$groupContext &&
 									!$permissionsByGroup?.some((gm) => gm.isTopicAdmin === true))
 							) {
-								addTooltip = messages['durations']['add.tooltip.duration.admin.required'];
+								addTooltip = messages['grants']['add.tooltip.duration.admin.required'];
 								const tooltip = document.querySelector('#add-durations');
 								setTimeout(() => {
 									if (addMouseEnter) {
@@ -471,7 +476,7 @@
 								!$groupContext &&
 								($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 							) {
-								addTooltip = messages['durations']['add.tooltip.select.group'];
+								addTooltip = messages['grants']['add.tooltip.select.group'];
 								const tooltip = document.querySelector('#add-durations');
 								setTimeout(() => {
 									if (addMouseEnter) {
@@ -500,7 +505,7 @@
 						>{addTooltip}
 					</span>
 
-					{#if $grantDurations?.length > 0 && durationsListVisible}
+					{#if $grants?.length > 0 && grantsListVisible}
 						<table data-cy="durations-table" class="main" style="margin-top: 0.5rem">
 							<thead>
 								<tr style="border-top: 1px solid black; border-bottom: 2px solid">
@@ -509,51 +514,53 @@
 											<input
 												tabindex="-1"
 												type="checkbox"
-												class="durations-checkbox"
+												class="grants-checkbox"
 												style="margin-right: 0.5rem"
-												bind:indeterminate={grantDurationRowsSelectedTrue}
+												bind:indeterminate={grantRowsSelectedTrue}
 												on:click={(e) => {
 													if (e.target.checked) {
-														grantDurationRowsSelected = $grantDurations;
-														grantDurationRowsSelectedTrue = false;
-														grantDurationAllRowsSelectedTrue = true;
+														grantRowsSelected = $grants;
+														grantRowsSelectedTrue = false;
+														grantAllRowsSelectedTrue = true;
 													} else {
-														grantDurationAllRowsSelectedTrue = false;
-														grantDurationRowsSelectedTrue = false;
-														grantDurationRowsSelected = [];
+														grantAllRowsSelectedTrue = false;
+														grantRowsSelectedTrue = false;
+														grantRowsSelected = [];
 													}
 												}}
-												checked={grantDurationAllRowsSelectedTrue}
+												checked={grantAllRowsSelectedTrue}
 											/>
 										</td>
 									{/if}
-									<td class="header-column"style="min-width: 7rem">{messages['durations']['table.column.one']}</td>
-									<td class="header-column">{messages['durations']['table.column.two']}</td>
-									<td class="header-column">{messages['durations']['table.column.three']}</td>
+									<td class="header-column" style="min-width: 7rem">{messages['grants']['table.column.one']}</td>
+									<td class="header-column">{messages['grants']['table.column.two']}</td>
+									<td class="header-column">{messages['grants']['table.column.three']}</td>
+									<td class="header-column">{messages['grants']['table.column.four']}</td>
+									<td class="header-column">{messages['grants']['table.column.five']}</td>
 								</tr>
 							</thead>
 							<tbody>
-								{#each $grantDurations as grantDuration}
+								{#each $grants as grantDuration}
 									<tr>
 										{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
 											<td style="line-height: 1rem; width: 2rem; ">
 												<input
 													tabindex="-1"
 													type="checkbox"
-													class="durations-checkbox"
-													checked={grantDurationAllRowsSelectedTrue}
+													class="grants-checkbox"
+													checked={grantAllRowsSelectedTrue}
 													on:change={(e) => {
 														if (e.target.checked === true) {
-															grantDurationRowsSelected.push(grantDuration);
+															grantRowsSelected.push(grantDuration);
 															// reactive statement
-															grantDurationRowsSelected = grantDurationRowsSelected;
-															grantDurationRowsSelectedTrue = true;
+															grantRowsSelected = grantRowsSelected;
+															grantRowsSelectedTrue = true;
 														} else {
-															grantDurationRowsSelected = grantDurationRowsSelected.filter(
+															grantRowsSelected = grantRowsSelected.filter(
 																(selection) => selection !== grantDuration
 															);
-															if (grantDurationRowsSelected.length === 0) {
-																grantDurationRowsSelectedTrue = false;
+															if (grantRowsSelected.length === 0) {
+																grantRowsSelectedTrue = false;
 															}
 														}
 													}}
@@ -573,9 +580,13 @@
 											>{grantDuration.name}
 										</td>
 
-										<td style="padding-left: 0.5rem">{grantDuration.groupName}</td>
+										<td>{grantDuration.groupName}</td>
 
-										<td data-cy="grant-duration" style="padding-left: 0.5rem">{getDuration(grantDuration)}</td>
+										<td data-cy="grant-duration">{getDuration(grantDuration)}</td>
+
+										<td>{grantDuration.applicationName}</td>
+										<td>{grantDuration.applicationGroupName}</td>
+
 
 										{#if $isAdmin || isTopicAdmin}
 											<td style="cursor: pointer; width:1rem">
@@ -608,9 +619,9 @@
 													alt="delete duration"
 													disabled={!$isAdmin || !isTopicAdmin}
 													on:click={() => {
-														if (!grantDurationRowsSelected.some((tpc) => tpc === grantDuration))
-															grantDurationRowsSelected.push(grantDuration);
-														deleteDurationVisible = true;
+														if (!grantRowsSelected.some((tpc) => tpc === grantDuration))
+															grantRowsSelected.push(grantDuration);
+														deleteGrantVisible = true;
 													}}
 												/>
 											</td>
@@ -619,9 +630,9 @@
 								{/each}
 							</tbody>
 						</table>
-					{:else if !editDurationVisible}
+					{:else if !editGrantVisible}
 						<p>
-							{messages['durations']['empty.durations']}
+							{messages['grants']['empty.grants']}
 							<br />
 							{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
 								<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -635,7 +646,7 @@
 											) ||
 												$isAdmin)
 										)
-											addDurationVisible = true;
+											addGrantVisible = true;
 										else if (
 											!$groupContext &&
 											($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
@@ -643,11 +654,11 @@
 											showSelectGroupContext.set(true);
 									}}
 								>
-									{messages['durations']['empty.durations.action.two']}
+									{messages['grants']['empty.grants.action.two']}
 								</span>
-								{messages['durations']['empty.durations.action.result']}
+								{messages['grants']['empty.grants.action.result']}
 							{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
-								{messages['durations']['empty.durations.action']}
+								{messages['grants']['empty.grants.action']}
 							{/if}
 						</p>
 					{/if}
@@ -658,8 +669,8 @@
 					<select
 						tabindex="-1"
 						on:change={(e) => {
-							grantDurationsPerPage = e.target.value;
-							reloadAllGrantDurations();
+							gransPerPage = e.target.value;
+							reloadAllGrants();
 						}}
 						name="RowsPerPage"
 					>
@@ -672,11 +683,11 @@
 
 					<span style="margin: 0 2rem 0 2rem">
 						{#if $topicsTotalSize > 0}
-							{1 + durationsCurrentPage * grantDurationsPerPage}
+							{1 + grantsCurrentPage * gransPerPage}
 						{:else}
 							0
 						{/if}
-						- {Math.min(grantDurationsPerPage * (durationsCurrentPage + 1), $topicsTotalSize)} of
+						- {Math.min(gransPerPage * (grantsCurrentPage + 1), $topicsTotalSize)} of
 						{$topicsTotalSize}
 					</span>
 
@@ -685,12 +696,12 @@
 						src={pagefirstSVG}
 						alt="first page"
 						class="pagination-image"
-						class:disabled-img={durationsCurrentPage === 0}
+						class:disabled-img={grantsCurrentPage === 0}
 						on:click={() => {
-							deselectAllDurationsCheckboxes();
-							if (durationsCurrentPage > 0) {
-								durationsCurrentPage = 0;
-								reloadAllGrantDurations();
+							deselectAllGrantsCheckboxes();
+							if (grantsCurrentPage > 0) {
+								grantsCurrentPage = 0;
+								reloadAllGrants();
 							}
 						}}
 					/>
@@ -699,12 +710,12 @@
 						src={pagebackwardsSVG}
 						alt="previous page"
 						class="pagination-image"
-						class:disabled-img={durationsCurrentPage === 0}
+						class:disabled-img={grantsCurrentPage === 0}
 						on:click={() => {
-							deselectAllDurationsCheckboxes();
-							if (durationsCurrentPage > 0) {
-								durationsCurrentPage--;
-								reloadAllGrantDurations(durationsCurrentPage);
+							deselectAllGrantsCheckboxes();
+							if (grantsCurrentPage > 0) {
+								grantsCurrentPage--;
+								reloadAllGrants(grantsCurrentPage);
 							}
 						}}
 					/>
@@ -713,13 +724,13 @@
 						src={pageforwardSVG}
 						alt="next page"
 						class="pagination-image"
-						class:disabled-img={durationsCurrentPage + 1 === $topicsTotalPages ||
-							$grantDurations?.length === undefined}
+						class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+							$grants?.length === undefined}
 						on:click={() => {
-							deselectAllDurationsCheckboxes();
-							if (durationsCurrentPage + 1 < $topicsTotalPages) {
-								durationsCurrentPage++;
-								reloadAllGrantDurations(durationsCurrentPage);
+							deselectAllGrantsCheckboxes();
+							if (grantsCurrentPage + 1 < $topicsTotalPages) {
+								grantsCurrentPage++;
+								reloadAllGrants(grantsCurrentPage);
 							}
 						}}
 					/>
@@ -728,18 +739,18 @@
 						src={pagelastSVG}
 						alt="last page"
 						class="pagination-image"
-						class:disabled-img={durationsCurrentPage + 1 === $topicsTotalPages ||
-							$grantDurations?.length === undefined}
+						class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+							$grants?.length === undefined}
 						on:click={() => {
-							deselectAllDurationsCheckboxes();
-							if (durationsCurrentPage < $topicsTotalPages) {
-								durationsCurrentPage = $topicsTotalPages - 1;
-								reloadAllGrantDurations(durationsCurrentPage);
+							deselectAllGrantsCheckboxes();
+							if (grantsCurrentPage < $topicsTotalPages) {
+								grantsCurrentPage = $topicsTotalPages - 1;
+								reloadAllGrants(grantsCurrentPage);
 							}
 						}}
 					/>
 				</div>
-				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['durations']} />
+				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
 				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 			{/if}
 		{/await}
@@ -750,6 +761,10 @@
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 
 	.dot {
@@ -764,9 +779,5 @@
 
 	p {
 		font-size: large;
-	}
-
-	.header-column {
-		font-weight: 600;
 	}
 </style>
