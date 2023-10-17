@@ -38,6 +38,8 @@
 	const userValidityInterval = 180000; // 3 minutes
 	const sixtyMin = 3600000;
 
+	let APIisBroadcastingEvents = false;
+
 	let avatarName;
 
 	$: if ($userValidityCheck === 'reloadAllSuperUsers') checkValidity();
@@ -89,11 +91,11 @@
 
 		userClicked();
 
+		await getFeatureFlagConfig();
+
 		await refreshToken_Info();
 
 		setInterval(checkValidity, userValidityInterval);
-
-		await getFeatureFlagConfig();
 	});
 
 	const refreshToken = async () => {
@@ -110,7 +112,10 @@
 	const getFeatureFlagConfig = async () => {
 		try {
 			const res = await httpAdapter.get('/config');
-			if (res.data) featureFlagConfigStore.set(res.data);
+			if (res.data) {
+				featureFlagConfigStore.set(res.data);
+				APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
+			}
 		} catch (err) {
 			console.error(err);
 		}
@@ -156,7 +161,9 @@
 
 		updatePermissionsForAllGroups.set(true);
 
-		refreshPageFn();
+		if (!APIisBroadcastingEvents) {
+			refreshPageFn();
+		}
 	};
 
 	const refreshPageFn = () => {
