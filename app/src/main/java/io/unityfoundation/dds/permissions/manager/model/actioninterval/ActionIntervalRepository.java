@@ -33,4 +33,6 @@ public interface ActionIntervalRepository extends PageableRepository<ActionInter
     Page<ActionInterval> findAllByIdInAndPermissionsGroupIdIn(List<Long> actionIntervalIds, List<Long> groupIds, Pageable pageable);
 
     Optional<ActionInterval> findByNameAndPermissionsGroup(String name, Group group);
+
+    Optional<ActionInterval> findByIdAndPermissionsGroupId(Long actionIntervalId, Long groupId);
 }

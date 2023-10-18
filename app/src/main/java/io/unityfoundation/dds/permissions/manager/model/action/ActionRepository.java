@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package io.unityfoundation.dds.permissions.manager.model.topicset;
+package io.unityfoundation.dds.permissions.manager.model.action;
 
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.model.Page;
@@ -23,15 +23,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TopicSetRepository extends PageableRepository<TopicSet, Long> {
-    Page<TopicSet> findAllByPermissionsGroupIdIn(List<Long> groupIds, Pageable pageable);
+public interface ActionRepository extends PageableRepository<Action, Long> {
+    Page<Action> findAllByApplicationGrantIdIn(List<Long> grantIds, Pageable pageable);
 
-    Page<TopicSet> findAllByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName, Pageable pageable);
+    Page<Action> findAllByApplicationGrantNameContainsIgnoreCase(String grantName, Pageable pageable);
 
-    List<Long> findIdByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName);
+    List<Long> findIdByApplicationGrantNameContainsIgnoreCase(String grantName);
 
-    Page<TopicSet> findAllByIdInAndPermissionsGroupIdIn(List<Long> topicSets, List<Long> groupIds, Pageable pageable);
-
-    Optional<TopicSet> findByNameAndPermissionsGroup(String name, Group group);
-    Optional<TopicSet> findByIdAndPermissionsGroupId(Long id, Long groupId);
+    Page<Action> findAllByIdInAndApplicationGrantIdIn(List<Long> grandDurationIds, List<Long> groupIds, Pageable pageable);
 }

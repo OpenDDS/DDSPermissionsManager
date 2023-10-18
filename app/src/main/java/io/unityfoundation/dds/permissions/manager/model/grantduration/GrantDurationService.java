@@ -144,14 +144,14 @@ public class GrantDurationService {
         return HttpResponse.ok(responseTopicDTO);
     }
 
-    public MutableHttpResponse<?> update(@NotNull Long topicSetId, GrantDurationDTO grantDurationDTO) {
+    public MutableHttpResponse<?> update(@NotNull Long durationId, GrantDurationDTO grantDurationDTO) {
         Optional<Group> groupOptional = groupRepository.findById(grantDurationDTO.getGroupId());
 
         if (groupOptional.isEmpty()) {
             throw new DPMException(ResponseStatusCodes.GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION, HttpStatus.NOT_FOUND);
         }
 
-        Optional<GrantDuration> grantDurationOptional = grantDurationRepository.findById(topicSetId);
+        Optional<GrantDuration> grantDurationOptional = grantDurationRepository.findById(durationId);
 
         checkExistenceAndAdminAuthorization(grantDurationOptional);
 
