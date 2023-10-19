@@ -38,4 +38,5 @@ public interface ApplicationGrantRepository extends PageableRepository<Applicati
     Page<ApplicationGrant> findAllByIdInAndPermissionsGroupIdIn(List<Long> all, List<Long> groupId, Pageable pageable);
 
     Optional<ApplicationGrant> findByNameAndPermissionsGroup(String name, Group group);
+    List<Long> findIdByPermissionsGroupIdIn(List<Long> groups);
 }

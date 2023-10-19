@@ -38,10 +38,7 @@ import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -74,7 +71,6 @@ public class ActionService {
 
     private Page<Action> getActionPage(Pageable pageable, String filter, Long grantId) {
 
-
         List<Long> all;
         if (securityUtil.isCurrentUserAdmin()) {
             if (filter == null) {
@@ -93,19 +89,28 @@ public class ActionService {
             return actionRepository.findAllByIdInAndApplicationGrantIdIn(all, List.of(grantId), pageable);
         } else {
             User user = securityUtil.getCurrentlyAuthenticatedUser().get();
-            List<Long> groups = groupUserService.getAllGroupsUserIsAMemberOf(user.getId());
 
-            if (groups.isEmpty() || (grantId != null && !groups.contains(grantId))) {
+            List<Long> groups = groupUserService.getAllGroupsUserIsAMemberOf(user.getId());
+            if (groups.isEmpty()) {
+                return Page.empty();
+            }
+
+            List<Long> userAccessibleGrants = applicationGrantRepository.findIdByPermissionsGroupIdIn(groups);
+            if (userAccessibleGrants.isEmpty()) {
+                return Page.empty();
+            }
+
+            if (groups.isEmpty() || (grantId != null && !userAccessibleGrants.contains(grantId))) {
                 return Page.empty();
             }
 
             if (grantId != null) {
-                // implies groupId exists in member's groups
-                groups = List.of(grantId);
+                // implies grantId exists in member's accessible grants
+                userAccessibleGrants = List.of(grantId);
             }
 
             if (filter == null) {
-                return actionRepository.findAllByApplicationGrantIdIn(groups, pageable);
+                return actionRepository.findAllByApplicationGrantIdIn(userAccessibleGrants, pageable);
             }
 
             all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
@@ -113,7 +118,7 @@ public class ActionService {
                 return Page.empty();
             }
 
-            return actionRepository.findAllByIdInAndApplicationGrantIdIn(all, groups, pageable);
+            return actionRepository.findAllByIdInAndApplicationGrantIdIn(all, userAccessibleGrants, pageable);
         }
     }
 

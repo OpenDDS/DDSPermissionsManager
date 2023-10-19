@@ -901,6 +901,16 @@ public class ActionApiTest {
             assertEquals(1, actionPage.get().getContent().size());
             Map expectedAction = (Map) actionPage.get().getContent().get(0);
             assertEquals(thetaActionDTO.getId().intValue(), (Integer) expectedAction.get("id"));
+
+            // search by Grant name filter
+            request = HttpRequest.GET("/actions?filter=mygrant");
+            response = blockingClient.exchange(request, Page.class);
+            assertEquals(OK, response.getStatus());
+            actionPage = response.getBody(Page.class);
+            assertTrue(actionPage.isPresent());
+            assertEquals(1, actionPage.get().getContent().size());
+            expectedAction = (Map) actionPage.get().getContent().get(0);
+            assertEquals(thetaActionDTO.getId().intValue(), (Integer) expectedAction.get("id"));
         }
     }
 
