@@ -286,6 +286,18 @@ public class ActionIntervalApiTest {
             assertEquals("NewName123", updatedActionInterval.getName());
             assertEquals(updateStartInstant, updatedActionInterval.getStartDate());
             assertEquals(updateEndInstant, updatedActionInterval.getEndDate());
+
+            // just date
+            updateStartInstant = Instant.now().plus(3, ChronoUnit.DAYS);
+            savedActionInterval.setStartDate(updateStartInstant);
+
+            request = HttpRequest.PUT("/action_intervals/"+savedActionInterval.getId(), savedActionInterval);
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            assertEquals(OK, response.getStatus());
+            updatedActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(updatedActionIntervalOptional.isPresent());
+            updatedActionInterval = updatedActionIntervalOptional.get();
+            assertEquals(updateStartInstant, updatedActionInterval.getStartDate());
         }
 
         @Test

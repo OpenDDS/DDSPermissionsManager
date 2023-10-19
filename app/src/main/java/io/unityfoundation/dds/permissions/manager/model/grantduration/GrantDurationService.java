@@ -158,9 +158,10 @@ public class GrantDurationService {
         Optional<GrantDuration> searchGrantDurationByNameAndGroup = grantDurationRepository.findByNameAndPermissionsGroup(
                 grantDurationDTO.getName().trim(), groupOptional.get());
 
-        if (searchGrantDurationByNameAndGroup.isPresent()) {
+        if (searchGrantDurationByNameAndGroup.isPresent() &&
+                searchGrantDurationByNameAndGroup.get().getId() != grantDurationOptional.get().getId()) {
             throw new DPMException(ResponseStatusCodes.GRANT_DURATION_ALREADY_EXISTS);
-        }else if (!Objects.equals(grantDurationOptional.get().getPermissionsGroup().getId(), grantDurationDTO.getGroupId())) {
+        } else if (!Objects.equals(grantDurationOptional.get().getPermissionsGroup().getId(), grantDurationDTO.getGroupId())) {
             throw new DPMException(ResponseStatusCodes.GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION);
         }
 

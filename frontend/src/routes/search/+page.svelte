@@ -406,13 +406,13 @@
 				<table class="universal-search-table">
 					<thead>
 						<tr
-							><td style="min-width: 5rem"
+							><td class="header-column" style="min-width: 5rem"
 								>{messages['universal.search']['table.search.results.column.one']}</td
 							>
-							<td style="min-width: 5rem"
+							<td class="header-column" style="min-width: 5rem"
 								>{messages['universal.search']['table.search.results.column.two']}</td
 							>
-							<td style="min-width: 5rem"
+							<td class="header-column" style="min-width: 5rem"
 								>{messages['universal.search']['table.search.results.column.three']}</td
 							>
 						</tr>
@@ -589,5 +589,9 @@
 
 	tr {
 		height: 3rem;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

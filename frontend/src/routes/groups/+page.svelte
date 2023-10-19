@@ -585,22 +585,22 @@
 											/>
 										</td>
 									{/if}
-									<td style="width: 5rem; text-align:center"
+									<td class="header-column" style="width: 5rem; text-align:center"
 										>{messages['group']['table.column.one']}
 									</td>
-									<td style="min-width: 7rem">
+									<td class="header-column" style="min-width: 7rem">
 										{messages['group']['table.column.two']}
 									</td>
-									<td style="text-align:center; width: 7rem">
+									<td class="header-column" style="text-align:center; width: 7rem">
 										{messages['group']['table.column.three']}
 									</td>
-									<td style="width: 4rem; text-align:center">
+									<td class="header-column" style="width: 4rem; text-align:center">
 										{messages['group']['table.column.four']}
 									</td>
-									<td style="width: 4rem; text-align:center">
+									<td class="header-column" style="width: 4rem; text-align:center">
 										{messages['group']['table.column.five']}
 									</td>
-									<td style="width: 4rem; text-align:right; padding-right: 1rem">
+									<td class="header-column" style="width: 4rem; text-align:right; padding-right: 1rem">
 										{messages['group']['table.column.six']}
 									</td>
 								</tr>
@@ -1057,5 +1057,9 @@
 
 	p {
 		font-size: large;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

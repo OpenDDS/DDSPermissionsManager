@@ -796,11 +796,11 @@
 											/>
 										</td>
 									{/if}
-									<td style="line-height: 2.2rem; min-width: 7rem"
+									<td class="header-column" style="line-height: 2.2rem; min-width: 7rem"
 										>{messages['application']['table.column.one']}</td
 									>
-									<td>{messages['application']['table.column.two']}</td>
-									<td>{messages['application']['table.column.three']}</td>
+									<td class="header-column">{messages['application']['table.column.two']}</td>
+									<td class="header-column">{messages['application']['table.column.three']}</td>
 								</tr>
 							</thead>
 
@@ -1540,5 +1540,9 @@
 		font-weight: 600;
 		margin-top: 1rem;
 		margin-bottom: 0.3rem;
+	}
+
+	.header-column {
+		font-weight: 600;
 	}
 </style>

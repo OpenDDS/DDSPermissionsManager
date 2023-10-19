@@ -136,6 +136,8 @@ public class GrantDurationApiTest {
             assertTrue(grantDuration.isPresent());
         }
 
+
+
         @Test
         public void cannotCreateWithNullNorWhitespace() {
             HttpResponse<?> response;
@@ -331,6 +333,18 @@ public class GrantDurationApiTest {
             assertEquals("NewName123", updatedGrantDuration.getName());
             assertEquals(updateDuration, updatedGrantDuration.getDurationInMilliseconds());
             assertEquals("WEEKS", updatedGrantDuration.getDurationMetadata());
+
+            // just duration
+            updateDuration = 7000L;
+            savedGrantDuration.setDurationInMilliseconds(updateDuration);
+
+            request = HttpRequest.PUT("/grant_durations/"+savedGrantDuration.getId(), savedGrantDuration);
+            response = blockingClient.exchange(request, GrantDurationDTO.class);
+            assertEquals(OK, response.getStatus());
+            updatedGrantDurationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(updatedGrantDurationOptional.isPresent());
+            updatedGrantDuration = updatedGrantDurationOptional.get();
+            assertEquals(updateDuration, updatedGrantDuration.getDurationInMilliseconds());
         }
 
         @Test

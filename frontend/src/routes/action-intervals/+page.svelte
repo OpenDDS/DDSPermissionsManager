@@ -530,11 +530,11 @@
 											/>
 										</td>
 									{/if}
-									<td style="min-width: 7rem">{messages['action-intervals']['table.column.one']}</td
+									<td class="header-column" style="min-width: 7rem">{messages['action-intervals']['table.column.one']}</td
 									>
-									<td>{messages['action-intervals']['table.column.two']}</td>
-									<td>{messages['action-intervals']['table.column.three']}</td>
-									<td>{messages['action-intervals']['table.column.four']}</td>
+									<td class="header-column">{messages['action-intervals']['table.column.two']}</td>
+									<td class="header-column">{messages['action-intervals']['table.column.three']}</td>
+									<td class="header-column">{messages['action-intervals']['table.column.four']}</td>
 								</tr>
 							</thead>
 							<tbody>
@@ -779,4 +779,8 @@
 	p {
 		font-size: large;
 	}
+	.header-column {
+		font-weight: 600;
+	}
+
 </style>
