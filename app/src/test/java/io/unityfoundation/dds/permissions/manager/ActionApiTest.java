@@ -1079,7 +1079,7 @@ public class ActionApiTest {
             response = createAction(applicationGrantZeta.getId(), zetaActionIntervalDTO.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createAction(groupId, actionInterval.getId());
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
@@ -1113,7 +1113,7 @@ public class ActionApiTest {
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create action
-            response = createAction(groupId, actionInterval.getId());
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionDTOOPtional = response.getBody(ActionDTO.class);
             assertTrue(actionDTOOPtional.isPresent());

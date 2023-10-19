@@ -141,7 +141,7 @@ public class ActionService {
 
         User user = securityUtil.getCurrentlyAuthenticatedUser().get();
         if (!securityUtil.isCurrentUserAdmin() &&
-                !groupUserService.isUserTopicAdminOfGroup(applicationGrant.getId(), user.getId())) {
+                !groupUserService.isUserTopicAdminOfGroup(applicationGrant.getPermissionsGroup().getId(), user.getId())) {
             throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
         }
 
