@@ -23,10 +23,12 @@ import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
+import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
@@ -177,7 +179,7 @@ public class ActionApiTest {
             assertTrue(actionOptional.isPresent());
             ActionDTO actionDTO = actionOptional.get();
             assertNotNull(actionDTO.getApplicationGrantId());
-            assertNotNull(actionDTO.getApplicationIntervalId());
+            assertNotNull(actionDTO.getActionIntervalId());
 
             // partitions
             response = createAction(applicationGrant.getId(), actionInterval.getId(),
@@ -249,7 +251,7 @@ public class ActionApiTest {
             assertTrue(actionOptional.isPresent());
             ActionDTO actionDTO = actionOptional.get();
             assertNotNull(actionDTO.getApplicationGrantId());
-            assertNotNull(actionDTO.getApplicationIntervalId());
+            assertNotNull(actionDTO.getActionIntervalId());
 
             // update attempt
             Map<String, Long> updatePayload = Map.of("applicationGrantId", applicationGrantTwoOptional.get().getId(), "actionIntervalId", actionInterval.getId());
@@ -283,7 +285,7 @@ public class ActionApiTest {
             assertTrue(actionOptional.isPresent());
             ActionDTO actionDTO = actionOptional.get();
 
-            // show grant duration
+            // show grant action
             request = HttpRequest.GET("/actions/"+actionDTO.getId());
             response = blockingClient.exchange(request, ActionDTO.class);
             assertEquals(OK, response.getStatus());
@@ -292,11 +294,10 @@ public class ActionApiTest {
             ActionDTO getActionDTO = getActionOptional.get();
             assertNotNull(getActionDTO.getId());
             assertNotNull(getActionDTO.getApplicationGrantId());
-            assertNotNull(getActionDTO.getApplicationIntervalId());
-            assertNotNull(getActionDTO.getApplicationIntervalName());
+            assertNotNull(getActionDTO.getActionIntervalId());
+            assertNotNull(getActionDTO.getActionIntervalName());
         }
 
-        // list all grant durations from all groups
         @Test
         void canListActionsWithByGrantNameFilter(){
             // ApplicationGrant - Action
@@ -447,733 +448,704 @@ public class ActionApiTest {
         }
     }
 
-//    @Nested
-//    class WhenAsATopicAdmin {
-//
-//        @BeforeEach
-//        void setup() {
-//            dbCleanup.cleanup();
-//            userRepository.save(new User("montesm@test.test.com", true));
-//            userRepository.save(new User("jjones@test.test"));
-//        }
-//
-//        void loginAsNonAdmin() {
-//            mockSecurityService.setServerAuthentication(new ServerAuthentication(
-//                    "jjones@test.test",
-//                    Collections.emptyList(),
-//                    Map.of("isAdmin", false)
-//            ));
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//        }
-//
-//        // list - same functionality as member
-//        // show - same functionality as member
-//
-//        // create
-//        @Test
-//        void canCreateGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
-//            assertEquals(OK, response.getStatus());
-//
-//            loginAsNonAdmin();
-//
-//            // create grant duration
-//            response = createGrantDuration("Abc123", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//        }
-//
-//        // delete
-//        @Test
-//        void canDeleteGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant duration
-//            response = createGrantDuration("Abc123", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
-//            assertTrue(grantDuration.isPresent());
-//
-//            loginAsNonAdmin();
-//
-//            // delete attempt
-//            request = HttpRequest.DELETE("/grant_durations/"+grantDuration.get().getId(), Map.of());
-//            response = blockingClient.exchange(request);
-//            assertEquals(NO_CONTENT, response.getStatus());
-//        }
-//    }
+    @Nested
+    class WhenAsATopicAdmin {
 
-//    @Nested
-//    class WhenAsAGroupMember {
-//
-//        @BeforeEach
-//        void setup() {
-//            dbCleanup.cleanup();
-//            userRepository.save(new User("montesm@test.test.com", true));
-//            userRepository.save(new User("jjones@test.test"));
-//        }
-//
-//        void loginAsNonAdmin() {
-//            mockSecurityService.setServerAuthentication(new ServerAuthentication(
-//                    "jjones@test.test",
-//                    Collections.emptyList(),
-//                    Map.of("isAdmin", false)
-//            ));
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//        }
-//
-//        // create
-//        @Test
-//        void cannotCreateGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            loginAsNonAdmin();
-//
-//            // create grant duration
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                createGrantDuration("Abc123", theta.getId());
-//            });
-//            assertEquals(UNAUTHORIZED,exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//
-//        // delete
-//        @Test
-//        void cannotDeleteGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant duration
-//            response = createGrantDuration("Abc123", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(abcTopiSetcOptional.isPresent());
-//            GrantDurationDTO abcGrantDuration = abcTopiSetcOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            // delete attempt
-//            HttpRequest<?> request2 = HttpRequest.DELETE("/grant_durations/"+abcGrantDuration.getId(), Map.of());
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(request2);
-//            });
-//            assertEquals(UNAUTHORIZED,exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//
-//        // show
-//        @Test
-//        void canShowGrantDurationWithAssociatedGroup(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            // Group - Grant Durations - Members
-//            // ---
-//            // Theta - Xyz789 - jjones
-//            // Zeta - Abc123 - None
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = zetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant durations
-//            createGrantDuration("Abc123", zeta.getId());
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
-//            response = blockingClient.exchange(request, GrantDurationDTO.class);
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> grantDurationResponseOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(grantDurationResponseOptional.isPresent());
-//            assertEquals("Xyz789", grantDurationResponseOptional.get().getName());
-//            assertEquals("Theta", grantDurationResponseOptional.get().getGroupName());
-//        }
-//
-//        @Test
-//        void cannotShowGrantDurationIfGrantDurationBelongsToAGroupIAmNotAMemberOf(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            // Group - Grant Durations - Members
-//            // ---
-//            // Theta - Xyz789 - jjones
-//            // Omega - Abc123 - None
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//
-//            response = createGroup("Omega");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(omegaOptional.isPresent());
-//            SimpleGroupDTO omega = omegaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", omega.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(abcGrantDurationOptional.isPresent());
-//            GrantDurationDTO abcGrantDuration = abcGrantDurationOptional.get();
-//
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations/"+abcGrantDuration.getId());
-//            HttpRequest<?> finalRequest = request;
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(finalRequest);
-//            });
-//            assertEquals(UNAUTHORIZED, exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//
-//        // list
-//        @Test
-//        void canListAllGrantDurationsLimitedToMembership(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            // Group - Grant Durations
-//            // ---
-//            // Theta - Xyz789
-//            // Zeta - Abc123
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = zetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", zeta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(abcGrantDurationOptional.isPresent());
-//
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations");
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            Optional<Page> grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(1, grantDurationPage.get().getContent().size());
-//            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
-//            assertEquals("Xyz789", expectedGrantDuration.get("name"));
-//        }
-//
-//        @Test
-//        void canListGrantDurationsWithFilterLimitedToGroupMembership(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            // Group - Grant Durations
-//            // ---
-//            // Theta - Xyz789
-//            // Zeta - Abc123
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = zetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant durations
-//            createGrantDuration("Abc123", zeta.getId());
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//
-//            loginAsNonAdmin();
-//
-//            // support case-insensitive
-//            request = HttpRequest.GET("/grant_durations?filter=xyz");
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            Optional<Page> grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(1, grantDurationPage.get().getContent().size());
-//            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
-//            assertEquals("Xyz789", expectedGrantDuration.get("name"));
-//
-//            // Negative case
-//            request = HttpRequest.GET("/grant_durations?filter=abc");
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(0, grantDurationPage.get().getContent().size());
-//
-//            // group search
-//            request = HttpRequest.GET("/grant_durations?filter=heta");
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(1, grantDurationPage.get().getContent().size());
-//            expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
-//            assertEquals("Xyz789", expectedGrantDuration.get("name"));
-//        }
-//
-//        @Test
-//        void canListGrantDurationsWithGroupParameterLimitedToGroupMembership(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            // Group - Grant Durations
-//            // ---
-//            // Theta - Xyz789
-//            // Zeta - Abc123
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = zetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // create grant durations
-//            createGrantDuration("Abc123", zeta.getId());
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//
-//            loginAsNonAdmin();
-//
-//            // group search
-//            request = HttpRequest.GET("/grant_durations?group="+theta.getId());
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            Optional<Page> grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(1, grantDurationPage.get().getContent().size());
-//            Map expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
-//            assertEquals("Xyz789", expectedGrantDuration.get("name"));
-//
-//            // filter param support
-//            request = HttpRequest.GET("/grant_durations?filter=xyz&group="+theta.getId());
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(1, grantDurationPage.get().getContent().size());
-//            expectedGrantDuration = (Map) grantDurationPage.get().getContent().get(0);
-//            assertEquals("Xyz789", expectedGrantDuration.get("name"));
-//
-//            // Negative cases
-//            request = HttpRequest.GET("/grant_durations?group="+zeta.getId());
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(0, grantDurationPage.get().getContent().size());
-//
-//            request = HttpRequest.GET("/grant_durations?filter=abc&group="+zeta.getId());
-//            response = blockingClient.exchange(request, Page.class);
-//            assertEquals(OK, response.getStatus());
-//            grantDurationPage = response.getBody(Page.class);
-//            assertTrue(grantDurationPage.isPresent());
-//            assertEquals(0, grantDurationPage.get().getContent().size());
-//        }
-//    }
+        @BeforeEach
+        void setup() {
+            dbCleanup.cleanup();
+            userRepository.save(new User("montesm@test.test.com", true));
+            userRepository.save(new User("jjones@test.test"));
+        }
 
-//    @Nested
-//    class WhenAsANonGroupMember {
-//
-//        @BeforeEach
-//        void setup() {
-//            dbCleanup.cleanup();
-//            userRepository.save(new User("montesm@test.test.com", true));
-//            userRepository.save(new User("jjones@test.test"));
-//        }
-//
-//        void loginAsNonAdmin() {
-//            mockSecurityService.setServerAuthentication(new ServerAuthentication(
-//                    "jjones@test.test",
-//                    Collections.emptyList(),
-//                    Map.of("isAdmin", false)
-//            ));
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//        }
-//
-//        // create
-//        @Test
-//        void cannotCreateGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            // create grant durations
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                createGrantDuration("Abc123", theta.getId());
-//            });
-//            assertEquals(UNAUTHORIZED,exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//
-//        // delete
-//        @Test
-//        void cannotDeleteGrantDuration(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(abcTopiSetcOptional.isPresent());
-//            GrantDurationDTO abcGrantDuration = abcTopiSetcOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            // delete attempt
-//            request = HttpRequest.DELETE("/grant_durations/"+abcGrantDuration.getId(), Map.of());
-//            HttpRequest<?> finalRequest = request;
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(finalRequest);
-//            });
-//            assertEquals(UNAUTHORIZED,exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//
-//        // show
-//        @Test
-//        void cannotShowGrantDurationWithAssociatedGroup(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = zetaOptional.get();
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", zeta.getId());
-//            assertEquals(OK, response.getStatus());
-//
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzTopiSetcOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzTopiSetcOptional.isPresent());
-//            GrantDurationDTO xyzGrantDuration = xyzTopiSetcOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
-//            HttpRequest<?> finalRequest = request;
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(finalRequest);
-//            });
-//            assertEquals(UNAUTHORIZED,exception.getStatus());
-//            Optional<List> listOptional = exception.getResponse().getBody(List.class);
-//            assertTrue(listOptional.isPresent());
-//            List<Map> list = listOptional.get();
-//            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
-//        }
-//    }
+        void loginAsNonAdmin() {
+            mockSecurityService.setServerAuthentication(new ServerAuthentication(
+                    "jjones@test.test",
+                    Collections.emptyList(),
+                    Map.of("isAdmin", false)
+            ));
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+        }
 
-//    @Nested
-//    class WhenAsAUnauthenticatedUser {
-//        @BeforeEach
-//        void setup() {
-//            dbCleanup.cleanup();
-//            userRepository.save(new User("montesm@test.test.com", true));
-//        }
-//
-//        void loginAsNonAdmin() {
-//            mockSecurityService.setServerAuthentication(null);
-//            mockAuthenticationFetcher.setAuthentication(null);
-//        }
-//
-//        @Test
-//        void cannotListAllGrantDurations(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // other group
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = thetaOptional.get();
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", zeta.getId());
-//            assertEquals(OK, response.getStatus());
-//
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations");
-//            HttpRequest<?> finalRequest = request;
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(finalRequest);
-//            });
-//            assertEquals(UNAUTHORIZED, exception.getStatus());
-//        }
-//
-//        @Test
-//        void cannotShowAGrantDurationWithGroupAssociation(){
-//            mockSecurityService.postConstruct();
-//            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-//
-//            HttpRequest<?> request;
-//            HttpResponse<?> response;
-//
-//            // create groups
-//            response = createGroup("Theta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(thetaOptional.isPresent());
-//            SimpleGroupDTO theta = thetaOptional.get();
-//
-//            // add member to group
-//            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
-//            assertEquals(OK, response.getStatus());
-//
-//            // other group
-//            response = createGroup("Zeta");
-//            assertEquals(OK, response.getStatus());
-//            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
-//            assertTrue(zetaOptional.isPresent());
-//            SimpleGroupDTO zeta = thetaOptional.get();
-//
-//            // create grant durations
-//            response = createGrantDuration("Abc123", zeta.getId());
-//            assertEquals(OK, response.getStatus());
-//
-//            response = createGrantDuration("Xyz789", theta.getId());
-//            assertEquals(OK, response.getStatus());
-//            Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
-//            assertTrue(xyzGrantDurationOptional.isPresent());
-//            GrantDurationDTO xyzGrantDuration = xyzGrantDurationOptional.get();
-//
-//            loginAsNonAdmin();
-//
-//            request = HttpRequest.GET("/grant_durations/"+xyzGrantDuration.getId());
-//            HttpRequest<?> finalRequest = request;
-//            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-//                blockingClient.exchange(finalRequest);
-//            });
-//            assertEquals(UNAUTHORIZED, exception.getStatus());
-//        }
-//    }
+        // list - same functionality as member
+        // show - same functionality as member
+
+        // create
+        @Test
+        void canCreateAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            loginAsNonAdmin();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+            assertNotNull(actionDTO.getApplicationGrantId());
+            assertNotNull(actionDTO.getActionIntervalId());
+        }
+
+        // update
+        @Test
+        void canUpdateAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+
+            response = createActionInterval("MySecondActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> secondActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(secondActionIntervalOptional.isPresent());
+            ActionIntervalDTO secondActionInterval = secondActionIntervalOptional.get();
+
+            loginAsNonAdmin();
+
+            UpdateActionDTO updateActionDTO = new UpdateActionDTO();
+            updateActionDTO.setPartitions(Set.of("part1", "part2"));
+            updateActionDTO.setActionIntervalId(secondActionInterval.getId());
+
+            request = HttpRequest.PUT("/actions/"+actionOptional.get().getId(), updateActionDTO);
+            response = blockingClient.exchange(request, ActionDTO.class);
+            assertEquals(OK, response.getStatus());
+            actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+            assertFalse(actionDTO.getPartitions().isEmpty());
+            assertEquals(secondActionInterval.getId(), actionDTO.getActionIntervalId());
+        }
+
+        // delete
+        @Test
+        void canDeleteAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            loginAsNonAdmin();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            loginAsNonAdmin();
+
+            // delete attempt
+            request = HttpRequest.DELETE("/actions/"+actionDTO.getId());
+            response = blockingClient.exchange(request, Page.class);
+            assertEquals(NO_CONTENT, response.getStatus());
+
+            request = HttpRequest.GET("/actions");
+            response = blockingClient.exchange(request, Page.class);
+            assertEquals(OK, response.getStatus());
+            Optional<Page> actionPage = response.getBody(Page.class);
+            assertTrue(actionPage.isPresent());
+            assertTrue(actionPage.get().getContent().isEmpty());
+        }
+    }
+
+    @Nested
+    class WhenAsAGroupMember {
+
+        @BeforeEach
+        void setup() {
+            dbCleanup.cleanup();
+            userRepository.save(new User("montesm@test.test.com", true));
+            userRepository.save(new User("jjones@test.test"));
+        }
+
+        void loginAsNonAdmin() {
+            mockSecurityService.setServerAuthentication(new ServerAuthentication(
+                    "jjones@test.test",
+                    Collections.emptyList(),
+                    Map.of("isAdmin", false)
+            ));
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+        }
+
+        // create
+        @Test
+        void cannotCreate(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            loginAsNonAdmin();
+
+            // create grant duration
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                createAction(applicationGrant.getId(), actionInterval.getId());
+            });
+            assertEquals(UNAUTHORIZED,exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // update
+        @Test
+        void cannotUpdate(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = addGroupMembership(groupId, "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            loginAsNonAdmin();
+
+            UpdateActionDTO updateActionDTO = new UpdateActionDTO();
+            updateActionDTO.setActionIntervalId(actionInterval.getId());
+            updateActionDTO.setPartitions(Set.of("part1", "part2"));
+
+            request = HttpRequest.PUT("/actions/"+actionOptional.get().getId(), updateActionDTO);
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(request, ActionDTO.class);
+            });
+            assertEquals(UNAUTHORIZED, exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // delete
+        @Test
+        void cannotDelete(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = addGroupMembership(groupId, "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            loginAsNonAdmin();
+
+            // delete attempt
+            request = HttpRequest.DELETE("/actions/"+actionDTO.getId(), Map.of());
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(request);
+            });
+            assertEquals(UNAUTHORIZED,exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // show
+        @Test
+        void canShowAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            response = addGroupMembership(groupId, "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions/"+actionDTO.getId());
+            response = blockingClient.exchange(request, ActionDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> getActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(getActionOptional.isPresent());
+            assertEquals(actionDTO.getId(), getActionOptional.get().getId());
+            assertNotNull(getActionOptional.get().getDateCreated());
+        }
+
+        @Test
+        void cannotShowActionIfItBelongsToAGroupIAmNotAMemberOf(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create Group theta's Grant, Action, etc
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+
+            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("ThetaActionInterval", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(thetaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
+
+            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(thetaActionOptional.isPresent());
+            ActionDTO thetaActionDTO = thetaActionOptional.get();
+
+            // create Group omega's Grant, Action, etc
+            response = createGroup("Omega");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(omegaOptional.isPresent());
+            SimpleGroupDTO omega = omegaOptional.get();
+
+            GrantDTO omegaApplicationGrant = createGenericApplicationGrant(omega.getId());
+
+            response = createActionInterval("OmegaActionInterval", omega.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> omegaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(omegaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO omegaActionInterval = omegaActionIntervalDTOOptional.get();
+
+            response = createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> omegaActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(omegaActionOptional.isPresent());
+            ActionDTO omegaActionDTO = omegaActionOptional.get();
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions/"+omegaActionDTO.getId());
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(UNAUTHORIZED, exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // list
+        @Test
+        void canListAllActionsLimitedToMembership(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create Group theta's Grant, Action, etc
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+
+            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("ThetaActionInterval", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(thetaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
+
+            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(thetaActionOptional.isPresent());
+            ActionDTO thetaActionDTO = thetaActionOptional.get();
+
+            // create Group omega's Grant, Action, etc
+            response = createGroup("Omega");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(omegaOptional.isPresent());
+            SimpleGroupDTO omega = omegaOptional.get();
+
+            GrantDTO omegaApplicationGrant = createGenericApplicationGrant(omega.getId());
+
+            response = createActionInterval("OmegaActionInterval", omega.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> omegaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(omegaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO omegaActionInterval = omegaActionIntervalDTOOptional.get();
+
+            response = createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> omegaActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(omegaActionOptional.isPresent());
+            ActionDTO omegaActionDTO = omegaActionOptional.get();
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions");
+            response = blockingClient.exchange(request, Page.class);
+            assertEquals(OK, response.getStatus());
+            Optional<Page> actionPage = response.getBody(Page.class);
+            assertTrue(actionPage.isPresent());
+            assertEquals(1, actionPage.get().getContent().size());
+            Map expectedAction = (Map) actionPage.get().getContent().get(0);
+            assertEquals(thetaActionDTO.getId().intValue(), (Integer) expectedAction.get("id"));
+        }
+    }
+
+    @Nested
+    class WhenAsANonGroupMember {
+
+        @BeforeEach
+        void setup() {
+            dbCleanup.cleanup();
+            userRepository.save(new User("montesm@test.test.com", true));
+            userRepository.save(new User("jjones@test.test"));
+        }
+
+        void loginAsNonAdmin() {
+            mockSecurityService.setServerAuthentication(new ServerAuthentication(
+                    "jjones@test.test",
+                    Collections.emptyList(),
+                    Map.of("isAdmin", false)
+            ));
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+        }
+
+        // create
+        @Test
+        void cannotCreateAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpResponse<?> response;
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            loginAsNonAdmin();
+
+            // create action
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                createAction(applicationGrant.getId(), actionInterval.getId());
+            });
+            assertEquals(UNAUTHORIZED,exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // delete
+        @Test
+        void cannotDeleteAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            loginAsNonAdmin();
+
+            // delete attempt
+            request = HttpRequest.DELETE("/actions/"+actionDTO.getId(), Map.of());
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(UNAUTHORIZED,exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+
+        // show
+        @Test
+        void cannotShowAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            response = createActionInterval("MyActionInterval", groupId);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions/"+actionDTO.getId());
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(UNAUTHORIZED,exception.getStatus());
+            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            assertTrue(listOptional.isPresent());
+            List<Map> list = listOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+        }
+    }
+
+    @Nested
+    class WhenAsAUnauthenticatedUser {
+        @BeforeEach
+        void setup() {
+            dbCleanup.cleanup();
+            userRepository.save(new User("montesm@test.test.com", true));
+        }
+
+        void loginAsNonAdmin() {
+            mockSecurityService.setServerAuthentication(null);
+            mockAuthenticationFetcher.setAuthentication(null);
+        }
+
+        @Test
+        void cannotListAllActions(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            // other group and Grant
+            response = createGroup("Zeta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(zetaOptional.isPresent());
+            SimpleGroupDTO zeta = zetaOptional.get();
+            GrantDTO applicationGrantZeta = createGenericApplicationGrant(zeta.getId());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            response = createActionInterval("MyZetaActionInterval", zeta.getId());
+            Optional<ActionIntervalDTO> zetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(zetaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO zetaActionIntervalDTO = zetaActionIntervalDTOOptional.get();
+
+            // create grant durations
+            response = createAction(applicationGrantZeta.getId(), zetaActionIntervalDTO.getId());
+            assertEquals(OK, response.getStatus());
+
+            response = createAction(groupId, actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions");
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(UNAUTHORIZED, exception.getStatus());
+        }
+
+        @Test
+        void cannotShowAnAction(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+            Long groupId = applicationGrant.getGroupId();
+
+            // add member to group
+            response = addGroupMembership(groupId, "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("MyActionInterval", groupId);
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            // create action
+            response = createAction(groupId, actionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionDTOOPtional = response.getBody(ActionDTO.class);
+            assertTrue(actionDTOOPtional.isPresent());
+            ActionDTO actionDTO = actionDTOOPtional.get();
+
+            loginAsNonAdmin();
+
+            request = HttpRequest.GET("/actions/"+actionDTO.getId());
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(UNAUTHORIZED, exception.getStatus());
+        }
+    }
 
     private GrantDTO createGenericApplicationGrant() {
+        return createGenericApplicationGrant(null);
+    }
+    private GrantDTO createGenericApplicationGrant(Long groupId) {
         HttpResponse<?> response;
 
-        response = createGroup("MyGroup");
-        assertEquals(OK, response.getStatus());
-        Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-        assertTrue(thetaOptional.isPresent());
-        SimpleGroupDTO group = thetaOptional.get();
+        if (groupId == null) {
+            response = createGroup("MyGroup");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO group = thetaOptional.get();
+            groupId = group.getId();
+        }
 
-        response = createApplication("MyApplication", group.getId());
+        response = createApplication("MyApplication", groupId);
         assertEquals(OK, response.getStatus());
         Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
         assertTrue(applicationOptional.isPresent());
@@ -1185,12 +1157,12 @@ public class ActionApiTest {
         assertTrue(grantTokenOptional.isPresent());
         String applicationGrantToken = grantTokenOptional.get();
 
-        response = createGrantDuration("MyGrantDuration", group.getId());
+        response = createGrantDuration("MyGrantDuration", groupId);
         assertEquals(OK, response.getStatus());
         Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
         assertTrue(grantDuration.isPresent());
 
-        response = createApplicationGrant(applicationGrantToken, group.getId(), "MyGrant", grantDuration.get().getId());
+        response = createApplicationGrant(applicationGrantToken, groupId, "MyGrant", grantDuration.get().getId());
         assertEquals(CREATED, response.getStatus());
         Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
         assertTrue(grantDTOOptional.isPresent());

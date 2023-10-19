@@ -179,7 +179,7 @@ public class ActionService {
         }
 
         Action action = actionOptional.get();
-        action.setActionInterval(actionIntervalOptional.get()); // todo: test - canUpdateActionInterval
+        action.setActionInterval(actionIntervalOptional.get());
 
         actionPartitionRepository.deleteAll(actionOptional.get().getPartitions());
         addPartitionsToPermission(action, updateActionDTO.getPartitions());

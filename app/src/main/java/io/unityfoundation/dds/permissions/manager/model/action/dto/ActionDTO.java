@@ -14,8 +14,8 @@ public class ActionDTO implements EntityDTO {
 
     private Long id;
     private Long applicationGrantId;
-    private Long applicationIntervalId;
-    private String applicationIntervalName;
+    private Long actionIntervalId;
+    private String actionIntervalName;
     private Set<Map> topics = new HashSet<>();
     private Set<Map> topicSets = new HashSet<>();
     Set<String> partitions = new HashSet<>();
@@ -29,11 +29,11 @@ public class ActionDTO implements EntityDTO {
     public ActionDTO() {
     }
 
-    public ActionDTO(Long id, Long applicationGrantId, Long applicationIntervalId, String applicationIntervalName, Set<Map> topics, Set<Map> topicSets, Set<String> partitions, Instant dateCreated, Instant dateUpdated) {
+    public ActionDTO(Long id, Long applicationGrantId, Long actionIntervalId, String actionIntervalName, Set<Map> topics, Set<Map> topicSets, Set<String> partitions, Instant dateCreated, Instant dateUpdated) {
         this.id = id;
         this.applicationGrantId = applicationGrantId;
-        this.applicationIntervalId = applicationIntervalId;
-        this.applicationIntervalName = applicationIntervalName;
+        this.actionIntervalId = actionIntervalId;
+        this.actionIntervalName = actionIntervalName;
         this.topics = topics;
         this.topicSets = topicSets;
         this.partitions = partitions;
@@ -57,20 +57,20 @@ public class ActionDTO implements EntityDTO {
         this.applicationGrantId = applicationGrantId;
     }
 
-    public Long getApplicationIntervalId() {
-        return applicationIntervalId;
+    public Long getActionIntervalId() {
+        return actionIntervalId;
     }
 
-    public void setApplicationIntervalId(Long applicationIntervalId) {
-        this.applicationIntervalId = applicationIntervalId;
+    public void setActionIntervalId(Long actionIntervalId) {
+        this.actionIntervalId = actionIntervalId;
     }
 
-    public String getApplicationIntervalName() {
-        return applicationIntervalName;
+    public String getActionIntervalName() {
+        return actionIntervalName;
     }
 
-    public void setApplicationIntervalName(String applicationIntervalName) {
-        this.applicationIntervalName = applicationIntervalName;
+    public void setActionIntervalName(String actionIntervalName) {
+        this.actionIntervalName = actionIntervalName;
     }
 
     public Set<Map> getTopics() {
