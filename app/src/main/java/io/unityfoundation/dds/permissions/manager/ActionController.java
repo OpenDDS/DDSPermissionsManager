@@ -24,6 +24,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.unityfoundation.dds.permissions.manager.model.action.ActionService;
+import io.unityfoundation.dds.permissions.manager.model.action.PubSubEnum;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
@@ -42,10 +43,11 @@ public class ActionController {
         this.actionService = actionService;
     }
 
-    @Get("{?filter,grantId}")
+    @Get("{?filter,grantId,pubsub}")
     @ExecuteOn(TaskExecutors.IO)
-    public Page<ActionDTO> index(@Valid Pageable pageable, @Nullable String filter, @Nullable Long grantId) {
-        return actionService.findAll(pageable, filter, grantId);
+    public Page<ActionDTO> index(@Valid Pageable pageable, @Nullable String filter,
+                                        @Nullable Long grantId, @Nullable PubSubEnum pubsub) {
+        return actionService.findAll(pageable, filter, grantId, pubsub);
     }
 
     @Get("/{actionId}")

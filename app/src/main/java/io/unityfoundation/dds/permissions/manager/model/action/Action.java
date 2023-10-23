@@ -43,6 +43,9 @@ public class Action {
     private ApplicationGrant applicationGrant;
 
     @NonNull
+    private Boolean canPublish;
+
+    @NonNull
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private ActionInterval actionInterval;
 
@@ -66,9 +69,10 @@ public class Action {
     public Action() {
     }
 
-    public Action(ApplicationGrant applicationGrant, ActionInterval actionInterval) {
+    public Action(ApplicationGrant applicationGrant, ActionInterval actionInterval, Boolean canPublish) {
         this.applicationGrant = applicationGrant;
         this.actionInterval = actionInterval;
+        this.canPublish = canPublish;
     }
 
 
@@ -160,5 +164,13 @@ public class Action {
 
     public void setPartitions(Set<ActionPartition> partitions) {
         this.partitions = partitions;
+    }
+
+    public Boolean getCanPublish() {
+        return canPublish;
+    }
+
+    public void setCanPublish(Boolean canPublish) {
+        this.canPublish = canPublish;
     }
 }

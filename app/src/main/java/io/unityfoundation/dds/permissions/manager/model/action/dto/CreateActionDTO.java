@@ -14,20 +14,16 @@
 package io.unityfoundation.dds.permissions.manager.model.action.dto;
 
 import io.micronaut.core.annotation.Introspected;
-import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
-import io.unityfoundation.dds.permissions.manager.model.action.Action;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
-import java.util.Set;
 
 @Introspected
 public class CreateActionDTO extends UpdateActionDTO {
 
     @NotNull
     private Long applicationGrantId;
+
+    private Boolean isPublishAction = false;
 
     public CreateActionDTO() {
     }
@@ -38,5 +34,13 @@ public class CreateActionDTO extends UpdateActionDTO {
 
     public void setApplicationGrantId(Long applicationGrantId) {
         this.applicationGrantId = applicationGrantId;
+    }
+
+    public Boolean getPublishAction() {
+        return isPublishAction;
+    }
+
+    public void setPublishAction(Boolean publishAction) {
+        isPublishAction = publishAction;
     }
 }

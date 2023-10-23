@@ -65,26 +65,60 @@ public class ActionService {
         this.groupUserService = groupUserService;
     }
 
-    public Page<ActionDTO> findAll(Pageable pageable, String filter, Long grantId) {
-        return getGrantDurationDTOPage(getActionPage(pageable, filter, grantId));
+    public Page<ActionDTO> findAll(Pageable pageable, String filter, Long grantId, PubSubEnum pubSubEnum) {
+        return getGrantDurationDTOPage(getActionPage(pageable, filter, grantId, pubSubEnum));
     }
 
-    private Page<Action> getActionPage(Pageable pageable, String filter, Long grantId) {
+    private Page<Action> getActionPage(Pageable pageable, String filter, Long grantId, PubSubEnum pubSubEnum) {
 
+        // todo: there's a lot of conditionals here. Can be improved with a table-driven approach
         List<Long> all;
         if (securityUtil.isCurrentUserAdmin()) {
             if (filter == null) {
                 if (grantId == null) {
-                    return actionRepository.findAll(pageable);
+                    if (pubSubEnum == null) {
+                        return actionRepository.findAll(pageable);
+                    } else {
+                        if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                            return actionRepository.findAllByCanPublishTrue(pageable);
+                        } else {
+                            return actionRepository.findAllByCanPublishFalse(pageable);
+                        }
+                    }
                 }
-                return actionRepository.findAllByApplicationGrantIdIn(List.of(grantId), pageable);
+
+                if (pubSubEnum == null) {
+                    return actionRepository.findAllByApplicationGrantIdIn(List.of(grantId), pageable);
+                } else {
+                    if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                        actionRepository.findAllByCanPublishTrueAndApplicationGrantIdIn(List.of(grantId), pageable);
+                    } else {
+                        actionRepository.findAllByCanPublishFalseAndApplicationGrantIdIn(List.of(grantId), pageable);
+                    }
+                }
             }
 
             if (grantId == null) {
-                return actionRepository.findAllByApplicationGrantNameContainsIgnoreCase(filter, pageable);
+                if (pubSubEnum == null) {
+                    return actionRepository.findAllByApplicationGrantNameContainsIgnoreCase(filter, pageable);
+                } else {
+                    if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                        return actionRepository.findAllByCanPublishTrueAndApplicationGrantNameContainsIgnoreCase(filter, pageable);
+                    } else {
+                        return actionRepository.findAllByCanPublishFalseAndApplicationGrantNameContainsIgnoreCase(filter, pageable);
+                    }
+                }
             }
 
-            all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
+            if (pubSubEnum == null) {
+                all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
+            } else {
+                if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                    all = actionRepository.findIdByCanPublishTrueAndApplicationGrantNameContainsIgnoreCase(filter);
+                } else {
+                    all = actionRepository.findIdByCanPublishFalseAndApplicationGrantNameContainsIgnoreCase(filter);
+                }
+            }
 
             return actionRepository.findAllByIdInAndApplicationGrantIdIn(all, List.of(grantId), pageable);
         } else {
@@ -110,10 +144,26 @@ public class ActionService {
             }
 
             if (filter == null) {
-                return actionRepository.findAllByApplicationGrantIdIn(userAccessibleGrants, pageable);
+                if (pubSubEnum == null) {
+                    return actionRepository.findAllByApplicationGrantIdIn(userAccessibleGrants, pageable);
+                } else {
+                    if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                        return actionRepository.findAllByCanPublishTrueAndApplicationGrantIdIn(userAccessibleGrants, pageable);
+                    } else {
+                        return actionRepository.findAllByCanPublishFalseAndApplicationGrantIdIn(userAccessibleGrants, pageable);
+                    }
+                }
             }
 
-            all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
+            if (pubSubEnum == null) {
+                all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
+            }  else {
+                if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
+                    all = actionRepository.findIdByCanPublishTrueAndApplicationGrantNameContainsIgnoreCase(filter);
+                } else {
+                    all = actionRepository.findIdByCanPublishFalseAndApplicationGrantNameContainsIgnoreCase(filter);
+                }
+            }
             if (all.isEmpty()) {
                 return Page.empty();
             }
@@ -159,7 +209,7 @@ public class ActionService {
         Set<TopicSet> topicSets = validateTopicSetsExistenceAndInSameGroupAsGrant(applicationGrant.getPermissionsGroup().getId(), createActionDTO.getTopicSetIds());
         Set<Topic> topics = validateTopicsExistenceAndInSameGroupAsGrant(applicationGrant.getPermissionsGroup().getId(), createActionDTO.getTopicIds());
 
-        Action newAction = new Action(applicationGrant, actionIntervalOptional.get());
+        Action newAction = new Action(applicationGrant, actionIntervalOptional.get(), createActionDTO.getPublishAction());
         newAction.setTopicSets(topicSets);
         newAction.setTopics(topics);
 
@@ -212,6 +262,7 @@ public class ActionService {
                 action.getApplicationGrant().getId(),
                 action.getActionInterval().getId(),
                 action.getActionInterval().getName(),
+                action.getCanPublish(),
                 topics,
                 topicSets,
                 partitions,

@@ -180,9 +180,10 @@ public class ActionApiTest {
             ActionDTO actionDTO = actionOptional.get();
             assertNotNull(actionDTO.getApplicationGrantId());
             assertNotNull(actionDTO.getActionIntervalId());
+            assertFalse(actionDTO.getPublishAction());
 
             // partitions
-            response = createAction(applicationGrant.getId(), actionInterval.getId(),
+            response = createAction(applicationGrant.getId(), actionInterval.getId(), null,
                     null, null, Set.of("p1", "p2"));
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
@@ -198,7 +199,7 @@ public class ActionApiTest {
             TopicDTO topicDTO = topicOptional.get();
             Set<Long> topicIds = Set.of(topicDTO.getId());
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId(), topicIds, null, null);
+            response = createAction(applicationGrant.getId(), actionInterval.getId(), null, topicIds, null, null);
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -207,13 +208,24 @@ public class ActionApiTest {
 
             // topic sets
             Long topicSetId = createTopicSetWithTopics("MyTopicSet", applicationGrant.getGroupId(), Set.of());
-            response = createAction(applicationGrant.getId(), actionInterval.getId(),
+            response = createAction(applicationGrant.getId(), actionInterval.getId(), true,
                     null, Set.of(topicSetId), null);
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
             actionDTO = actionOptional.get();
             assertFalse(actionDTO.getTopicSets().isEmpty());
+            assertTrue(actionDTO.getPublishAction());
+
+            // show all with publish query
+            HttpRequest<?> request = HttpRequest.GET("/actions/?pubsub=PUBLISH");
+            response = blockingClient.exchange(request, ActionDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<Page> actionPage = response.getBody(Page.class);
+            assertTrue(actionPage.isPresent());
+            assertEquals(1, actionPage.get().getContent().size());
+            Map map = (Map) actionPage.get().getContent().get(0);
+            assertEquals(map.get("id"), actionDTO.getId().intValue());
         }
 
         // update
@@ -1289,11 +1301,16 @@ public class ActionApiTest {
     }
 
     private HttpResponse<?> createAction(Long grantId, Long intervalId) {
-        return createAction(grantId, intervalId, null, null, null);
+        return createAction(grantId, intervalId, null, null, null, null);
     }
 
-    private HttpResponse<?> createAction(Long grantId, Long intervalId, Set<Long> topics, Set<Long> topicSets, Set<String> partitions) {
+    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction) {
+        return createAction(grantId, intervalId, isPublishAction, null, null, null);
+    }
+
+    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction, Set<Long> topics, Set<Long> topicSets, Set<String> partitions) {
         CreateActionDTO create = new CreateActionDTO();
+        create.setPublishAction(isPublishAction);
         create.setApplicationGrantId(grantId);
         create.setActionIntervalId(intervalId);
         create.setTopicIds(topics);

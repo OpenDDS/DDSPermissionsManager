@@ -32,6 +32,7 @@ public class ActionDTO implements EntityDTO {
     private Set<Map> topics = new HashSet<>();
     private Set<Map> topicSets = new HashSet<>();
     Set<String> partitions = new HashSet<>();
+    private Boolean isPublishAction;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateCreated;
@@ -42,11 +43,13 @@ public class ActionDTO implements EntityDTO {
     public ActionDTO() {
     }
 
-    public ActionDTO(Long id, Long applicationGrantId, Long actionIntervalId, String actionIntervalName, Set<Map> topics, Set<Map> topicSets, Set<String> partitions, Instant dateCreated, Instant dateUpdated) {
+    public ActionDTO(Long id, Long applicationGrantId, Long actionIntervalId, String actionIntervalName, Boolean isPublishAction,
+                     Set<Map> topics, Set<Map> topicSets, Set<String> partitions, Instant dateCreated, Instant dateUpdated) {
         this.id = id;
         this.applicationGrantId = applicationGrantId;
         this.actionIntervalId = actionIntervalId;
         this.actionIntervalName = actionIntervalName;
+        this.isPublishAction = isPublishAction;
         this.topics = topics;
         this.topicSets = topicSets;
         this.partitions = partitions;
@@ -124,5 +127,13 @@ public class ActionDTO implements EntityDTO {
 
     public void setDateUpdated(Instant dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    public Boolean getPublishAction() {
+        return isPublishAction;
+    }
+
+    public void setPublishAction(Boolean publishAction) {
+        isPublishAction = publishAction;
     }
 }

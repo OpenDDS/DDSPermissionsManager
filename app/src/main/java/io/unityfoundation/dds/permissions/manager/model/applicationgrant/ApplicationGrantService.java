@@ -114,7 +114,25 @@ public class ApplicationGrantService {
             }
 
             return applicationGrantRepository.findAllByIdInAndPermissionsGroupIdIn(all, groups, pageable);
-        }    }
+        }
+    }
+
+    public GrantDTO findById(Long grantId) {
+        Optional<ApplicationGrant> grantOptional = applicationGrantRepository.findById(grantId);
+
+        if (grantOptional.isEmpty()) {
+            throw new DPMException(ResponseStatusCodes.APPLICATION_GRANT_NOT_FOUND, HttpStatus.NOT_FOUND);
+        } else {
+            User user = securityUtil.getCurrentlyAuthenticatedUser().get();
+
+            if (!securityUtil.isCurrentUserAdmin() &&
+                    !groupUserService.isUserMemberOfGroup(grantOptional.get().getPermissionsGroup().getId(), user.getId())) {
+                throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
+            }
+        }
+
+        return createDTO(grantOptional.get());
+    }
 
     public Publisher<HttpResponse<GrantDTO>> create(String grantToken, CreateGrantDTO createGrantDTO) {
         return Publishers.map(jwtTokenValidator.validateToken(grantToken, null), authentication -> {
