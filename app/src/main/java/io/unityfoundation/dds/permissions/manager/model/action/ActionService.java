@@ -91,9 +91,9 @@ public class ActionService {
                     return actionRepository.findAllByApplicationGrantIdIn(List.of(grantId), pageable);
                 } else {
                     if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
-                        actionRepository.findAllByCanPublishTrueAndApplicationGrantIdIn(List.of(grantId), pageable);
+                        return actionRepository.findAllByCanPublishTrueAndApplicationGrantIdIn(List.of(grantId), pageable);
                     } else {
-                        actionRepository.findAllByCanPublishFalseAndApplicationGrantIdIn(List.of(grantId), pageable);
+                        return actionRepository.findAllByCanPublishFalseAndApplicationGrantIdIn(List.of(grantId), pageable);
                     }
                 }
             }
@@ -157,7 +157,7 @@ public class ActionService {
 
             if (pubSubEnum == null) {
                 all = actionRepository.findIdByApplicationGrantNameContainsIgnoreCase(filter);
-            }  else {
+            } else {
                 if (pubSubEnum.equals(PubSubEnum.PUBLISH)) {
                     all = actionRepository.findIdByCanPublishTrueAndApplicationGrantNameContainsIgnoreCase(filter);
                 } else {
