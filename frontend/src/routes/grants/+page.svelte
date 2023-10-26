@@ -30,6 +30,8 @@
 	import { updateRetrievalTimestamp } from '../../utils.js';
 	import GrantModal from './GrantModal.svelte';
 	import { convertFromMilliseconds } from '../../utils';
+	import GrantDetails from './GrantDetails.svelte';
+	import detailView from '../../stores/detailView';
 
 	// Group Context
 	$: if ($groupContext?.id) reloadAllGrants();
@@ -103,6 +105,7 @@
 	let grantsListVisible = true;
 	let editGrantVisible = false;
 	let addGrantVisible = false;
+	let grantDetailVisible = false;
 	let deleteGrantVisible = false;
 	let selectedGrant = {};
 
@@ -113,6 +116,18 @@
 			reloadAllGrants();
 		}, waitTime);
 	}
+
+	// Return to List view
+	$: if ($detailView === 'backToList') {
+		headerTitle.set(messages['grants']['title']);
+		reloadAllGrants();
+		returnToGrantsList();
+	}
+
+	const returnToGrantsList = () => {
+		grantDetailVisible = false;
+		grantsListVisible = true;
+	};
 
 	const reloadAllGrants = async (page = 0) => {
 		try {
@@ -143,6 +158,8 @@
 	};
 
 	onMount(async () => {
+		detailView.set('first run');
+
 		headerTitle.set(messages['grants']['title']);
 		await reloadAllGrants();
 
@@ -163,12 +180,6 @@
 		errorMessageVisible = false;
 		errorMsg = '';
 		errorObject = '';
-	};
-
-	const editDuration = (grantDuration) => {
-		selectedGrant = grantDuration;
-		addGrantVisible = false;
-		editGrantVisible = true;
 	};
 
 	const deleteSelectedGrants = async () => {
@@ -203,7 +214,7 @@
 				APPLICATION_GRANT_TOKEN: newGrant.applicationGrantToken
 			}
 		};
-		delete newGrant['applicationGrantToken']
+		delete newGrant['applicationGrantToken'];
 
 		const res = await httpAdapter.post(`/application_grants`, newGrant, config).catch((err) => {
 			addGrantVisible = false;
@@ -222,27 +233,6 @@
 		}
 	};
 
-	const updateGrant = async (editedGrant) => {
-		const res = await httpAdapter
-			.put(`/application_grants/${selectedGrant.id}`, editedGrant)
-			.catch((err) => {
-				addGrantVisible = false;
-				errorMessage(errorMessages['grants']['adding.error.title'], err.message);
-			});
-
-		addGrantVisible = false;
-
-		if (res === undefined) {
-			errorMessage(
-				errorMessages['grants']['adding.error.title'],
-				errorMessages['grants']['exists']
-			);
-		} else {
-			reloadAllGrants();
-			selectedGrant = {};
-		}
-	};
-
 	const getDuration = (grantDuration) => {
 		const duration = convertFromMilliseconds(
 			grantDuration.durationInMilliseconds,
@@ -251,6 +241,12 @@
 		const durationType =
 			duration > 1 ? grantDuration.durationMetadata + 's' : grantDuration.durationMetadata;
 		return `${duration} ${durationType}`;
+	};
+
+	const loadGrant = () => {
+		addGrantVisible = false;
+		grantsListVisible = false;
+		grantDetailVisible = true;
 	};
 </script>
 
@@ -286,16 +282,8 @@
 				/>
 			{/if}
 
-			{#if editGrantVisible}
-				<GrantModal
-					title={messages['grants']['edit']}
-					actionEditGrant={true}
-					on:cancel={() => (editGrantVisible = false)}
-					selectedGrant={selectedGrant}
-					on:editGrant={(e) => {
-						updateGrant(e.detail);
-					}}
-				/>
+			{#if grantDetailVisible && !grantsListVisible}
+				<GrantDetails {isTopicAdmin} {selectedGrant} />
 			{/if}
 
 			{#if deleteGrantVisible}
@@ -317,126 +305,109 @@
 					}}
 				/>
 			{/if}
+			{#if !grantDetailVisible}
+				{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
+					<div class="content">
+						<h1 data-cy="durations">{messages['grants']['title']}</h1>
 
-			{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
-				<div class="content">
-					<h1 data-cy="durations">{messages['grants']['title']}</h1>
+						<form class="searchbox">
+							<input
+								data-cy="search-durations-table"
+								class="searchbox"
+								type="search"
+								placeholder={messages['grants']['search.placeholder']}
+								bind:value={searchString}
+								on:blur={() => {
+									searchString = searchString?.trim();
+								}}
+								on:keydown={(event) => {
+									if (event.which === returnKey) {
+										document.activeElement.blur();
+										searchString = searchString?.trim();
+									}
+								}}
+							/>
+						</form>
 
-					<form class="searchbox">
-						<input
-							data-cy="search-durations-table"
-							class="searchbox"
-							type="search"
-							placeholder={messages['grants']['search.placeholder']}
-							bind:value={searchString}
-							on:blur={() => {
-								searchString = searchString?.trim();
+						{#if searchString?.length > 0}
+							<button
+								class="button-blue"
+								style="cursor: pointer; width: 4rem; height: 2.1rem"
+								on:click={() => (searchString = '')}
+								>{messages['grants']['search.clear.button']}</button
+							>
+						{/if}
+
+						<img
+							src={deleteSVG}
+							alt="options"
+							class="dot"
+							class:button-disabled={(!$isAdmin && !isTopicAdmin) || grantRowsSelected.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							on:click={() => {
+								if (grantRowsSelected.length > 0) deleteGrantVisible = true;
 							}}
 							on:keydown={(event) => {
 								if (event.which === returnKey) {
-									document.activeElement.blur();
-									searchString = searchString?.trim();
+									if (grantRowsSelected.length > 0) deleteGrantVisible = true;
 								}
 							}}
-						/>
-					</form>
-
-					{#if searchString?.length > 0}
-						<button
-							class="button-blue"
-							style="cursor: pointer; width: 4rem; height: 2.1rem"
-							on:click={() => (searchString = '')}
-							>{messages['grants']['search.clear.button']}</button
-						>
-					{/if}
-
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-							grantRowsSelected.length === 0}
-						style="margin-left: 0.5rem; margin-right: 1rem"
-						on:click={() => {
-							if (grantRowsSelected.length > 0) deleteGrantVisible = true;
-						}}
-						on:keydown={(event) => {
-							if (event.which === returnKey) {
-								if (grantRowsSelected.length > 0) deleteGrantVisible = true;
-							}
-						}}
-						on:mouseenter={() => {
-							deleteMouseEnter = true;
-							if ($isAdmin || isTopicAdmin) {
-								if (grantRowsSelected.length === 0) {
-									deleteToolip = messages['grants']['delete.tooltip'];
+							on:mouseenter={() => {
+								deleteMouseEnter = true;
+								if ($isAdmin || isTopicAdmin) {
+									if (grantRowsSelected.length === 0) {
+										deleteToolip = messages['grants']['delete.tooltip'];
+										const tooltip = document.querySelector('#delete-durations');
+										setTimeout(() => {
+											if (deleteMouseEnter) {
+												tooltip.classList.remove('tooltip-hidden');
+												tooltip.classList.add('tooltip');
+											}
+										}, 1000);
+									}
+								} else {
+									deleteToolip = messages['grants']['delete.tooltip.duration.admin.required'];
 									const tooltip = document.querySelector('#delete-durations');
 									setTimeout(() => {
 										if (deleteMouseEnter) {
 											tooltip.classList.remove('tooltip-hidden');
 											tooltip.classList.add('tooltip');
+											tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
 										}
 									}, 1000);
 								}
-							} else {
-								deleteToolip = messages['grants']['delete.tooltip.duration.admin.required'];
-								const tooltip = document.querySelector('#delete-durations');
-								setTimeout(() => {
-									if (deleteMouseEnter) {
-										tooltip.classList.remove('tooltip-hidden');
-										tooltip.classList.add('tooltip');
-										tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
-									}
-								}, 1000);
-							}
-						}}
-						on:mouseleave={() => {
-							deleteMouseEnter = false;
-							if (grantRowsSelected.length === 0) {
-								const tooltip = document.querySelector('#delete-durations');
-								setTimeout(() => {
-									if (!deleteMouseEnter) {
-										tooltip.classList.add('tooltip-hidden');
-										tooltip.classList.remove('tooltip');
-									}
-								}, 1000);
-							}
-						}}
-					/>
-					<span
-						id="delete-durations"
-						class="tooltip-hidden"
-						style="margin-left: 12.2rem; margin-top: -1.8rem"
-						>{deleteToolip}
-					</span>
+							}}
+							on:mouseleave={() => {
+								deleteMouseEnter = false;
+								if (grantRowsSelected.length === 0) {
+									const tooltip = document.querySelector('#delete-durations');
+									setTimeout(() => {
+										if (!deleteMouseEnter) {
+											tooltip.classList.add('tooltip-hidden');
+											tooltip.classList.remove('tooltip');
+										}
+									}, 1000);
+								}
+							}}
+						/>
+						<span
+							id="delete-durations"
+							class="tooltip-hidden"
+							style="margin-left: 12.2rem; margin-top: -1.8rem"
+							>{deleteToolip}
+						</span>
 
-					<img
-						data-cy="add-duration"
-						src={addSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin &&
-							!$permissionsByGroup?.find(
-								(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-							)) ||
-							!$groupContext}
-						on:click={() => {
-							if (
-								$groupContext &&
-								($isAdmin ||
-									$permissionsByGroup?.find(
-										(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-									))
-							) {
-								addGrantVisible = true;
-							} else if (
-								!$groupContext &&
-								($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
-							)
-								showSelectGroupContext.set(true);
-						}}
-						on:keydown={(event) => {
-							if (event.which === returnKey) {
+						<img
+							data-cy="add-duration"
+							src={addSVG}
+							alt="options"
+							class="dot"
+							class:button-disabled={(!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+								)) ||
+								!$groupContext}
+							on:click={() => {
 								if (
 									$groupContext &&
 									($isAdmin ||
@@ -450,308 +421,336 @@
 									($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 								)
 									showSelectGroupContext.set(true);
-							}
-						}}
-						on:mouseenter={() => {
-							addMouseEnter = true;
-							if (
-								(!$isAdmin &&
-									$groupContext &&
-									!$permissionsByGroup?.find(
-										(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-									)) ||
-								(!$isAdmin &&
+							}}
+							on:keydown={(event) => {
+								if (event.which === returnKey) {
+									if (
+										$groupContext &&
+										($isAdmin ||
+											$permissionsByGroup?.find(
+												(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+											))
+									) {
+										addGrantVisible = true;
+									} else if (
+										!$groupContext &&
+										($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
+									)
+										showSelectGroupContext.set(true);
+								}
+							}}
+							on:mouseenter={() => {
+								addMouseEnter = true;
+								if (
+									(!$isAdmin &&
+										$groupContext &&
+										!$permissionsByGroup?.find(
+											(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+										)) ||
+									(!$isAdmin &&
+										!$groupContext &&
+										!$permissionsByGroup?.some((gm) => gm.isTopicAdmin === true))
+								) {
+									addTooltip = messages['grants']['add.tooltip.duration.admin.required'];
+									const tooltip = document.querySelector('#add-durations');
+									setTimeout(() => {
+										if (addMouseEnter) {
+											tooltip.classList.remove('tooltip-hidden');
+											tooltip.classList.add('tooltip');
+										}
+									}, waitTime);
+								} else if (
 									!$groupContext &&
-									!$permissionsByGroup?.some((gm) => gm.isTopicAdmin === true))
-							) {
-								addTooltip = messages['grants']['add.tooltip.duration.admin.required'];
+									($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
+								) {
+									addTooltip = messages['grants']['add.tooltip.select.group'];
+									const tooltip = document.querySelector('#add-durations');
+									setTimeout(() => {
+										if (addMouseEnter) {
+											tooltip.classList.remove('tooltip-hidden');
+											tooltip.classList.add('tooltip');
+											tooltip.setAttribute('style', 'margin-left:8.6rem; margin-top: -1.8rem');
+										}
+									}, 1000);
+								}
+							}}
+							on:mouseleave={() => {
+								addMouseEnter = false;
 								const tooltip = document.querySelector('#add-durations');
 								setTimeout(() => {
-									if (addMouseEnter) {
-										tooltip.classList.remove('tooltip-hidden');
-										tooltip.classList.add('tooltip');
+									if (!addMouseEnter) {
+										tooltip.classList.add('tooltip-hidden');
+										tooltip.classList.remove('tooltip');
 									}
 								}, waitTime);
-							} else if (
-								!$groupContext &&
-								($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
-							) {
-								addTooltip = messages['grants']['add.tooltip.select.group'];
-								const tooltip = document.querySelector('#add-durations');
-								setTimeout(() => {
-									if (addMouseEnter) {
-										tooltip.classList.remove('tooltip-hidden');
-										tooltip.classList.add('tooltip');
-										tooltip.setAttribute('style', 'margin-left:8.6rem; margin-top: -1.8rem');
-									}
-								}, 1000);
-							}
-						}}
-						on:mouseleave={() => {
-							addMouseEnter = false;
-							const tooltip = document.querySelector('#add-durations');
-							setTimeout(() => {
-								if (!addMouseEnter) {
-									tooltip.classList.add('tooltip-hidden');
-									tooltip.classList.remove('tooltip');
-								}
-							}, waitTime);
-						}}
-					/>
-					<span
-						id="add-durations"
-						class="tooltip-hidden"
-						style="margin-left: 8rem; margin-top: -1.8rem"
-						>{addTooltip}
-					</span>
+							}}
+						/>
+						<span
+							id="add-durations"
+							class="tooltip-hidden"
+							style="margin-left: 8rem; margin-top: -1.8rem"
+							>{addTooltip}
+						</span>
 
-					{#if $grants?.length > 0 && grantsListVisible}
-						<table data-cy="durations-table" class="main" style="margin-top: 0.5rem">
-							<thead>
-								<tr style="border-top: 1px solid black; border-bottom: 2px solid">
-									{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
-										<td style="line-height: 1rem;">
-											<input
-												tabindex="-1"
-												type="checkbox"
-												class="grants-checkbox"
-												style="margin-right: 0.5rem"
-												bind:indeterminate={grantRowsSelectedTrue}
-												on:click={(e) => {
-													if (e.target.checked) {
-														grantRowsSelected = $grants;
-														grantRowsSelectedTrue = false;
-														grantAllRowsSelectedTrue = true;
-													} else {
-														grantAllRowsSelectedTrue = false;
-														grantRowsSelectedTrue = false;
-														grantRowsSelected = [];
-													}
-												}}
-												checked={grantAllRowsSelectedTrue}
-											/>
-										</td>
-									{/if}
-									<td class="header-column" style="min-width: 7rem">{messages['grants']['table.column.one']}</td>
-									<td class="header-column">{messages['grants']['table.column.two']}</td>
-									<td class="header-column">{messages['grants']['table.column.three']}</td>
-									<td class="header-column">{messages['grants']['table.column.four']}</td>
-									<td class="header-column">{messages['grants']['table.column.five']}</td>
-								</tr>
-							</thead>
-							<tbody>
-								{#each $grants as grantDuration}
-									<tr>
+						{#if $grants?.length > 0 && grantsListVisible}
+							<table data-cy="durations-table" class="main" style="margin-top: 0.5rem">
+								<thead>
+									<tr style="border-top: 1px solid black; border-bottom: 2px solid">
 										{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
-											<td style="line-height: 1rem; width: 2rem; ">
+											<td style="line-height: 1rem;">
 												<input
 													tabindex="-1"
 													type="checkbox"
 													class="grants-checkbox"
-													checked={grantAllRowsSelectedTrue}
-													on:change={(e) => {
-														if (e.target.checked === true) {
-															grantRowsSelected.push(grantDuration);
-															// reactive statement
-															grantRowsSelected = grantRowsSelected;
-															grantRowsSelectedTrue = true;
+													style="margin-right: 0.5rem"
+													bind:indeterminate={grantRowsSelectedTrue}
+													on:click={(e) => {
+														if (e.target.checked) {
+															grantRowsSelected = $grants;
+															grantRowsSelectedTrue = false;
+															grantAllRowsSelectedTrue = true;
 														} else {
-															grantRowsSelected = grantRowsSelected.filter(
-																(selection) => selection !== grantDuration
-															);
-															if (grantRowsSelected.length === 0) {
-																grantRowsSelectedTrue = false;
-															}
+															grantAllRowsSelectedTrue = false;
+															grantRowsSelectedTrue = false;
+															grantRowsSelected = [];
 														}
 													}}
+													checked={grantAllRowsSelectedTrue}
 												/>
 											</td>
 										{/if}
-
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
-										<td
-											style="cursor: pointer; width: max-content"
-											data-cy="duration-name"
-											on:click={() => {
-												if ($isAdmin || isTopicAdmin) {
-													editDuration(grantDuration);
-												}
-											}}
-											>{grantDuration.name}
-										</td>
-
-										<td>{grantDuration.groupName}</td>
-
-										<td data-cy="grant-duration">{getDuration(grantDuration)}</td>
-
-										<td>{grantDuration.applicationName}</td>
-										<td>{grantDuration.applicationGroupName}</td>
-
-
-										{#if $isAdmin || isTopicAdmin}
-											<td style="cursor: pointer; width:1rem">
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													data-cy="detail-application-icon"
-													src={detailSVG}
-													height="18rem"
-													width="18rem"
-													alt="edit user"
-													style="vertical-align: -0.2rem"
-													on:click={() => {
-														if ($isAdmin || isTopicAdmin) {
-															editDuration(grantDuration);
-														}
-													}}
-												/>
-											</td>
-
-											<td
-												style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
-											>
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													data-cy="delete-duration-icon"
-													src={deleteSVG}
-													width="27px"
-													height="27px"
-													style="vertical-align: -0.45rem"
-													alt="delete duration"
-													disabled={!$isAdmin || !isTopicAdmin}
-													on:click={() => {
-														if (!grantRowsSelected.some((tpc) => tpc === grantDuration))
-															grantRowsSelected.push(grantDuration);
-														deleteGrantVisible = true;
-													}}
-												/>
-											</td>
-										{/if}
+										<td class="header-column" style="min-width: 7rem"
+											>{messages['grants']['table.column.one']}</td
+										>
+										<td class="header-column">{messages['grants']['table.column.two']}</td>
+										<td class="header-column">{messages['grants']['table.column.three']}</td>
+										<td class="header-column">{messages['grants']['table.column.four']}</td>
+										<td class="header-column">{messages['grants']['table.column.five']}</td>
 									</tr>
-								{/each}
-							</tbody>
-						</table>
-					{:else if !editGrantVisible}
-						<p>
-							{messages['grants']['empty.grants']}
-							<br />
-							{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<span
-									class="link"
-									on:click={() => {
-										if (
-											$groupContext &&
-											($permissionsByGroup?.find(
-												(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-											) ||
-												$isAdmin)
-										)
-											addGrantVisible = true;
-										else if (
-											!$groupContext &&
-											($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
-										)
-											showSelectGroupContext.set(true);
-									}}
-								>
-									{messages['grants']['empty.grants.action.two']}
-								</span>
-								{messages['grants']['empty.grants.action.result']}
-							{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
-								{messages['grants']['empty.grants.action']}
-							{/if}
-						</p>
-					{/if}
-				</div>
+								</thead>
+								<tbody>
+									{#each $grants as grant}
+										<tr>
+											{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
+												<td style="line-height: 1rem; width: 2rem; ">
+													<input
+														tabindex="-1"
+														type="checkbox"
+														class="grants-checkbox"
+														checked={grantAllRowsSelectedTrue}
+														on:change={(e) => {
+															if (e.target.checked === true) {
+																grantRowsSelected.push(grant);
+																// reactive statement
+																grantRowsSelected = grantRowsSelected;
+																grantRowsSelectedTrue = true;
+															} else {
+																grantRowsSelected = grantRowsSelected.filter(
+																	(selection) => selection !== grant
+																);
+																if (grantRowsSelected.length === 0) {
+																	grantRowsSelectedTrue = false;
+																}
+															}
+														}}
+													/>
+												</td>
+											{/if}
 
-				<div class="pagination">
-					<span>{messages['pagination']['rows.per.page']}</span>
-					<select
-						tabindex="-1"
-						on:change={(e) => {
-							gransPerPage = e.target.value;
-							reloadAllGrants();
-						}}
-						name="RowsPerPage"
-					>
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-						<option value="75">75</option>
-						<option value="100">100&nbsp;</option>
-					</select>
+											<!-- svelte-ignore a11y-click-events-have-key-events -->
+											<td
+												style="cursor: pointer; width: max-content"
+												data-cy="duration-name"
+												on:click={() => {
+													selectedGrant = grant;
+													loadGrant();
+												}}
+												on:keydown={(event) => {
+													if (event.which === returnKey) {
+														selectedGrant = grant;
+														loadGrant();
+													}
+												}}
+												>{grant.name}
+											</td>
 
-					<span style="margin: 0 2rem 0 2rem">
-						{#if $topicsTotalSize > 0}
-							{1 + grantsCurrentPage * gransPerPage}
-						{:else}
-							0
+											<td>{grant.groupName}</td>
+
+											<td data-cy="grant-duration">{getDuration(grant)}</td>
+
+											<td>{grant.applicationName}</td>
+											<td>{grant.applicationGroupName}</td>
+
+											{#if $isAdmin || isTopicAdmin}
+												<td style="cursor: pointer; width:1rem">
+													<!-- svelte-ignore a11y-click-events-have-key-events -->
+													<img
+														data-cy="detail-application-icon"
+														src={detailSVG}
+														height="18rem"
+														width="18rem"
+														alt="edit user"
+														style="vertical-align: -0.2rem"
+														on:click={() => {
+															selectedGrant = grant;
+															loadGrant();
+														}}
+														on:keydown={(event) => {
+															if (event.which === returnKey) {
+																selectedGrant = grant;
+																loadGrant();
+															}
+														}}
+													/>
+												</td>
+
+												<td
+													style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
+												>
+													<!-- svelte-ignore a11y-click-events-have-key-events -->
+													<img
+														data-cy="delete-duration-icon"
+														src={deleteSVG}
+														width="27px"
+														height="27px"
+														style="vertical-align: -0.45rem"
+														alt="delete duration"
+														disabled={!$isAdmin || !isTopicAdmin}
+														on:click={() => {
+															if (!grantRowsSelected.some((tpc) => tpc === grant))
+																grantRowsSelected.push(grant);
+															deleteGrantVisible = true;
+														}}
+													/>
+												</td>
+											{/if}
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						{:else if !editGrantVisible}
+							<p>
+								{messages['grants']['empty.grants']}
+								<br />
+								{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<span
+										class="link"
+										on:click={() => {
+											if (
+												$groupContext &&
+												($permissionsByGroup?.find(
+													(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+												) ||
+													$isAdmin)
+											)
+												addGrantVisible = true;
+											else if (
+												!$groupContext &&
+												($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
+											)
+												showSelectGroupContext.set(true);
+										}}
+									>
+										{messages['grants']['empty.grants.action.two']}
+									</span>
+									{messages['grants']['empty.grants.action.result']}
+								{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
+									{messages['grants']['empty.grants.action']}
+								{/if}
+							</p>
 						{/if}
-						- {Math.min(gransPerPage * (grantsCurrentPage + 1), $topicsTotalSize)} of
-						{$topicsTotalSize}
-					</span>
+					</div>
 
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={grantsCurrentPage === 0}
-						on:click={() => {
-							deselectAllGrantsCheckboxes();
-							if (grantsCurrentPage > 0) {
-								grantsCurrentPage = 0;
+					<div class="pagination">
+						<span>{messages['pagination']['rows.per.page']}</span>
+						<select
+							tabindex="-1"
+							on:change={(e) => {
+								gransPerPage = e.target.value;
 								reloadAllGrants();
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
-						class:disabled-img={grantsCurrentPage === 0}
-						on:click={() => {
-							deselectAllGrantsCheckboxes();
-							if (grantsCurrentPage > 0) {
-								grantsCurrentPage--;
-								reloadAllGrants(grantsCurrentPage);
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
-							$grants?.length === undefined}
-						on:click={() => {
-							deselectAllGrantsCheckboxes();
-							if (grantsCurrentPage + 1 < $topicsTotalPages) {
-								grantsCurrentPage++;
-								reloadAllGrants(grantsCurrentPage);
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
-						class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
-							$grants?.length === undefined}
-						on:click={() => {
-							deselectAllGrantsCheckboxes();
-							if (grantsCurrentPage < $topicsTotalPages) {
-								grantsCurrentPage = $topicsTotalPages - 1;
-								reloadAllGrants(grantsCurrentPage);
-							}
-						}}
-					/>
-				</div>
-				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
-				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
+							}}
+							name="RowsPerPage"
+						>
+							<option value="10">10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="75">75</option>
+							<option value="100">100&nbsp;</option>
+						</select>
+
+						<span style="margin: 0 2rem 0 2rem">
+							{#if $topicsTotalSize > 0}
+								{1 + grantsCurrentPage * gransPerPage}
+							{:else}
+								0
+							{/if}
+							- {Math.min(gransPerPage * (grantsCurrentPage + 1), $topicsTotalSize)} of
+							{$topicsTotalSize}
+						</span>
+
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<img
+							src={pagefirstSVG}
+							alt="first page"
+							class="pagination-image"
+							class:disabled-img={grantsCurrentPage === 0}
+							on:click={() => {
+								deselectAllGrantsCheckboxes();
+								if (grantsCurrentPage > 0) {
+									grantsCurrentPage = 0;
+									reloadAllGrants();
+								}
+							}}
+						/>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<img
+							src={pagebackwardsSVG}
+							alt="previous page"
+							class="pagination-image"
+							class:disabled-img={grantsCurrentPage === 0}
+							on:click={() => {
+								deselectAllGrantsCheckboxes();
+								if (grantsCurrentPage > 0) {
+									grantsCurrentPage--;
+									reloadAllGrants(grantsCurrentPage);
+								}
+							}}
+						/>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<img
+							src={pageforwardSVG}
+							alt="next page"
+							class="pagination-image"
+							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+								$grants?.length === undefined}
+							on:click={() => {
+								deselectAllGrantsCheckboxes();
+								if (grantsCurrentPage + 1 < $topicsTotalPages) {
+									grantsCurrentPage++;
+									reloadAllGrants(grantsCurrentPage);
+								}
+							}}
+						/>
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<img
+							src={pagelastSVG}
+							alt="last page"
+							class="pagination-image"
+							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+								$grants?.length === undefined}
+							on:click={() => {
+								deselectAllGrantsCheckboxes();
+								if (grantsCurrentPage < $topicsTotalPages) {
+									grantsCurrentPage = $topicsTotalPages - 1;
+									reloadAllGrants(grantsCurrentPage);
+								}
+							}}
+						/>
+					</div>
+					<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
+					<p style="margin-top: 8rem">{messages['footer']['message']}</p>
+				{/if}
 			{/if}
 		{/await}
 	{/if}

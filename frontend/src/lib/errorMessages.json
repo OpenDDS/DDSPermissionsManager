@@ -114,6 +114,22 @@
         "adding.error.title": "Error Adding Grant"
     },
 
+    "grant-details":
+    {
+        "not_found": "Grant not found",
+        "update_not_allowed": "Grant update not allowed",
+        "requires_group_association": "Grant requires group association",
+        "name.cannot_be_blank_or_null": "Grant name cannot be blank or invalid",
+        "name.cannot_be_less_than_three_characters": "Grant cannot be less than 3 characters",
+        "exists": "Grant already exists",
+        "loading.error.title": "Error Loading Grants",
+        "loading.detail.error.title": "Error Loading Grant Details",
+        "deleting.error.title": "Error Deleting Grant",
+        "deleting.actions.error.title": "Error Deleting Action",
+        "adding.error.title": "Error Adding Grant",
+        "updating.error.title": "Error Updating Grant"
+    },
+
     "topic-sets":
     {
         "not_found": "Topic Set not found",
