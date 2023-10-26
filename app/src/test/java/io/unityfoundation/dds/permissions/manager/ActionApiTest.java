@@ -545,11 +545,27 @@ public class ActionApiTest {
             assertTrue(secondActionIntervalOptional.isPresent());
             ActionIntervalDTO secondActionInterval = secondActionIntervalOptional.get();
 
+            // create topics
+            response = createTopic("MyBTopic", TopicKind.B, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> topicBOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicBOptional.isPresent());
+            TopicDTO topicBDTO = topicBOptional.get();
+            Long topicBId = topicBDTO.getId();
+
+            response = createTopic("MyCTopic", TopicKind.C, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> topicCOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicCOptional.isPresent());
+            TopicDTO topicCDTO = topicCOptional.get();
+            Long topicCId = topicCDTO.getId();
+
             loginAsNonAdmin();
 
             UpdateActionDTO updateActionDTO = new UpdateActionDTO();
             updateActionDTO.setPartitions(Set.of("part1", "part2"));
             updateActionDTO.setActionIntervalId(secondActionInterval.getId());
+            updateActionDTO.setTopicIds(Set.of(topicBId));
 
             request = HttpRequest.PUT("/actions/"+actionOptional.get().getId(), updateActionDTO);
             response = blockingClient.exchange(request, ActionDTO.class);
@@ -559,6 +575,20 @@ public class ActionApiTest {
             ActionDTO actionDTO = actionOptional.get();
             assertFalse(actionDTO.getPartitions().isEmpty());
             assertEquals(secondActionInterval.getId(), actionDTO.getActionIntervalId());
+            assertEquals(1, actionDTO.getTopics().size());
+            assertTrue(actionDTO.getTopics().stream().allMatch(map -> topicBId.intValue() == (int) map.get("id")));
+
+            // with a different set of topics
+            updateActionDTO.setTopicIds(Set.of(topicCId));
+
+            request = HttpRequest.PUT("/actions/"+actionOptional.get().getId(), updateActionDTO);
+            response = blockingClient.exchange(request, ActionDTO.class);
+            assertEquals(OK, response.getStatus());
+            actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            actionDTO = actionOptional.get();
+            assertEquals(1, actionDTO.getTopics().size());
+            assertTrue(actionDTO.getTopics().stream().allMatch(map -> topicCId.intValue() == (int) map.get("id")));
         }
 
         // delete

@@ -233,8 +233,13 @@ public class ActionService {
             throw new DPMException(ResponseStatusCodes.ACTION_INTERVAL_WAS_NOT_FOUND_OR_DOES_BELONG_TO_THE_SAME_GROUP_AS_APPLICATION_GRANT, HttpStatus.NOT_FOUND);
         }
 
+        Set<TopicSet> topicSets = validateTopicSetsExistenceAndInSameGroupAsGrant(applicationGrant.getPermissionsGroup().getId(), updateActionDTO.getTopicSetIds());
+        Set<Topic> topics = validateTopicsExistenceAndInSameGroupAsGrant(applicationGrant.getPermissionsGroup().getId(), updateActionDTO.getTopicIds());
+
         Action action = actionOptional.get();
         action.setActionInterval(actionIntervalOptional.get());
+        action.setTopicSets(topicSets);
+        action.setTopics(topics);
 
         actionPartitionRepository.deleteAll(actionOptional.get().getPartitions());
         addPartitionsToPermission(action, updateActionDTO.getPartitions());

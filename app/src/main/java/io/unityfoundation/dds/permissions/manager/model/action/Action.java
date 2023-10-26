@@ -104,7 +104,6 @@ public class Action {
         this.dateUpdated = Instant.now();
     }
 
-
     public Set<TopicSet> getTopicSets() {
         if (topicSets == null) return null;
         return Collections.unmodifiableSet(topicSets);
