@@ -221,7 +221,7 @@
 				>Start Date:</span
 			>
 
-			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={startDate} />
+			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={startDate} max={new Date(2050, 12, 31)}/>
 		</div>
 
 		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
@@ -230,7 +230,7 @@
 				>End Date:</span
 			>
 
-			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={endDate} />
+			<DateInput format="yyyy-MM-dd" closeOnSelection bind:value={endDate}  max={new Date(2050, 12, 31)}/>
 		</div>
 
 		<hr />
@@ -266,7 +266,7 @@
 					}
 				}}
 			>
-				Edit Action Interval
+				Update
 			</button>
 		{/if}
 

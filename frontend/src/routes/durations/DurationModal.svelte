@@ -308,7 +308,7 @@
 					}
 				}}
 			>
-				Update Duration
+				Update
 			</button>
 		{/if}
 
