@@ -220,7 +220,7 @@
 		</li>
 
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li class:active={$page.url.pathname === '/grants/'} on:mouseenter={() => {}}>
+		<li class:active={$page.url.pathname === '/grants/'} on:mouseenter={() => {}} on:click={() => detailView.set('backToList')}>
 			<a sveltekit:prefetch href="/grants">
 				<img src={grantsSVG} alt="grants" class="menu-icon" />{messages['navigation']['item.six']}
 			</a>

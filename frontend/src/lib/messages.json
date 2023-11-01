@@ -132,6 +132,21 @@
 		"delete.tooltip.topic.admin.required": "Topic Admin permissions required"
 	},
 
+	"grants.detail": {
+		"row.one": "Name:",
+		"row.two": "Group:",
+		"row.three": "Application Name:",
+		"row.four": "Application Group:",
+		"row.five": "Duration:",
+		"no.topics.found": "No Actions Found.",
+		"delete.title": "Delete",
+		"delete.single": "Action",
+		"delete.multiple": "Actions",
+		"table.column.one": "Actions",
+		"delete.tooltip": "Select actions to delete",
+		"delete.tooltip.topic.admin.required": "Topic Admin permissions required"
+	},
+
 	"topic.detail": {
 		"application.associate": "Grant Access to Topic",
 		"edit": "Edit Topic",
