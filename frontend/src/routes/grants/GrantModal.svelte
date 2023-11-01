@@ -96,7 +96,7 @@
 
 			res = await httpAdapter.get(`/grant_durations`);
 
-			grantDurations.set(res.data.content);
+			grantDurations.set(res.data.content || []);
 
 			if (actionAddGrant) {
 				selectedDuration = $grantDurations[0];
@@ -211,7 +211,6 @@
 
 					if (event.which === returnKey) {
 						newGrantName = newGrantName.trim();
-						// actionAddGrantDurationEvent();
 					}
 				}}
 				on:click={() => {

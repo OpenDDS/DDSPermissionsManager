@@ -145,23 +145,27 @@
 				`/topics?filter=${topicSearchString}&group=${selectedTopicsSetGroupId}`
 			);
 
-			const topicIdsOfTopicSet = $topicSetsDetails.topics?.map((topic) => {
-				return Number(Object.keys(topic)[0]);
-			});
-			const searchedTopics = topicsResponse.data.content.filter((topic) => {
-				return !topicIdsOfTopicSet?.includes(topic.id);
-			});
+			if (topicsResponse.data.content && topicsResponse.data.content.length) {
+				const topicIdsOfTopicSet = $topicSetsDetails.topics?.map((topic) => {
+					return Number(Object.keys(topic)[0]);
+				});
+				const searchedTopics = topicsResponse.data.content.filter((topic) => {
+					return !topicIdsOfTopicSet?.includes(topic.id);
+				});
 
-			const mappedTopics = searchedTopics.map((topic) => {
-				return {
-					label: topic.name,
-					value: topic.name,
-					id: topic.id,
-					groupId: topic.group
-				};
-			});
+				const mappedTopics = searchedTopics.map((topic) => {
+					return {
+						label: topic.name,
+						value: topic.name,
+						id: topic.id,
+						groupId: topic.group
+					};
+				});
 
-			return mappedTopics;
+				return mappedTopics;
+			} else {
+				return [];
+			}
 		} catch (err) {
 			errorMessage(errorMessages['topic-sets']['loading.error.title'], err.message);
 		}
@@ -372,7 +376,9 @@
 								/>
 							</td>
 						{/if}
-						<td class="header-column" style="min-width: 7rem">{messages['topic-sets.detail']['table.column.one']}</td>
+						<td class="header-column" style="min-width: 7rem"
+							>{messages['topic-sets.detail']['table.column.one']}</td
+						>
 					</tr>
 				</thead>
 				<tbody>
