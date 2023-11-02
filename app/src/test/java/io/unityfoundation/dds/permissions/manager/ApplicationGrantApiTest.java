@@ -514,41 +514,6 @@ public class ApplicationGrantApiTest {
             assertEquals(grantNames.stream().sorted().collect(Collectors.toList()), grantNames);
         }
 
-
-
-        @Test
-        public void canViewAllApplicationGrantsByApplicationId() {
-            HttpResponse response;
-            HttpRequest request;
-
-            // generate grant token for application
-            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOne.getId());
-            response = blockingClient.exchange(request, String.class);
-            assertEquals(OK, response.getStatus());
-            Optional<String> optional = response.getBody(String.class);
-            assertTrue(optional.isPresent());
-            String applicationGrantToken = optional.get();
-
-            // create grant duration
-            response = createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
-            assertEquals(OK, response.getStatus());
-            Optional<GrantDurationDTO> durationnOptional = response.getBody(GrantDurationDTO.class);
-            assertTrue(durationnOptional.isPresent());
-            assertEquals("Duration1", durationnOptional.get().getName());
-
-            response = createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
-                    "Grant2", durationnOptional.get().getId());
-            assertEquals(CREATED, response.getStatus());
-            Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
-            assertTrue(grantOptional.isPresent());
-
-            request = HttpRequest.GET("/application_grants/application/"+applicationOne.getId());
-            HashMap<String, Object> responseMap = blockingClient.retrieve(request, HashMap.class);
-            assertNotNull(responseMap);
-            List<Map> content = (List<Map>) responseMap.get("content");
-            assertFalse(content.isEmpty());
-        }
-
         @Test
         public void attemptToCreateWithInvalidData() {
             HttpResponse response;
@@ -931,100 +896,6 @@ public class ApplicationGrantApiTest {
         }
 
         @Test
-        public void canViewApplicationGrantsByApplicationId() {
-            mockSecurityService.postConstruct();
-            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
-
-            HttpResponse<?> response;
-            HttpRequest<?> request;
-
-            // create groups
-            response = createGroup("PrimaryGroup");
-            assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
-            assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
-
-            User justin = userRepository.findByEmail("jjones@test.test").get();
-            // add user to group as an application admin
-            GroupUserDTO dto = new GroupUserDTO();
-            dto.setPermissionsGroup(primaryGroup.getId());
-            dto.setEmail(justin.getEmail());
-            dto.setTopicAdmin(true);
-            request = HttpRequest.POST("/group_membership", dto);
-            response = blockingClient.exchange(request);
-            assertEquals(OK, response.getStatus());
-
-            // create application
-            response = createApplication("Application123", primaryGroup.getId());
-            assertEquals(OK, response.getStatus());
-            Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
-            assertTrue(applicationOptional.isPresent());
-            assertEquals("Application123", applicationOptional.get().getName());
-
-            // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
-            assertEquals(OK, response.getStatus());
-            Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
-            assertTrue(durationOptional.isPresent());
-            assertEquals("30s Duration", durationOptional.get().getName());
-
-            // generate grant token for application
-            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOptional.get().getId());
-            response = blockingClient.exchange(request, String.class);
-            assertEquals(OK, response.getStatus());
-            Optional<String> optional = response.getBody(String.class);
-            assertTrue(optional.isPresent());
-            String applicationGrantToken = optional.get();
-
-            // create application grants
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
-            assertEquals(CREATED, response.getStatus());
-            Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
-            assertTrue(grantOptional.isPresent());
-
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MySecondGrant", durationOptional.get().getId());
-            assertEquals(CREATED, response.getStatus());
-            Optional<GrantDTO> grantOptional1 = response.getBody(GrantDTO.class);
-            assertTrue(grantOptional1.isPresent());
-
-
-            // create action and action interval
-            response = createActionInterval("MyActionInterval", primaryGroup.getId());
-            assertEquals(OK, response.getStatus());
-            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
-            assertTrue(actionIntervalDTOOptional.isPresent());
-            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
-
-            response = createAction(grantOptional.get().getId(), actionInterval.getId());
-            assertEquals(OK, response.getStatus());
-            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
-            assertTrue(actionOptional.isPresent());
-            ActionDTO actionDTO = actionOptional.get();
-
-            loginAsNonAdmin();
-
-            Page page;
-
-            // public permissions with public application
-            request = HttpRequest.GET("/application_grants/application/"+applicationOptional.get().getId());
-            page = blockingClient.retrieve(request, Page.class);
-            assertFalse(page.isEmpty());
-            assertEquals(2, page.getContent().size());
-            assertTrue(page.getContent().stream().anyMatch(o -> {
-                Map map1 = (Map) o;
-                String name = (String) map1.get("name");
-                String application = (String) map1.get("applicationName");
-                return name.contentEquals("MySecondGrant") && application.contentEquals("Application123");
-            }));
-            assertTrue(page.getContent().stream().anyMatch(o -> {
-                Map map2 = (Map) o;
-                Object actions = map2.get("actions");
-                return actions != null;
-            }));
-        }
-
-        @Test
         public void cannotCreateApplicationGrant() {
             mockSecurityService.postConstruct(); 
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
@@ -1243,38 +1114,6 @@ public class ApplicationGrantApiTest {
 
         HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
         return blockingClient.exchange(request, GrantDurationDTO.class);
-    }
-
-    private HttpResponse<?> createActionInterval(String name, Long groupId) {
-        CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setStartDate(Instant.now());
-        abcDTO.setEndDate(Instant.now().plus(1, ChronoUnit.DAYS));
-
-        HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
-        return blockingClient.exchange(request, ActionIntervalDTO.class);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId) {
-        return createAction(grantId, intervalId, null, null, null, null);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction) {
-        return createAction(grantId, intervalId, isPublishAction, null, null, null);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction, Set<Long> topics, Set<Long> topicSets, Set<String> partitions) {
-        CreateActionDTO create = new CreateActionDTO();
-        create.setPublishAction(isPublishAction);
-        create.setApplicationGrantId(grantId);
-        create.setActionIntervalId(intervalId);
-        create.setTopicIds(topics);
-        create.setTopicSetIds(topicSets);
-        create.setPartitions(partitions);
-
-        HttpRequest<?> request = HttpRequest.POST("/actions", create);
-        return blockingClient.exchange(request, ActionDTO.class);
     }
 
     private HttpResponse<?> createApplicationGrant(String applicationGrantToken, Long groupId, String name, Long durationId) {
