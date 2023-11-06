@@ -25,8 +25,12 @@ import io.micronaut.security.token.jwt.generator.claims.JwtClaimsSetAdapter;
 import io.micronaut.security.token.jwt.validator.JwtTokenValidator;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
+import io.unityfoundation.dds.permissions.manager.model.action.Action;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionService;
+import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.DetailedGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.UpdateGrantDTO;
@@ -43,21 +47,25 @@ import org.reactivestreams.Publisher;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Singleton
 public class ApplicationGrantService {
 
     private final ApplicationGrantRepository applicationGrantRepository;
     private final ApplicationRepository applicationRepository;
+    private final ActionService actionService;
     private final GroupRepository groupRepository;
     private final GrantDurationRepository grantDurationRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
     private final JwtTokenValidator jwtTokenValidator;
 
-    public ApplicationGrantService(ApplicationGrantRepository applicationGrantRepository, ApplicationRepository applicationRepository, GroupRepository groupRepository, GrantDurationRepository grantDurationRepository, SecurityUtil securityUtil, GroupUserService groupUserService, JwtTokenValidator jwtTokenValidator) {
+    public ApplicationGrantService(ApplicationGrantRepository applicationGrantRepository, ApplicationRepository applicationRepository, ActionService actionService, GroupRepository groupRepository, GrantDurationRepository grantDurationRepository, SecurityUtil securityUtil, GroupUserService groupUserService, JwtTokenValidator jwtTokenValidator) {
         this.applicationGrantRepository = applicationGrantRepository;
         this.applicationRepository = applicationRepository;
+        this.actionService = actionService;
         this.groupRepository = groupRepository;
         this.grantDurationRepository = grantDurationRepository;
         this.securityUtil = securityUtil;
@@ -74,6 +82,7 @@ public class ApplicationGrantService {
 
         return page.map(this::createDTO);
     }
+
     private Page<ApplicationGrant> getApplicationGrantsPage(Pageable pageable, String filter, Long groupId) {
         List<Long> all;
         if (securityUtil.isCurrentUserAdmin()) {
@@ -114,6 +123,32 @@ public class ApplicationGrantService {
             }
 
             return applicationGrantRepository.findAllByIdInAndPermissionsGroupIdIn(all, groups, pageable);
+        }
+    }
+
+    public Page<DetailedGrantDTO> findAllByApplicationId(Pageable pageable, Long applicationId) {
+        if (!pageable.isSorted()) {
+            pageable = pageable.order("name").order("permissionsGroup.name");
+        }
+
+        Page<ApplicationGrant> page = getApplicationGrantsPageByApplication(pageable, applicationId);
+
+        return page.map(this::createDetailedDTO);
+    }
+
+    private Page<ApplicationGrant> getApplicationGrantsPageByApplication(Pageable pageable, Long applicationId) {
+
+        if (securityUtil.isCurrentUserAdmin()) {
+            return applicationGrantRepository.findByPermissionsApplicationId(applicationId, pageable);
+        } else {
+            User user = securityUtil.getCurrentlyAuthenticatedUser().get();
+            List<Long> groups = groupUserService.getAllGroupsUserIsAMemberOf(user.getId());
+
+            if (groups.isEmpty()) {
+                return Page.empty();
+            }
+
+            return applicationGrantRepository.findAllByPermissionsApplicationIdAndPermissionsGroupIdIn(applicationId, groups, pageable);
         }
     }
 
@@ -204,6 +239,24 @@ public class ApplicationGrantService {
                 applicationGrant.getPermissionsGroup().getName(),
                 applicationGrant.getGrantDuration().getDurationInMilliseconds(),
                 applicationGrant.getGrantDuration().getDurationMetadata()
+        );
+    }
+
+    public DetailedGrantDTO createDetailedDTO(ApplicationGrant applicationGrant) {
+        List<Action> actions = actionService.getAllByGrantId(applicationGrant.getId());
+        List <ActionDTO> actionDTOs = actions.stream().map(actionService::createDTO).collect(Collectors.toList());
+
+        return new DetailedGrantDTO(
+                applicationGrant.getId(),
+                applicationGrant.getName(),
+                applicationGrant.getPermissionsApplication().getId(),
+                applicationGrant.getPermissionsApplication().getName(),
+                applicationGrant.getPermissionsApplication().getPermissionsGroup().getName(),
+                applicationGrant.getPermissionsGroup().getId(),
+                applicationGrant.getPermissionsGroup().getName(),
+                applicationGrant.getGrantDuration().getDurationInMilliseconds(),
+                applicationGrant.getGrantDuration().getDurationMetadata(),
+                actionDTOs
         );
     }
 

@@ -28,6 +28,7 @@ import java.util.Optional;
 public interface ApplicationGrantRepository extends PageableRepository<ApplicationGrant, Long> {
 //    boolean existsByPermissionsApplicationAndPermissionsTopic(Application permissionsApplication, Topic permissionsTopic);
     Page<ApplicationGrant> findByPermissionsApplicationId(Long applicationId, Pageable pageable);
+    Page<ApplicationGrant> findAllByPermissionsApplicationIdAndPermissionsGroupIdIn(Long applicationId, List<Long> groups, Pageable pageable);
     List<ApplicationGrant> findByPermissionsApplication(Application permissionsApplication);
     Page<ApplicationGrant> findByPermissionsApplicationIdAndPermissionsApplicationIdIn(Long applicationId, List<Long> groupsApplications, Pageable pageable);
     void deleteByPermissionsApplicationEquals(Application permissionsApplication);
@@ -36,7 +37,6 @@ public interface ApplicationGrantRepository extends PageableRepository<Applicati
     Page<ApplicationGrant> findAllByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName, Pageable pageable);
     List<Long> findIdByNameContainsIgnoreCaseOrPermissionsGroupNameContainsIgnoreCase(String name, String groupName);
     Page<ApplicationGrant> findAllByIdInAndPermissionsGroupIdIn(List<Long> all, List<Long> groupId, Pageable pageable);
-
     Optional<ApplicationGrant> findByNameAndPermissionsGroup(String name, Group group);
     List<Long> findIdByPermissionsGroupIdIn(List<Long> groups);
 }
