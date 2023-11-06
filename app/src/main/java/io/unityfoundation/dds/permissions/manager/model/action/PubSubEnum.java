@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { writable } from 'svelte/store';
+package io.unityfoundation.dds.permissions.manager.model.action;
 
-const actionIntervals = writable([]);
-
-export default actionIntervals;
+public enum PubSubEnum {
+    PUBLISH, SUBSCRIBE
+}

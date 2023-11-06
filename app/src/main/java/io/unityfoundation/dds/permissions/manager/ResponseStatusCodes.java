@@ -112,4 +112,11 @@ public interface ResponseStatusCodes {
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
     String INVALID_TOKEN = "security.invalid-token";
+
+    String ACTION_NOT_FOUND = "action.not-found";
+    String ACTION_REQUIRES_APPLICATION_GRANT_ASSOCIATION = "action.requires-application-grant-association";
+    String ACTION_REQUIRES_INTERVAL_ASSOCIATION = "action.requires-action-interval-association";
+    String ACTION_INTERVAL_WAS_NOT_FOUND_OR_DOES_BELONG_TO_THE_SAME_GROUP_AS_APPLICATION_GRANT = "action.action-interval.does-not-exist-or-not-in-same-group-as-application-grant";
+    String A_PROVIDED_TOPIC_SET_WAS_NOT_FOUND_OR_DOES_NOT_BELONG_TO_SAME_GROUP = "action.topic-set.does-not-exist-or-not-in-same-group-as-application-grant";
+    String A_PROVIDED_TOPIC_WAS_NOT_FOUND_OR_DOES_NOT_BELONG_TO_SAME_GROUP = "action.topic.does-not-exist-or-not-in-same-group-as-application-grant";
 }

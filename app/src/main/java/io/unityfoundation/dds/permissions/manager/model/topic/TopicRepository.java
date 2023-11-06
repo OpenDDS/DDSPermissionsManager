@@ -49,4 +49,6 @@ public interface TopicRepository extends PageableRepository<Topic, Long> {
     Page<Topic> findByMakePublicTrueAndIdIn(List<Long> entityIds, Pageable pageable);
 
     List<Topic> findTop50ByMakePublicTrueAndIdIn(List<Long> secondEntityIds);
+
+    Optional<Topic> findByIdAndPermissionsGroupId(Long id, Long groupId);
 }

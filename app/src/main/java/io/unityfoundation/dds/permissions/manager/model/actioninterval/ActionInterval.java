@@ -17,11 +17,16 @@ package io.unityfoundation.dds.permissions.manager.model.actioninterval;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
+import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "permissions_action_interval")
@@ -30,6 +35,10 @@ public class ActionInterval {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "permissionsGroup")
+//    @OnDelete(action = OnDeleteAction.CASCADE)
+//    private Set<Topic> topics = new HashSet<>();
 
     @NonNull
     @NotBlank

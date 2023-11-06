@@ -31,6 +31,7 @@ import org.reactivestreams.Publisher;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import static io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService.APPLICATION_GRANT_TOKEN;
 
@@ -48,6 +49,12 @@ public class ApplicationGrantController {
     @ExecuteOn(TaskExecutors.IO)
     public Page<GrantDTO> index(@Valid Pageable pageable, @Nullable String filter, @Nullable Long group) {
         return applicationGrantService.findAll(pageable, filter, group);
+    }
+
+    @Get("/{grantId}")
+    @ExecuteOn(TaskExecutors.IO)
+    public GrantDTO getById(@NotNull Long grantId) {
+        return applicationGrantService.findById(grantId);
     }
 
     @Post

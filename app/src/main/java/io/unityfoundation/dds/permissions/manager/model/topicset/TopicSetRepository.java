@@ -33,4 +33,5 @@ public interface TopicSetRepository extends PageableRepository<TopicSet, Long> {
     Page<TopicSet> findAllByIdInAndPermissionsGroupIdIn(List<Long> topicSets, List<Long> groupIds, Pageable pageable);
 
     Optional<TopicSet> findByNameAndPermissionsGroup(String name, Group group);
+    Optional<TopicSet> findByIdAndPermissionsGroupId(Long id, Long groupId);
 }

@@ -13,6 +13,8 @@
 // limitations under the License.
 import { writable } from 'svelte/store';
 
-const actionIntervals = writable([]);
+export const grantDetailsStore = writable({});
+export const grantPublishActionsStore = writable([]);
+export const grantSubscribeActionsStore = writable([]);
 
-export default actionIntervals;
+export default null;

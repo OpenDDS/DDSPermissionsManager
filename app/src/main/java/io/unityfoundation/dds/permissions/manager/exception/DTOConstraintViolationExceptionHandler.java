@@ -164,7 +164,7 @@ public class DTOConstraintViolationExceptionHandler implements ExceptionHandler<
                     code = ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE;
                 }
             }
-        }  else if (code.contains(".createGrantDTO.") || code.contains(".updateGrantDTO.")) {
+        } else if (code.contains(".createGrantDTO.") || code.contains(".updateGrantDTO.")) {
             if (code.endsWith(".name")) {
                 if (descriptor.getAnnotation() instanceof NotBlank) {
                     code = ResponseStatusCodes.APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL;
@@ -178,6 +178,16 @@ public class DTOConstraintViolationExceptionHandler implements ExceptionHandler<
             } else if (code.endsWith(".grantDurationId")) {
                 if (descriptor.getAnnotation() instanceof NotNull) {
                     code = ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_DURATION_ASSOCIATION;
+                }
+            }
+        } else if (code.contains(".createActionDTO.") || code.contains(".updateActionDTO.")) {
+            if (code.endsWith(".applicationGrantId")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.ACTION_REQUIRES_APPLICATION_GRANT_ASSOCIATION;
+                }
+            } else if (code.endsWith(".actionIntervalId")) {
+                if (descriptor.getAnnotation() instanceof NotNull) {
+                    code = ResponseStatusCodes.ACTION_REQUIRES_INTERVAL_ASSOCIATION;
                 }
             }
         } else if (code.endsWith("dto.permissionsGroup")) {

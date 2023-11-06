@@ -16,6 +16,7 @@ package io.unityfoundation.dds.permissions.manager.model.actioninterval.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -52,6 +53,15 @@ public class ActionIntervalDTO implements EntityDTO {
         this.groupName = groupName;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public ActionIntervalDTO(ActionInterval actionInterval) {
+        this.id = actionInterval.getId();
+        this.name = actionInterval.getName();
+        this.groupId = actionInterval.getPermissionsGroup().getId();
+        this.groupName = actionInterval.getPermissionsGroup().getName();
+        this.startDate = actionInterval.getStartDate();
+        this.endDate = actionInterval.getEndDate();
     }
 
     public Long getId() {
