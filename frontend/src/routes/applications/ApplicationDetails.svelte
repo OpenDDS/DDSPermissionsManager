@@ -13,6 +13,8 @@
 	import editSVG from '../../icons/edit.svg';
 	import deleteSVG from '../../icons/delete.svg';
 	import featureFlagConfigStore from '../../stores/featureFlagConfig';
+	import { convertFromMilliseconds } from '../../utils';
+	import ActionsDetails from '../../lib/ActionsDetails.svelte';
 
 	export let isApplicationAdmin,
 		selectedAppId,
@@ -24,6 +26,8 @@
 		selectedAppGroupName,
 		selectedAppDateUpdated = '',
 		selectedTopicApplications = [];
+
+	let applicationGrants = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -44,8 +48,16 @@
 		grantsRowsSelectedTrue = false,
 		grantsAllRowsSelectedTrue = false;
 
+	let newGrantsRowsSelected = [],
+		newGrantsRowsSelectedTrue = false,
+		newGrantsAllRowsSelectedTrue = false;
+
 	// Modals
 	let reloadMessageVisible = false;
+	let actionsModalVisible = false;
+	let selectedGrant = {};
+	let selectedAction = {};
+
 	// checkboxes selection
 	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
 		grantsRowsSelectedTrue = false;
@@ -56,12 +68,23 @@
 		grantsAllRowsSelectedTrue = false;
 	}
 
+	// checkboxes selection
+	$: if (applicationGrants?.length === newGrantsRowsSelected?.length) {
+		newGrantsRowsSelectedTrue = false;
+		newGrantsAllRowsSelectedTrue = true;
+	} else if (newGrantsRowsSelected?.length > 0) {
+		newGrantsRowsSelectedTrue = true;
+	} else {
+		newGrantsAllRowsSelectedTrue = false;
+	}
+
 	let selectedAppDescriptionSelector,
 		checkboxSelector,
 		isPublic = selectedAppPublic;
 
 	let editApplicationVisible = false,
-		deleteSelectedGrantsVisible = false;
+		deleteSelectedGrantsVisible = false,
+		newDeleteSelectedGrantsVisible = false;
 
 	// Websocket
 	let applicationSocketIsPaused = false;
@@ -103,6 +126,27 @@
 		}
 	};
 
+	const getApplicationGrants = async () => {
+		const res = await httpAdapter.get(`/application_grants/application/${selectedAppId}`);
+
+		if (res.data.content) {
+			return Promise.all(
+				res.data.content.map(async (grant) => {
+					const publishActions = grant?.actions?.filter((action) => action.publishAction) || [];
+					const subscribeActions = grant?.actions?.filter((action) => !action.publishAction) || [];
+
+					return {
+						...grant,
+						publishActions,
+						subscribeActions
+					};
+				})
+			);
+		}
+
+		return [];
+	};
+
 	const saveNewApp = async (newAppName, newAppDescription, newAppPublic) => {
 		pauseSocketListener();
 		const res = await httpAdapter
@@ -139,6 +183,25 @@
 		grantsRowsSelected = [];
 		let checkboxes = document.querySelectorAll('.grants-checkbox');
 		checkboxes.forEach((checkbox) => (checkbox.checked = false));
+	};
+
+	const newDeselectAllGrantsCheckboxes = () => {
+		newGrantsAllRowsSelectedTrue = false;
+		newGrantsRowsSelectedTrue = false;
+		newGrantsRowsSelected = [];
+		let checkboxes = document.querySelectorAll('.grants-checkbox');
+		checkboxes.forEach((checkbox) => (checkbox.checked = false));
+	};
+
+	const deleteSelectedGrants = async () => {
+		try {
+			for (const duration of newGrantsRowsSelected) {
+				await httpAdapter.delete(`/application_grants/${duration.id}`);
+			}
+			updateRetrievalTimestamp(retrievedTimestamps, 'durations');
+		} catch (err) {
+			errorMessage(errorMessages['grants']['deleting.error.title'], err.message);
+		}
 	};
 
 	const loadApplicationDetail = async (appId, groupId) => {
@@ -181,6 +244,7 @@
 
 	onMount(async () => {
 		if (APIisBroadcastingEvents) subscribeApplicationMessage(socket);
+		applicationGrants = await getApplicationGrants();
 		headerTitle.set(selectedAppName);
 		await getAppPermissions();
 		if (appCurrentGroupPublic === undefined) {
@@ -194,6 +258,21 @@
 	onDestroy(() => {
 		socket.close();
 	});
+
+	const getDuration = (grantDuration) => {
+		const duration = convertFromMilliseconds(
+			grantDuration.durationInMilliseconds,
+			grantDuration.durationMetadata
+		);
+		const durationType =
+			duration > 1 ? grantDuration.durationMetadata + 's' : grantDuration.durationMetadata;
+		return `${duration} ${durationType}`;
+	};
+
+	const getActionsTotal = (grant, type) => {
+		const totalActions = grant[type]?.length;
+		return totalActions > 0 ? totalActions : 0;
+	};
 </script>
 
 {#if errorMessageVisible}
@@ -248,6 +327,34 @@
 	/>
 {/if}
 
+{#if newDeleteSelectedGrantsVisible}
+	<Modal
+		actionDeleteGrants={true}
+		title="{messages['application.detail']['delete.grants.title']} {newGrantsRowsSelected.length > 1
+			? messages['application.detail']['delete.grants.multiple']
+			: messages['application.detail']['delete.grants.single']}"
+		on:cancel={() => {
+			newDeleteSelectedGrantsVisible = false;
+		}}
+		on:deleteGrants={async () => {
+			await deleteSelectedGrants();
+			newDeselectAllGrantsCheckboxes();
+			newDeleteSelectedGrantsVisible = false;
+		}}
+	/>
+{/if}
+
+{#if actionsModalVisible}
+	<ActionsDetails
+		title="Actions"
+		actionEditAction={false}
+		on:cancel={() => (actionsModalVisible = false)}
+		isPublishAction={selectedAction.publishAction}
+		{selectedGrant}
+		{selectedAction}
+	/>
+{/if}
+
 <div class="content">
 	<table>
 		<tr>
@@ -277,6 +384,13 @@
 				{messages['application.detail']['row.two']}
 			</td>
 
+			<td style="font-weight: 400; margin-left: 2rem">{selectedAppGroupName}</td>
+		</tr>
+		<tr>
+			<td style="font-weight: 300; margin-right: 1rem; width: 6.2rem;">
+				{messages['application.detail']['row.three']}
+			</td>
+
 			<td style="font-weight: 400; margin-left: 2rem" bind:this={selectedAppDescriptionSelector}
 				>{selectedAppDescription ? selectedAppDescription : '-'}</td
 			>
@@ -298,7 +412,9 @@
 		</tr>
 	</table>
 
-	{#if selectedAppDateUpdated} <p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p> {/if}
+	{#if selectedAppDateUpdated}
+		<p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p>
+	{/if}
 
 	{#if !$page.url.pathname.includes('search')}
 		<div style="margin-top: 3.5rem">
@@ -526,6 +642,224 @@
 			</tr>
 		</table>
 	{/if}
+
+	{#if !$page.url.pathname.includes('search')}
+		<div style="margin-top: 3.5rem">
+			<div
+				style="display: flex; justify-content: space-between; align-items:center; margin-top: 2rem"
+			>
+				<div style="font-size:1.3rem; margin-bottom: 1rem">
+					{messages['application.detail']['table.applications.label-temp']}
+				</div>
+
+				<div>
+					<img
+						src={deleteSVG}
+						alt="options"
+						class="dot"
+						class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
+							newGrantsRowsSelected?.length === 0}
+						style="margin-left: 0.5rem; margin-right: 1rem"
+						on:click={() => {
+							if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
+						}}
+						on:keydown={(event) => {
+							if (event.which === returnKey) {
+								if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
+							}
+						}}
+						on:mouseenter={() => {
+							deleteMouseEnter = true;
+							if ($isAdmin || isApplicationAdmin) {
+								if (newGrantsRowsSelected.length === 0) {
+									deleteToolip = messages['topic.detail']['delete.tooltip'];
+									const tooltip = document.querySelector('#delete-topics');
+									setTimeout(() => {
+										if (deleteMouseEnter) {
+											tooltip.classList.remove('tooltip-hidden');
+											tooltip.classList.add('tooltip');
+										}
+									}, 1000);
+								}
+							} else {
+								deleteToolip = messages['topic']['delete.tooltip.topic.admin.required'];
+								const tooltip = document.querySelector('#delete-topics');
+								setTimeout(() => {
+									if (deleteMouseEnter) {
+										tooltip.classList.remove('tooltip-hidden');
+										tooltip.classList.add('tooltip');
+										tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
+									}
+								}, 1000);
+							}
+						}}
+						on:mouseleave={() => {
+							deleteMouseEnter = false;
+							if (newGrantsRowsSelected.length === 0) {
+								const tooltip = document.querySelector('#delete-topics');
+								setTimeout(() => {
+									if (!deleteMouseEnter) {
+										tooltip.classList.add('tooltip-hidden');
+										tooltip.classList.remove('tooltip');
+									}
+								}, 1000);
+							}
+						}}
+					/>
+					<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
+						>{deleteToolip}
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<table style="min-width: 59rem; max-width: 59rem">
+			<thead>
+				<tr style="border-top: 1px solid black; border-bottom: 2px solid">
+					<td>
+						<input
+							tabindex="-1"
+							type="checkbox"
+							class="grants-checkbox"
+							style="margin-right: 0.5rem"
+							bind:indeterminate={newGrantsRowsSelectedTrue}
+							on:click={(e) => {
+								if (e.target.checked) {
+									newGrantsRowsSelected = applicationGrants;
+									newGrantsRowsSelectedTrue = false;
+									newGrantsAllRowsSelectedTrue = true;
+								} else {
+									newGrantsAllRowsSelectedTrue = false;
+									newGrantsRowsSelectedTrue = false;
+									newGrantsRowsSelected = [];
+								}
+							}}
+							checked={newGrantsAllRowsSelectedTrue}
+						/>
+					</td>
+					<td>{messages['application.detail']['table.applications.column.one-temp']}</td>
+					<td>{messages['application.detail']['table.applications.column.two-temp']}</td>
+					<td>{messages['application.detail']['table.applications.column.three-temp']}</td>
+					<td>{messages['application.detail']['table.applications.column.four-temp']}</td>
+					{#if isApplicationAdmin || $isAdmin}
+						<td />
+					{/if}
+				</tr>
+			</thead>
+			{#if applicationGrants.length}
+				{#each applicationGrants as grant}
+					{@const publishActions = getActionsTotal(grant, 'publishActions')}
+					{@const subscribeActions = getActionsTotal(grant, 'subscribeActions')}
+					<tbody>
+						<tr>
+							<td style="line-height: 1rem;">
+								<input
+									tabindex="-1"
+									type="checkbox"
+									class="grants-checkbox"
+									style="margin-right: 0.5rem"
+									checked={newGrantsAllRowsSelectedTrue}
+									on:change={(e) => {
+										if (e.target.checked === true) {
+											newGrantsRowsSelected.push(grant);
+											// reactive statement
+											newGrantsRowsSelected = newGrantsRowsSelected;
+											newGrantsRowsSelectedTrue = true;
+										} else {
+											newGrantsRowsSelected = newGrantsRowsSelected.filter(
+												(selection) => selection !== grant
+											);
+											if (newGrantsRowsSelected.length === 0) {
+												newGrantsRowsSelectedTrue = false;
+											}
+										}
+									}}
+								/>
+							</td>
+							<td style="min-width: 14rem">
+								{grant.name}
+							</td>
+							<td style="min-width: 14rem">
+								{grant.groupName}
+							</td>
+							<td style="min-width: 14rem">
+								{getDuration(grant)}
+							</td>
+							<td style="min-width: 12rem">
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<span
+									class:clickable-action={publishActions}
+									on:click={() => {
+										if (publishActions) {
+											selectedGrant = grant;
+											selectedAction = grant.publishActions[0];
+											actionsModalVisible = true;
+										}
+									}}
+								>
+									{publishActions}
+								</span>
+								/
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<span
+									class:clickable-action={subscribeActions.length}
+									on:click={() => {
+										if (subscribeActions) {
+											selectedGrant = grant;
+											selectedAction = grant.subscribeActions;
+											actionsModalVisible = true;
+										}
+									}}>{subscribeActions}</span
+								>
+							</td>
+							<td />
+
+							{#if isApplicationAdmin || $isAdmin}
+								<td>
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+									<img
+										src={deleteSVG}
+										tabindex="0"
+										alt="delete topic"
+										height="23px"
+										width="23px"
+										style="vertical-align: -0.4rem; float: right; cursor: pointer"
+										on:click={() => {
+											if (!newGrantsRowsSelected.some((grant) => grant === grant))
+												newGrantsRowsSelected.push(grant);
+											newDeleteSelectedGrantsVisible = true;
+										}}
+									/>
+								</td>
+							{:else}
+								<td />
+							{/if}
+						</tr>
+					</tbody>
+				{/each}
+			{:else}
+				<p style="margin:0.3rem 0 0.6rem 0">
+					{messages['application.detail']['empty.topics.associated']}
+				</p>
+			{/if}
+			<tr style="font-size: 0.7rem; text-align: right">
+				<td style="border: none" />
+				<td style="border: none" />
+				<td style="border: none" />
+				<td style="border: none" />
+				<td style="border: none" />
+				<td style="border: none" />
+				<td style="border: none; min-width: 3.5rem; text-align:right">
+					{#if applicationGrants}
+						{applicationGrants.length} of {applicationGrants.length}
+					{:else}
+						0 of 0
+					{/if}
+				</td>
+			</tr>
+		</table>
+	{/if}
 </div>
 
 {#if reloadMessageVisible}
@@ -548,5 +882,10 @@
 
 	td {
 		height: 2.2rem;
+	}
+
+	.clickable-action {
+		cursor: pointer;
+		text-decoration: underline;
 	}
 </style>
