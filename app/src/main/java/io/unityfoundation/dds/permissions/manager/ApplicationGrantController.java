@@ -23,6 +23,7 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.DetailedGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantService;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
@@ -49,6 +50,12 @@ public class ApplicationGrantController {
     @ExecuteOn(TaskExecutors.IO)
     public Page<GrantDTO> index(@Valid Pageable pageable, @Nullable String filter, @Nullable Long group) {
         return applicationGrantService.findAll(pageable, filter, group);
+    }
+
+    @Get("/application/{applicationId}")
+    @ExecuteOn(TaskExecutors.IO)
+    public Page<DetailedGrantDTO> indexByApplicationId(@Valid Pageable pageable, @NotNull Long applicationId) {
+        return applicationGrantService.findAllByApplicationId(pageable, applicationId);
     }
 
     @Get("/{grantId}")

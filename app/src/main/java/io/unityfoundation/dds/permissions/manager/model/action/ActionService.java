@@ -333,4 +333,8 @@ public class ActionService {
             }
         }
     }
+
+    public List<Action> getAllByGrantId(Long applicationGrantId) {
+        return actionRepository.findAllByApplicationGrantId(applicationGrantId);
+    }
 }

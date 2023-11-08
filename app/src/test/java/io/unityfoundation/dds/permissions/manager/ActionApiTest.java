@@ -421,6 +421,45 @@ public class ActionApiTest {
             assertEquals(map.get("id"), actionOneDTOOptional.get().getId().intValue());
         }
 
+        @Test
+        public void canViewAllApplicationGrantsAndActionsByApplicationId() {
+            GrantDTO applicationGrant = createGenericApplicationGrant();
+
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            response = createActionInterval("MyActionInterval", applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            // partitions
+            response = createAction(applicationGrant.getId(), actionInterval.getId(), null,
+                    null, null, Set.of("p1", "p2"));
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOptional.isPresent());
+            ActionDTO actionDTO = actionOptional.get();
+            assertNotNull(actionDTO.getApplicationGrantId());
+            assertNotNull(actionDTO.getActionIntervalId());
+            assertFalse(actionDTO.getPublishAction());
+            assertFalse(actionDTO.getPartitions().isEmpty());
+
+            // public permissions with public application
+            request = HttpRequest.GET("/application_grants/application/"+applicationGrant.getApplicationId());
+            Page page = blockingClient.retrieve(request, Page.class);
+            assertFalse(page.isEmpty());
+            assertEquals(1, page.getContent().size());
+            assertTrue(page.getContent().stream().anyMatch(o -> {
+                Map map2 = (Map) o;
+                ArrayList actions = (ArrayList) map2.get("actions");
+                Map firstAction = (Map) actions.get(0);
+                Object partitions = firstAction.get("partitions");
+                return partitions != null;
+            }));
+        }
+
         //delete
         @Test
         void canDeleteActions(){
@@ -953,6 +992,49 @@ public class ActionApiTest {
             assertEquals(1, actionPage.get().getContent().size());
             expectedAction = (Map) actionPage.get().getContent().get(0);
             assertEquals(thetaActionDTO.getId().intValue(), (Integer) expectedAction.get("id"));
+        }
+
+        @Test
+        public void canViewApplicationGrantsAndActionsByApplicationId() {
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create Group theta's Grant, Action, etc
+            response = createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+
+            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            assertEquals(OK, response.getStatus());
+
+            response = createActionInterval("ThetaActionInterval", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(thetaActionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
+
+            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
+            assertTrue(thetaActionOptional.isPresent());
+            ActionDTO thetaActionDTO = thetaActionOptional.get();
+
+            loginAsNonAdmin();
+
+            Page page;
+
+            // public permissions with public application
+            request = HttpRequest.GET("/application_grants/application/"+thetaApplicationGrant.getApplicationId());
+            page = blockingClient.retrieve(request, Page.class);
+            assertFalse(page.isEmpty());
+            assertEquals(1, page.getContent().size());
         }
     }
 
