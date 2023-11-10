@@ -4,7 +4,7 @@
 	import { onMount, createEventDispatcher, onDestroy } from 'svelte';
 	import moment from 'moment';
 	import { page } from '$app/stores';
-	import { httpAdapter } from '../../appconfig';
+	import { createWebSocket, httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
 	import Modal from '../../lib/Modal.svelte';
 	import headerTitle from '../../stores/headerTitle';
@@ -116,8 +116,7 @@
 		detailView.set(true);
 	};
 
-	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
-	const socket = new WebSocket(`${websocketURL}/topics/${selectedTopicId}`);
+	const socket = createWebSocket($page.url, `topics/${selectedTopicId}`);
 	const APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
 
 	const subscribeTopicMessage = (topicSocket) => {
@@ -525,7 +524,9 @@
 				/>
 			{/if}
 		</div>
-		{#if $topicDetails.dateUpdated} <p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p> {/if}
+		{#if $topicDetails.dateUpdated}
+			<p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p>
+		{/if}
 
 		{#if !$page.url.pathname.includes('search')}
 			<div>

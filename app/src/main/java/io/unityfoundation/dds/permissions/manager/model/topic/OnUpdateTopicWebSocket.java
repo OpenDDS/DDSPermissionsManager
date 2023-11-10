@@ -23,7 +23,7 @@ import io.micronaut.websocket.annotation.ServerWebSocket;
 
 import java.util.function.Predicate;
 
-@ServerWebSocket("/ws/topics/{topicId}")
+@ServerWebSocket("/api/topics/{topicId}")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 public class OnUpdateTopicWebSocket {
 

@@ -23,7 +23,7 @@ import io.micronaut.websocket.annotation.ServerWebSocket;
 
 import java.util.function.Predicate;
 
-@ServerWebSocket("/ws/applications/{applicationId}")
+@ServerWebSocket("/api/applications/{applicationId}")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 public class OnUpdateApplicationWebSocket {
 
