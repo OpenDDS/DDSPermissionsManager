@@ -119,7 +119,7 @@ public class WebSocketTests {
         WebSocketClient webSocketClient = ctx.getBean(WebSocketClient.class);
         URI uri = UriBuilder.of("ws://localhost")
                 .port(port)
-                .path("ws")
+                .path("api")
                 .path("{resource}")
                 .path("{id}")
                 .expand(CollectionUtils.mapOf("id", id, "resource", resource));
