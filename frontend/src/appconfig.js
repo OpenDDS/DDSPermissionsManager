@@ -25,4 +25,4 @@ function createWebSocket(url, path) { // url = $page.url from SvelteKit store
     return new WebSocket(wsURL);
 }
 
-export { httpAdapter, createWebSocket }
+export { httpAdapter, createWebSocket, baseURL }
