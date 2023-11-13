@@ -10,8 +10,7 @@
 	import groupsTotalPages from '../stores/groupsTotalPages';
 	import groupsTotalSize from '../stores/groupsTotalSize';
 	import messages from '$lib/messages.json';
-
-	const URL_PREFIX = import.meta.env.VITE_BACKEND_URL;
+	import { baseURL } from '../appconfig';
 	const itemsPerPage = 10;
 
 	export let data, errors;
@@ -59,7 +58,7 @@
 		<hr />
 		<center>
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<div class="login-button" on:click={() => goto(`${URL_PREFIX}/oauth/login/google`, true)}>
+			<div class="login-button" on:click={() => goto(`${baseURL}/oauth/login/google`, true)}>
 				<img
 					src={googleSVG}
 					alt="Login"
@@ -67,7 +66,7 @@
 					style="scale: 55%; margin: 0.1rem 0 0.1rem 0;"
 				/>
 				<span style="margin-left: 0; font-size: 1.4rem"
-					><a rel="external" href={`${URL_PREFIX}/oauth/login/google`}
+					><a rel="external" href={`${baseURL}/oauth/login/google`}
 						>{messages['login']['button']}</a
 					></span
 				>

@@ -211,12 +211,6 @@ The Web API is horizontally scalable.
 
 ### Building the Application
 
-The Web Application UI requires the URLs of the API when built.
-This is set using the VITE_BACKEND_URL and VITE_WEBSOCKET_URL environment variable.
-If the Web API will serve the UI, then set VITE_BACKEND_URL to `/api`.
-Otherwise, set VITE_BACKEND_URL to the full URL of the API (which should end in `/api`).
-The VITE_WEBSOCKET_URL should be set to 'ws://localhost:8080/ws' for running locally.
-The VITE_BACKEND_URL and VITE_WEBSOCKET_URL variable can also be set in `frontend/.env`.
 
 The application is built with gradle, e.g., `./gradlew app:build`.
 This builds both the API and the UI.
@@ -234,8 +228,6 @@ The following snippet illustrates how to build a container image:
 
     # Set the database dependency.
     DPM_DATABASE_DEPENDENCY="mysql:mysql-connector-java:8.0.31,com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.7.2"
-    # Set the API url.
-    VITE_BACKEND_URL=/api
     ./gradlew dockerfile
     ./gradlew buildLayers
     docker build -t my-dpm app/build/docker/main

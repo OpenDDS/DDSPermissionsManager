@@ -13,7 +13,16 @@
 // limitations under the License.
 import axios from 'axios';
 
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
-const httpAdapter = axios.create({ withCredentials: true});
+const baseURL = '/api'
 
-export { httpAdapter }
+axios.defaults.baseURL = baseURL;
+const httpAdapter = axios.create({ withCredentials: true });
+
+
+function createWebSocket(url, path) { // url = $page.url from SvelteKit store
+    const protocolPrefix = (url.protocol === 'https:') ? 'wss:' : 'ws:';
+    const wsURL = `${protocolPrefix}//${url.host}${baseURL}/${path}`
+    return new WebSocket(wsURL);
+}
+
+export { httpAdapter, createWebSocket, baseURL }

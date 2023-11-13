@@ -4,7 +4,7 @@
 	import moment from 'moment';
 	import { page } from '$app/stores';
 	import { isAdmin } from '../../stores/authentication';
-	import { httpAdapter } from '../../appconfig';
+	import { createWebSocket, httpAdapter } from '../../appconfig';
 	import Modal from '../../lib/Modal.svelte';
 	import permissionsByGroup from '../../stores/permissionsByGroup';
 	import headerTitle from '../../stores/headerTitle';
@@ -217,8 +217,7 @@
 		isPublic = selectedAppPublic;
 	};
 
-	const websocketURL = import.meta.env.VITE_WEBSOCKET_URL;
-	const socket = new WebSocket(`${websocketURL}/applications/${selectedAppId}`);
+	const socket = createWebSocket($page.url, `applications/${selectedAppId}`)
 	const APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
 
 	const pauseSocketListener = () => {
