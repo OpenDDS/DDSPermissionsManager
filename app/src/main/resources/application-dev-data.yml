@@ -50,6 +50,11 @@ dpm:
             -
               name: Test Topic 456
               kind: B
+          topic-sets:
+            - 
+              name: Test Topic Set 1
+            -
+              name: Test Topic Set 2
           applications:
             -
               name: Application One
@@ -57,6 +62,29 @@ dpm:
               is-public: true
             -
               name: Application Two
+          grant-durations:
+            -
+              name: Test Grant Duration 1
+              durationInMilliseconds: 8640000000
+              durationMetadata: Day
+            -
+              name: Test Grant Duration 2
+              durationInMilliseconds: 8640000000
+              durationMetadata: Day
+          action-intervals:
+            -
+              name: Test Action Interval 1
+              startDate: 2023-11-13T23:12:02.248Z
+              endDate: 2028-11-13T23:12:02.248Z
+            -
+              name: Test Action Interval 2
+              startDate: 2023-12-13T23:12:02.248Z
+              endDate: 2027-11-13T23:12:02.248Z
+          grants:
+            -
+              name: Test Grant 1
+            -
+              name: Test Grant 2
         -
           name: Beta
         -
