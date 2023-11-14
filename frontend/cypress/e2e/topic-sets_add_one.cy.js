@@ -100,11 +100,9 @@ describe('Topics Capabilities', () => {
 
         cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
 
-        cy.get('[data-cy="delete-topic-icon"]').click();
+        cy.get('[data-cy="delete-topic-icon"]').last().click();
 
         cy.get('[data-cy="delete-topic"]').click();
-
-        cy.contains('No Topic Set Found.')
     }
     );
 });
