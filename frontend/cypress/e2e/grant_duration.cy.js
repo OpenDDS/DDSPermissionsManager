@@ -40,7 +40,7 @@ describe('Grant Duration Capabilities', () => {
         cy.get('.mdc-segmented-button > :nth-child(4)').click();
 
 
-        cy.get('[data-cy="grant-duration"]')
+        cy.get('[data-cy="grant-duration"]').first()
         .type(2);
 
         cy.get('[data-cy="button-add-duration"]').click();
@@ -56,7 +56,7 @@ describe('Grant Duration Capabilities', () => {
 
         cy.wait(500);
 
-        cy.get('[data-cy="delete-duration-icon"]').click();
+        cy.get('[data-cy="delete-duration-icon"]').last().click();
 
         cy.get('[data-cy="delete-topic"]').click();
     });

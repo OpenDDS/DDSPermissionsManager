@@ -25,14 +25,23 @@ import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
+import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Requires(property = "dpm.bootstrap.data.enabled", value = StringUtils.TRUE)
 @ConfigurationProperties("dpm.bootstrap")
@@ -101,6 +110,15 @@ public class Bootstrap {
                         });
                     }
 
+
+                    if (groupMap.containsKey("topic-sets")) {
+                        List<Map<String, String>> topicSets = (List<Map<String, String>>) groupMap.get("topic-sets");
+                        topicSets.stream().forEach(topicSetMap -> {
+                            String name = topicSetMap.get("name");
+                            group.addTopicSet(new TopicSet(name, group));
+                        });
+                    }
+
                     if (groupMap.containsKey("applications")) {
                         List<Map<String, String>> applications = (List<Map<String, String>>) groupMap.get("applications");
                         applications.stream().forEach(applicationMap -> {
@@ -108,6 +126,41 @@ public class Bootstrap {
                             String applicationDescription = applicationMap.get("description");
                             Boolean applicationIsPublic = Boolean.TRUE.equals(applicationMap.get("is-public"));
                             group.addApplication(new Application(applicationName, group, applicationDescription, applicationIsPublic));
+                        });
+                    }
+
+                    if (groupMap.containsKey("grant-durations")) {
+                        List<Map<String, Object>> grantDurations = (List<Map<String, Object>>) groupMap.get("grant-durations");
+                        grantDurations.stream().forEach(grantDurationMap -> {
+                            String grantDurationName = (String) grantDurationMap.get("name");
+                            Long grantDurationMilliseconds = (Long) grantDurationMap.get("durationInMilliseconds");
+                            String grantDurationMetadata = (String) grantDurationMap.get("durationMetadata");
+                            GrantDuration grantDuration = new GrantDuration(grantDurationName, group);
+                            grantDuration.setDurationInMilliseconds(grantDurationMilliseconds);
+                            grantDuration.setDurationMetadata(grantDurationMetadata);
+                            group.addGrantDurations(grantDuration);
+                        });
+                    }
+
+                     if (groupMap.containsKey("action-intervals")) {
+                        List<Map<String, Object>> actionIntervals = (List<Map<String, Object>>) groupMap.get("action-intervals");
+                        actionIntervals.stream().forEach(actionIntervalMap -> {
+                            String actionIntervalName = (String) actionIntervalMap.get("name");
+                            Instant startDate = ((OffsetDateTime) actionIntervalMap.getOrDefault("startDate", OffsetDateTime.now())).toInstant();
+                            Instant endDate = ((OffsetDateTime) actionIntervalMap.getOrDefault("endDate", OffsetDateTime.now())).toInstant();
+                            ActionInterval actionInterval = new ActionInterval(actionIntervalName, group);
+                            actionInterval.setStartDate(startDate);
+                            actionInterval.setEndDate(endDate);
+                            group.addActionInterval(actionInterval);
+                        });
+
+                    }
+
+                    if (groupMap.containsKey("grants")) {
+                        List<Map<String, Object>> grants = (List<Map<String, Object>>) groupMap.get("grants");
+                        grants.stream().forEach(grantMap -> {
+                            String grantName = (String) grantMap.get("name");
+                            group.addApplicationGrant(new ApplicationGrant(grantName, group.getApplications().iterator().next(), group, group.getGrantDurations().iterator().next()));
                         });
                     }
 

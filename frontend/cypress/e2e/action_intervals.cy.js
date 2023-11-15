@@ -53,7 +53,7 @@ describe('Action Interval Capabilities', () => {
 
         cy.wait(500);
 
-        cy.get('[data-cy="delete-action-interval-icon"]').click();
+        cy.get('[data-cy="delete-action-interval-icon"]').first().click();
 
         cy.get('[data-cy="delete-topic"]').click();
     });
