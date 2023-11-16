@@ -791,6 +791,101 @@ public class ApplicationGrantApiTest {
     }
 
     @Nested
+    class WhenAsAnApplicationAdmin {
+
+        private Group testGroup;
+        private Application applicationOne;
+        private Group testGroupTwo;
+        private Application applicationTwo;
+
+        @BeforeEach
+        void setup() {
+            dbCleanup.cleanup();
+            userRepository.save(new User("montesm@test.test.com", true));
+            User justin = userRepository.save(new User("jjones@test.test"));
+
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            testGroup = groupRepository.save(new Group("TestGroup"));
+            applicationOne = applicationRepository.save(new Application("ApplicationOne", testGroup));
+            GroupUser membership = new GroupUser(testGroup, justin);
+            membership.setApplicationAdmin(true);
+            groupUserRepository.save(membership);
+
+            testGroupTwo = groupRepository.save(new Group("TestGroup1"));
+            applicationTwo = applicationRepository.save(new Application("ApplicationTwo", testGroupTwo));
+        }
+
+        void login() {
+            mockSecurityService.setServerAuthentication(new ServerAuthentication(
+                    "jjones@test.test",
+                    Collections.emptyList(),
+                    Map.of()
+            ));
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+        }
+
+        @Test
+        public void canDeleteApplicationGrant() {
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            // create groups
+            response = createGroup("PrimaryGroup");
+            assertEquals(OK, response.getStatus());
+            Optional<Group> primaryOptional = response.getBody(Group.class);
+            assertTrue(primaryOptional.isPresent());
+            Group primaryGroup = primaryOptional.get();
+
+            User justin = userRepository.findByEmail("jjones@test.test").get();
+            // add user to group as an application admin
+            GroupUserDTO dto = new GroupUserDTO();
+            dto.setPermissionsGroup(primaryGroup.getId());
+            dto.setEmail(justin.getEmail());
+            dto.setApplicationAdmin(true);
+            request = HttpRequest.POST("/group_membership", dto);
+            response = blockingClient.exchange(request);
+            assertEquals(OK, response.getStatus());
+
+            // create application
+            response = createApplication("Application123", primaryGroup.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(applicationOptional.isPresent());
+            assertEquals("Application123", applicationOptional.get().getName());
+
+            // create grant duration
+            response = createGrantDuration("Duration1", primaryGroup.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(durationOptional.isPresent());
+            assertEquals("Duration1", durationOptional.get().getName());
+
+            // generate grant token for application
+            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOptional.get().getId());
+            response = blockingClient.exchange(request, String.class);
+            assertEquals(OK, response.getStatus());
+            Optional<String> optional = response.getBody(String.class);
+            assertTrue(optional.isPresent());
+            String applicationGrantToken = optional.get();
+
+            // create application grant
+            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
+            assertEquals(CREATED, response.getStatus());
+            Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
+            assertTrue(grantDTOOptional.isPresent());
+
+            login();
+
+            // application grant delete
+            request = HttpRequest.DELETE("/application_grants/"+grantDTOOptional.get().getId());
+            response = blockingClient.exchange(request, HashMap.class);
+            assertEquals(NO_CONTENT, response.getStatus());
+        }
+    }
+
+    @Nested
     class WhenAsNonAdminGroupMember {
 
         private Application publicApplication;

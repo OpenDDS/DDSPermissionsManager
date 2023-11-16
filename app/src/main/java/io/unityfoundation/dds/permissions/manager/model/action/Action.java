@@ -57,7 +57,6 @@ public class Action {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "action")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    // todo ManyToMany?
     private Set<ActionPartition> partitions = new HashSet<>();
 
     @DateCreated

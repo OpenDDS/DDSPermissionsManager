@@ -26,6 +26,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionPartition;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionPartitionRepository;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
@@ -80,6 +82,9 @@ public class ActionApiTest {
 
     @Inject
     GroupUserRepository groupUserRepository;
+
+    @Inject
+    ActionPartitionRepository actionPartitionRepository;
 
     @Inject
     DbCleanup dbCleanup;
@@ -419,6 +424,44 @@ public class ActionApiTest {
             assertEquals(1, actionPage.get().getContent().size());
             map = (Map) actionPage.get().getContent().get(0);
             assertEquals(map.get("id"), actionOneDTOOptional.get().getId().intValue());
+        }
+
+        @Test
+        void deletionOfGrantCascadesToActionsAndPartitions(){
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+
+            // action interval
+            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalDTOOptional.isPresent());
+            ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
+
+            // create actions
+            response = createAction(applicationGrantOne.getId(), actionInterval.getId(), true,
+                    null, null, Set.of("dog", "cat"));
+            assertEquals(OK, response.getStatus());
+            Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
+            assertTrue(actionOneDTOOptional.isPresent());
+
+            // delete application grant
+            request = HttpRequest.DELETE("/application_grants/"+applicationGrantOne.getId());
+            response = blockingClient.exchange(request, HashMap.class);
+            assertEquals(NO_CONTENT, response.getStatus());
+
+            // make sure actions and parititions are deleted
+            request = HttpRequest.GET("/actions?grantId="+applicationGrantOne.getId());
+            response = blockingClient.exchange(request, Page.class);
+            assertEquals(OK, response.getStatus());
+            Optional<Page> actionPage = response.getBody(Page.class);
+            assertTrue(actionPage.isPresent());
+            assertEquals(0, actionPage.get().getContent().size());
+
+            List<ActionPartition> allPartitions = actionPartitionRepository.findAllByActionId(actionOneDTOOptional.get().getId());
+            assertTrue(allPartitions.isEmpty());
         }
 
         @Test

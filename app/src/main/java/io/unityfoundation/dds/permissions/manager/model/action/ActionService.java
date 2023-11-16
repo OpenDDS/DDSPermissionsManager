@@ -337,4 +337,8 @@ public class ActionService {
     public List<Action> getAllByGrantId(Long applicationGrantId) {
         return actionRepository.findAllByApplicationGrantId(applicationGrantId);
     }
+
+    public void deleteByApplicationGrantId(Long grantId) {
+        actionRepository.deleteByApplicationGrantId(grantId);
+    }
 }
