@@ -35,4 +35,5 @@ public interface ActionRepository extends PageableRepository<Action, Long> {
     List<Long> findIdByCanPublishFalseAndApplicationGrantNameContainsIgnoreCase(String filter);
     Page<Action> findAllByIdInAndApplicationGrantIdIn(List<Long> grandDurationIds, List<Long> groupIds, Pageable pageable);
     List<Action> findAllByApplicationGrantId(Long applicationGrantId);
+    void deleteByApplicationGrantId(Long grantId);
 }

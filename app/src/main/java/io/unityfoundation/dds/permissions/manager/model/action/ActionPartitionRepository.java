@@ -15,8 +15,10 @@ package io.unityfoundation.dds.permissions.manager.model.action;
 
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.repository.PageableRepository;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ReadPartition;
+
+import java.util.List;
 
 @Repository
 public interface ActionPartitionRepository extends PageableRepository<ActionPartition, Long> {
+    List<ActionPartition> findAllByActionId(Long actionId);
 }

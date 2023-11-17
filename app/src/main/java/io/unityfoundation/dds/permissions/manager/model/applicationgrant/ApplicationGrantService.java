@@ -269,13 +269,18 @@ public class ApplicationGrantService {
         } else {
             User user = securityUtil.getCurrentlyAuthenticatedUser().get();
 
-            if (!securityUtil.isCurrentUserAdmin() &&
-                    !groupUserService.isUserTopicAdminOfGroup(applicationGrantOptional.get().getPermissionsGroup().getId(), user.getId())
-            ) {
+            Long groupId = applicationGrantOptional.get().getPermissionsGroup().getId();
+            Long applicationGroupId = applicationGrantOptional.get().getPermissionsApplication().getPermissionsGroup().getId();
+
+            boolean isAuthorized = securityUtil.isCurrentUserAdmin() ||
+                    groupUserService.isUserTopicAdminOfGroup(groupId, user.getId()) ||
+                    groupUserService.isUserApplicationAdminOfGroup(applicationGroupId, user.getId());
+            if (!isAuthorized) {
                 throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
             }
         }
 
+        actionService.deleteByApplicationGrantId(grantId);
         applicationGrantRepository.deleteById(grantId);
         return HttpResponse.noContent();
     }
