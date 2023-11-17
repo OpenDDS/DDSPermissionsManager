@@ -98,14 +98,13 @@
 			return Promise.resolve([]);
 		try {
 			const topicsResponse = await httpAdapter.get(
-				`/topics?filter=${topicSearchString}&group=${selectedGrant.groupId}`
+				`/topics?filter=${filterText}&group=${selectedGrant.groupId}`
 			);
 
-			const topicIdsOfTopicSet = $topicSetsDetails.topics?.map((topic) => {
-				return Number(Object.keys(topic)[0]);
-			});
+			if (!topicsResponse?.data?.content?.length) return Promise.resolve([]);
+
 			const searchedTopics = topicsResponse.data.content.filter((topic) => {
-				return !topicIdsOfTopicSet?.includes(topic.id);
+				return !selectedTopics?.map((topic) => topic.id).includes(topic.id);
 			});
 
 			const mappedTopics = searchedTopics.map((topic) => {
@@ -128,28 +127,26 @@
 			return Promise.resolve([]);
 		try {
 			const topicsResponse = await httpAdapter.get(
-				`/topic-sets?filter=${topicSearchString}&group=${selectedGrant.groupId}`
+				`/topic-sets?filter=${filterText}&group=${selectedGrant.groupId}`
 			);
+			if (!topicsResponse?.data?.content?.length) return Promise.resolve([]);
 
-			const topicIdsOfTopicSet = $topicSetsDetails.topics?.map((topic) => {
-				return Number(Object.keys(topic)[0]);
-			});
 			const searchedTopics = topicsResponse.data.content.filter((topic) => {
-				return !topicIdsOfTopicSet?.includes(topic.id);
+				return !selectedTopicSets?.map((topicSet) => topicSet.id).includes(topic.id);
 			});
 
-			const mappedTopics = searchedTopics.map((topic) => {
+			const mappedTopics = searchedTopics.map((topicSet) => {
 				return {
-					label: topic.name,
-					value: topic.name,
-					id: topic.id,
-					groupId: topic.group
+					label: topicSet.name,
+					value: topicSet.name,
+					id: topicSet.id,
+					groupId: topicSet.groupId
 				};
 			});
 
 			return mappedTopics;
 		} catch (err) {
-			console.err(err);
+			console.error(err);
 		}
 	};
 
@@ -742,7 +739,6 @@
 		margin: 2.3rem;
 		width: 90%;
 	}
-
 
 	img.close-button {
 		transform: scale(0.25, 0.35);
