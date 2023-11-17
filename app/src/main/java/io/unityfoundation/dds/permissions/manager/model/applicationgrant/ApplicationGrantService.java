@@ -270,10 +270,11 @@ public class ApplicationGrantService {
             User user = securityUtil.getCurrentlyAuthenticatedUser().get();
 
             Long groupId = applicationGrantOptional.get().getPermissionsGroup().getId();
+            Long applicationGroupId = applicationGrantOptional.get().getPermissionsApplication().getPermissionsGroup().getId();
 
             boolean isAuthorized = securityUtil.isCurrentUserAdmin() ||
                     groupUserService.isUserTopicAdminOfGroup(groupId, user.getId()) ||
-                    groupUserService.isUserApplicationAdminOfGroup(groupId, user.getId());
+                    groupUserService.isUserApplicationAdminOfGroup(applicationGroupId, user.getId());
             if (!isAuthorized) {
                 throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
             }

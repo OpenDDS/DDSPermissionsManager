@@ -838,10 +838,16 @@ public class ApplicationGrantApiTest {
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
+            response = createGroup("SecondaryGroup");
+            assertEquals(OK, response.getStatus());
+            Optional<Group> secondaryGroupOptional = response.getBody(Group.class);
+            assertTrue(secondaryGroupOptional.isPresent());
+            Group secondaryGroup = secondaryGroupOptional.get();
+
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
             GroupUserDTO dto = new GroupUserDTO();
-            dto.setPermissionsGroup(primaryGroup.getId());
+            dto.setPermissionsGroup(secondaryGroup.getId());
             dto.setEmail(justin.getEmail());
             dto.setApplicationAdmin(true);
             request = HttpRequest.POST("/group_membership", dto);
@@ -849,7 +855,7 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = createApplication("Application123", secondaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
