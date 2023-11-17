@@ -98,7 +98,7 @@
 			return Promise.resolve([]);
 		try {
 			const topicsResponse = await httpAdapter.get(
-				`/topics?filter=${topicSearchString}&group=${selectedGrant.groupId}`
+				`/topics?filter=${filterText}&group=${selectedGrant.groupId}`
 			);
 
 			if (!topicsResponse?.data?.content?.length) return Promise.resolve([]);
