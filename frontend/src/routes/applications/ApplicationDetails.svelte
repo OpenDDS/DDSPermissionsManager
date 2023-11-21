@@ -59,7 +59,10 @@
 	let selectedAction = {};
 
 	// checkboxes selection
-	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
+	$: if (
+		selectedTopicApplications?.length === grantsRowsSelected?.length &&
+		grantsRowsSelected?.length > 0
+	) {
 		grantsRowsSelectedTrue = false;
 		grantsAllRowsSelectedTrue = true;
 	} else if (grantsRowsSelected?.length > 0) {
@@ -69,7 +72,10 @@
 	}
 
 	// checkboxes selection
-	$: if (applicationGrants?.length === newGrantsRowsSelected?.length) {
+	$: if (
+		applicationGrants?.length === newGrantsRowsSelected?.length &&
+		newGrantsRowsSelected?.length > 0
+	) {
 		newGrantsRowsSelectedTrue = false;
 		newGrantsAllRowsSelectedTrue = true;
 	} else if (newGrantsRowsSelected?.length > 0) {
@@ -198,7 +204,6 @@
 			for (const duration of newGrantsRowsSelected) {
 				await httpAdapter.delete(`/application_grants/${duration.id}`);
 			}
-			updateRetrievalTimestamp(retrievedTimestamps, 'durations');
 		} catch (err) {
 			errorMessage(errorMessages['grants']['deleting.error.title'], err.message);
 		}
@@ -217,7 +222,7 @@
 		isPublic = selectedAppPublic;
 	};
 
-	const socket = createWebSocket($page.url, `applications/${selectedAppId}`)
+	const socket = createWebSocket($page.url, `applications/${selectedAppId}`);
 	const APIisBroadcastingEvents = $featureFlagConfigStore?.DPM_WEBSOCKETS_BROADCAST_CHANGES;
 
 	const pauseSocketListener = () => {
@@ -339,6 +344,7 @@
 			await deleteSelectedGrants();
 			newDeselectAllGrantsCheckboxes();
 			newDeleteSelectedGrantsVisible = false;
+			applicationGrants = await getApplicationGrants();
 		}}
 	/>
 {/if}
@@ -396,7 +402,7 @@
 		</tr>
 		<tr>
 			<td style="font-weight: 300">
-				{messages['application.detail']['row.three']}
+				{messages['application.detail']['row.four']}
 			</td>
 			<td>
 				<input
@@ -651,64 +657,66 @@
 					{messages['application.detail']['table.applications.label-temp']}
 				</div>
 
-				<div>
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
-							newGrantsRowsSelected?.length === 0}
-						style="margin-left: 0.5rem; margin-right: 1rem"
-						on:click={() => {
-							if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
-						}}
-						on:keydown={(event) => {
-							if (event.which === returnKey) {
+				{#if isApplicationAdmin || $isAdmin}
+					<div>
+						<img
+							src={deleteSVG}
+							alt="options"
+							class="dot"
+							class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
+								newGrantsRowsSelected?.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							on:click={() => {
 								if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
-							}
-						}}
-						on:mouseenter={() => {
-							deleteMouseEnter = true;
-							if ($isAdmin || isApplicationAdmin) {
-								if (newGrantsRowsSelected.length === 0) {
-									deleteToolip = messages['topic.detail']['delete.tooltip'];
+							}}
+							on:keydown={(event) => {
+								if (event.which === returnKey) {
+									if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
+								}
+							}}
+							on:mouseenter={() => {
+								deleteMouseEnter = true;
+								if ($isAdmin || isApplicationAdmin) {
+									if (newGrantsRowsSelected.length === 0) {
+										deleteToolip = messages['topic.detail']['delete.tooltip'];
+										const tooltip = document.querySelector('#delete-topics');
+										setTimeout(() => {
+											if (deleteMouseEnter) {
+												tooltip.classList.remove('tooltip-hidden');
+												tooltip.classList.add('tooltip');
+											}
+										}, 1000);
+									}
+								} else {
+									deleteToolip = messages['topic']['delete.tooltip.topic.admin.required'];
 									const tooltip = document.querySelector('#delete-topics');
 									setTimeout(() => {
 										if (deleteMouseEnter) {
 											tooltip.classList.remove('tooltip-hidden');
 											tooltip.classList.add('tooltip');
+											tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
 										}
 									}, 1000);
 								}
-							} else {
-								deleteToolip = messages['topic']['delete.tooltip.topic.admin.required'];
-								const tooltip = document.querySelector('#delete-topics');
-								setTimeout(() => {
-									if (deleteMouseEnter) {
-										tooltip.classList.remove('tooltip-hidden');
-										tooltip.classList.add('tooltip');
-										tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
-									}
-								}, 1000);
-							}
-						}}
-						on:mouseleave={() => {
-							deleteMouseEnter = false;
-							if (newGrantsRowsSelected.length === 0) {
-								const tooltip = document.querySelector('#delete-topics');
-								setTimeout(() => {
-									if (!deleteMouseEnter) {
-										tooltip.classList.add('tooltip-hidden');
-										tooltip.classList.remove('tooltip');
-									}
-								}, 1000);
-							}
-						}}
-					/>
-					<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
-						>{deleteToolip}
-					</span>
-				</div>
+							}}
+							on:mouseleave={() => {
+								deleteMouseEnter = false;
+								if (newGrantsRowsSelected.length === 0) {
+									const tooltip = document.querySelector('#delete-topics');
+									setTimeout(() => {
+										if (!deleteMouseEnter) {
+											tooltip.classList.add('tooltip-hidden');
+											tooltip.classList.remove('tooltip');
+										}
+									}, 1000);
+								}
+							}}
+						/>
+						<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
+							>{deleteToolip}
+						</span>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -718,6 +726,7 @@
 					<td>
 						<input
 							tabindex="-1"
+							disabled={!isApplicationAdmin && !$isAdmin}
 							type="checkbox"
 							class="grants-checkbox"
 							style="margin-right: 0.5rem"
@@ -754,6 +763,7 @@
 							<td style="line-height: 1rem;">
 								<input
 									tabindex="-1"
+									disabled={!isApplicationAdmin && !$isAdmin}
 									type="checkbox"
 									class="grants-checkbox"
 									style="margin-right: 0.5rem"
