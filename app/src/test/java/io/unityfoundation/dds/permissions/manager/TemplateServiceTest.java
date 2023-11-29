@@ -53,11 +53,19 @@ public class TemplateServiceTest {
                 "                        <partition>partition1</partition>\n" +
                 "                        <partition>partition2</partition>\n" +
                 "                    </partitions>\n" +
+                "                    <validity>\n" +
+                "                        <not_before>startA</not_before>\n" +
+                "                        <not_after>endA</not_after>\n" +
+                "                    </validity>\n" +
                 "                </publish>\n" +
                 "                <publish>\n" +
                 "                    <topics>\n" +
                 "                        <topic>topicC</topic>\n" +
                 "                    </topics>\n" +
+                "                    <validity>\n" +
+                "                        <not_before>startC</not_before>\n" +
+                "                        <not_after>endC</not_after>\n" +
+                "                    </validity>\n" +
                 "                </publish>\n" +
                 "            </allow_rule>\n" +
                 "            <default>DENY</default>\n" +
@@ -78,11 +86,11 @@ public class TemplateServiceTest {
         List<String> pubTopics1 = List.of("topicA", "topicB");
         List<String> pubPartitions1 = List.of("partition1", "partition2");
 
-        publishList.add(new ApplicationService.PubSubEntry(pubTopics1, pubPartitions1));
+        publishList.add(new ApplicationService.PubSubEntry(pubTopics1, pubPartitions1, "startA", "endA"));
 
         // Another publish section with no partitions
         List<String> pubTopics2 = List.of("topicC");
-        publishList.add(new ApplicationService.PubSubEntry(pubTopics2, new ArrayList<>()));
+        publishList.add(new ApplicationService.PubSubEntry(pubTopics2, new ArrayList<>(), "startC", "endC"));
 
         dataModel.put("publishes", publishList);
         dataModel.put("subscribes", new ArrayList<>());
@@ -118,11 +126,19 @@ public class TemplateServiceTest {
                 "                        <partition>partition1</partition>\n" +
                 "                        <partition>partition2</partition>\n" +
                 "                    </partitions>\n" +
+                "                    <validity>\n" +
+                "                        <not_before>startA</not_before>\n" +
+                "                        <not_after>endA</not_after>\n" +
+                "                    </validity>\n" +
                 "                </publish>\n" +
                 "                <publish>\n" +
                 "                    <topics>\n" +
                 "                        <topic>topicC</topic>\n" +
                 "                    </topics>\n" +
+                "                    <validity>\n" +
+                "                        <not_before>startC</not_before>\n" +
+                "                        <not_after>endC</not_after>\n" +
+                "                    </validity>\n" +
                 "                </publish>\n" +
                 "                <subscribe>\n" +
                 "                    <topics>\n" +
@@ -133,6 +149,10 @@ public class TemplateServiceTest {
                 "                        <partition>partition3</partition>\n" +
                 "                        <partition>partition4</partition>\n" +
                 "                    </partitions>\n" +
+                "                    <validity>\n" +
+                "                        <not_before>startD</not_before>\n" +
+                "                        <not_after>endD</not_after>\n" +
+                "                    </validity>\n" +
                 "                </subscribe>\n" +
                 "            </allow_rule>\n" +
                 "            <default>DENY</default>\n" +
@@ -143,7 +163,7 @@ public class TemplateServiceTest {
         List<String> subTopics = List.of("topicB", "topicC");
         List<String> subPartitions = List.of("partition3", "partition4");
         List<ApplicationService.PubSubEntry> subscribeList = new ArrayList<>();
-        subscribeList.add(new ApplicationService.PubSubEntry(subTopics, subPartitions));
+        subscribeList.add(new ApplicationService.PubSubEntry(subTopics, subPartitions, "startD", "endD"));
         dataModel.put("subscribes", subscribeList);
 
         try {

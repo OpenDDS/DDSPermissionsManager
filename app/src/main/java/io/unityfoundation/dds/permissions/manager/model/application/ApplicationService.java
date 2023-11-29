@@ -26,11 +26,13 @@ import io.micronaut.security.token.jwt.generator.claims.JWTClaimsSetGenerator;
 import io.micronaut.security.token.jwt.validator.AuthenticationJWTClaimsSetAdapter;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
+import io.unityfoundation.dds.permissions.manager.model.action.Action;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionPartition;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionService;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantService;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermission;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ReadPartition;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.WritePartition;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
@@ -94,6 +96,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -108,8 +111,6 @@ public class ApplicationService {
 
     @Property(name = "permissions-manager.application.client-certificate.time-expiry", defaultValue = "365")
     protected Long certExpiry;
-    @Property(name = "permissions-manager.application.permissions-file.time-expiry", defaultValue = "30")
-    protected Long permissionExpiry;
     @Property(name = "permissions-manager.application.permissions-file.domain", defaultValue = "1")
     protected Long permissionDomain;
     @Property(name = "permissions-manager.application.grant-token.time-expiry", defaultValue = "48")
@@ -120,6 +121,7 @@ public class ApplicationService {
     private final GroupUserService groupUserService;
     private final ApplicationPermissionService applicationPermissionService;
     private final ApplicationGrantService applicationGrantService;
+    private final ActionService actionService;
     private final PassphraseGenerator passphraseGenerator;
     private final BCryptPasswordEncoderService passwordEncoderService;
     private final ApplicationSecretsClient applicationSecretsClient;
@@ -132,7 +134,7 @@ public class ApplicationService {
 
     public ApplicationService(ApplicationRepository applicationRepository, GroupRepository groupRepository,
                               ApplicationPermissionService applicationPermissionService,
-                              SecurityUtil securityUtil, GroupUserService groupUserService, ApplicationGrantService applicationGrantService, PassphraseGenerator passphraseGenerator,
+                              SecurityUtil securityUtil, GroupUserService groupUserService, ApplicationGrantService applicationGrantService, ActionService actionService, PassphraseGenerator passphraseGenerator,
                               BCryptPasswordEncoderService passwordEncoderService, ApplicationSecretsClient applicationSecretsClient,
                               TemplateService templateService, JwtTokenGenerator jwtTokenGenerator,
                               JWTClaimsSetGenerator jwtClaimsSetGenerator, XMLEscaper xmlEscaper, OnUpdateApplicationWebSocket onUpdateApplicationWebSocket) {
@@ -142,6 +144,7 @@ public class ApplicationService {
         this.groupUserService = groupUserService;
         this.applicationPermissionService = applicationPermissionService;
         this.applicationGrantService = applicationGrantService;
+        this.actionService = actionService;
         this.passphraseGenerator = passphraseGenerator;
         this.passwordEncoderService = passwordEncoderService;
         this.applicationSecretsClient = applicationSecretsClient;
@@ -525,13 +528,13 @@ public class ApplicationService {
         Optional<Application> applicationOptional = securityUtil.getCurrentlyAuthenticatedApplication();
 
         if (applicationOptional.isPresent()) {
-            HashMap applicationPermissions = buildApplicationPermissionsJson(applicationOptional.get());
-            String etag = generateMD5Hash(applicationPermissions.toString());
+            HashMap applicationGrants = buildApplicationGrantsJson(applicationOptional.get());
+            String etag = generateMD5Hash(applicationGrants.toString());
             if (requestEtag != null && requestEtag.contentEquals(etag)) {
                 return HttpResponse.notModified();
             }
 
-            return HttpResponse.ok(applicationPermissions).header(E_TAG_HEADER_NAME, etag);
+            return HttpResponse.ok(applicationGrants).header(E_TAG_HEADER_NAME, etag);
         }
 
         return HttpResponse.notFound();
@@ -585,14 +588,9 @@ public class ApplicationService {
         final String sn = (new X500Principal(buildSubject(application, nonce))).getName(X500Principal.RFC2253, oidMap);
         dataModel.put("subject", xmlEscaper.escape(sn));
         dataModel.put("applicationId", application.getId());
-
-        final String validStart = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
-        final String validEnd = ZonedDateTime.now(ZoneOffset.UTC).plusDays(permissionExpiry).format(DateTimeFormatter.ISO_INSTANT);
-        dataModel.put("validStart", validStart);
-        dataModel.put("validEnd", validEnd);
         dataModel.put("domain", permissionDomain);
 
-        dataModel.putAll(buildApplicationPermissions(application));
+        dataModel.putAll(buildApplicationGrantPermissions(application));
 
         return dataModel;
     }
@@ -600,16 +598,23 @@ public class ApplicationService {
     public static class PubSubEntry {
         private List<String> topics;
         private List<String> partitions;
+        private String validityStart;
+        private String validityEnd;
 
-        public PubSubEntry(Set<String> topics, Set<String> partitions) {
+
+        public PubSubEntry(Set<String> topics, Set<String> partitions, String validityStart, String validityEnd) {
             this.topics = new ArrayList<>(topics);
             this.partitions = new ArrayList<>(partitions);
+            this.validityStart = validityStart;
+            this.validityEnd = validityEnd;
         }
 
         // Use when a pre-determined order of the items in the data members is desired, e.g. for testing.
-        public PubSubEntry(List<String> topics, List<String> partitions) {
+        public PubSubEntry(List<String> topics, List<String> partitions, String validityStart, String validityEnd) {
             this.topics = topics;
             this.partitions = partitions;
+            this.validityStart = validityStart;
+            this.validityEnd = validityEnd;
         }
 
         public List<String> getTopics() {
@@ -627,22 +632,40 @@ public class ApplicationService {
         public void setPartitions(List<String> partitions) {
             this.partitions = partitions;
         }
+
+        public String getValidityStart() {
+            return validityStart;
+        }
+
+        public void setValidityStart(String validityStart) {
+            this.validityStart = validityStart;
+        }
+
+        public String getValidityEnd() {
+            return validityEnd;
+        }
+
+        public void setValidityEnd(String validityEnd) {
+            this.validityEnd = validityEnd;
+        }
     }
 
-    private HashMap buildApplicationPermissions(Application application) {
+    private HashMap buildApplicationGrantPermissions(Application application) {
         HashMap<String, Object> dataModel = new HashMap<>();
-        List<ApplicationPermission> readApplicationPermissions = applicationPermissionService.findAllByApplicationAndReadEqualsTrue(application);
-        List<ApplicationPermission> writeApplicationPermissions = applicationPermissionService.findAllByApplicationAndWriteEqualsTrue(application);
 
-        // list of canonical names for each publish-subscribe sections
+        // get all grants by application
+        List<ApplicationGrant> applicationGrants = applicationGrantService.findAllByApplication(application);
+
+        determineGrantValidityInterval(dataModel, applicationGrants);
+
         List<PubSubEntry> publishList = new ArrayList<>();
         List<PubSubEntry> subscribeList = new ArrayList<>();
 
         // read
-        buildPubSubList(subscribeList, readApplicationPermissions, false);
+        buildPubSubList(subscribeList, applicationGrants, false);
 
         // write
-        buildPubSubList(publishList, writeApplicationPermissions, true);
+        buildPubSubList(publishList, applicationGrants, true);
 
         dataModel.put("subscribes", subscribeList);
         dataModel.put("publishes", publishList);
@@ -650,83 +673,105 @@ public class ApplicationService {
         return dataModel;
     }
 
-    private void buildPubSubList(List<PubSubEntry> list, List<ApplicationPermission> applicationPermissions, boolean publishing) {
-        if (applicationPermissions == null) {
+    private void determineGrantValidityInterval(HashMap<String, Object> dataModel, List<ApplicationGrant> applicationGrants) {
+        ZonedDateTime start = ZonedDateTime.now(ZoneOffset.UTC).minusMinutes(5);
+        String formattedStart = start.format(DateTimeFormatter.ISO_INSTANT);
+        dataModel.put("validStart", formattedStart);
+
+        if (applicationGrants.isEmpty()) {
+            dataModel.put("validEnd", formattedStart);
+        } else {
+            Optional<Long> min = applicationGrants.stream().map(ApplicationGrant::getGrantDuration).map(GrantDuration::getDurationInMilliseconds).min(Long::compareTo);
+            String formattedEnd = start.plus(min.get(), ChronoUnit.MILLIS).format(DateTimeFormatter.ISO_INSTANT);
+            dataModel.put("validEnd", formattedEnd);
+        }
+    }
+
+    private void buildPubSubList(List<PubSubEntry> list, List<ApplicationGrant> applicationGrants, boolean publishing) {
+        if (applicationGrants == null) {
             return;
         }
 
-        // Collect all topics that have the same set of partitions and create a new entry for them.
-        Map<Set<String>, Set<String>> partitionsTopicMap = new HashMap<>();
+        // for each grant and respective actions, derive Topics and Partitions
+        applicationGrants.forEach(applicationGrant -> {
 
-        applicationPermissions.forEach(applicationPermission -> {
-            Topic topic = applicationPermission.getPermissionsTopic();
-            Set<String> partitions = new HashSet<>();
-            if (publishing) {
-                Set<WritePartition> writePartitions = applicationPermission.getWritePartitions();
-                writePartitions.forEach(writePartition -> {
-                    partitions.add(xmlEscaper.escape(writePartition.getPartitionName()));
-                });
-            } else {
-                Set<ReadPartition> readPartitions = applicationPermission.getReadPartitions();
-                readPartitions.forEach(readPartition -> {
-                    partitions.add(xmlEscaper.escape(readPartition.getPartitionName()));
-                });
-            }
-            Set<String> immutablePartitions = Collections.unmodifiableSet(partitions);
-            String canonicalTopicName = buildCanonicalName(topic);
-            if (partitionsTopicMap.containsKey(immutablePartitions)) {
-                partitionsTopicMap.get(immutablePartitions).add(canonicalTopicName);
-            } else {
-                Set<String> topicNames = new HashSet<>();
-                topicNames.add(canonicalTopicName);
-                partitionsTopicMap.put(immutablePartitions, topicNames);
-            }
-        });
+            List<Action> actions = actionService.getAllByGrantId(applicationGrant.getId());
 
-        partitionsTopicMap.forEach((partitions, topics) -> {
-            list.add(new PubSubEntry(topics, partitions));
+            actions.stream().filter(action -> Boolean.compare(publishing, action.getCanPublish()) == 0).forEach(action -> {
+
+                // collect all Topics
+                Set<Topic> actionTopics = new HashSet<>(action.getTopics());
+                action.getTopicSets().forEach(topicSet -> {
+                    actionTopics.addAll(topicSet.getTopics());
+                });
+                Set<String> topics = actionTopics.stream().map(this::buildCanonicalName).collect(Collectors.toSet());
+
+                Set<String> partitions = action.getPartitions().stream()
+                        .map(ActionPartition::getPartitionName)
+                        .map(xmlEscaper::escape)
+                        .collect(Collectors.toSet());
+
+
+                String validityStart = action.getActionInterval().getStartDate().toString();
+                String validityEnd = action.getActionInterval().getEndDate().toString();
+                list.add(new PubSubEntry(topics, partitions, validityStart, validityEnd));
+            });
         });
     }
 
-    private HashMap buildApplicationPermissionsJson(Application application) {
+    private HashMap buildApplicationGrantsJson(Application application) {
         HashMap<String, Object> dataModel = new HashMap<>();
-        List<ApplicationPermission> readApplicationPermissions = applicationPermissionService.findAllByApplicationAndReadEqualsTrue(application);
-        List<ApplicationPermission> writeApplicationPermissions = applicationPermissionService.findAllByApplicationAndWriteEqualsTrue(application);
 
-        List<Object> publishPartitions = new ArrayList<>();
-        List<Object> subscribePartitions = new ArrayList<>();
+        // get all grants by application
+        List<ApplicationGrant> applicationGrants = applicationGrantService.findAllByApplication(application);
 
-        buildTopicPartitionsMap(publishPartitions, writeApplicationPermissions, true);
-        buildTopicPartitionsMap(subscribePartitions, readApplicationPermissions, false);
+        List<Map> publishList = new ArrayList<>();
+        List<Map> subscribeList = new ArrayList<>();
 
-        dataModel.put("publishes", publishPartitions);
-        dataModel.put("subscribes", subscribePartitions);
+        // read
+        buildPubSubMap(subscribeList, applicationGrants, false);
+
+        // write
+        buildPubSubMap(publishList, applicationGrants, true);
+
+        dataModel.put("subscribes", subscribeList);
+        dataModel.put("publishes", publishList);
 
         return dataModel;
     }
 
-    private void buildTopicPartitionsMap(List<Object> topicPartitionsList,
-                                         List<ApplicationPermission> applicationPermissions, boolean publishing) {
-        if (applicationPermissions == null) {
+    private void buildPubSubMap(List<Map> pubSubList, List<ApplicationGrant> applicationGrants, boolean publishing) {
+        if (applicationGrants == null) {
             return;
         }
 
-        applicationPermissions.forEach(applicationPermission -> {
-            String topicName = buildCanonicalName(applicationPermission.getPermissionsTopic());
-            List<String> partitions = new ArrayList<>();
-            if (publishing) {
-                applicationPermission.getWritePartitions().forEach(writePartition -> {
-                    partitions.add(writePartition.getPartitionName());
+        // for each grant and respective actions, derive Topics and Partitions
+        applicationGrants.forEach(applicationGrant -> {
+
+            List<Action> actions = actionService.getAllByGrantId(applicationGrant.getId());
+
+            actions.stream().filter(action -> Boolean.compare(publishing, action.getCanPublish()) == 0).forEach(action -> {
+
+                // collect all Topics
+                Set<Topic> actionTopics = new HashSet<>(action.getTopics());
+                action.getTopicSets().forEach(topicSet -> {
+                    actionTopics.addAll(topicSet.getTopics());
                 });
-            } else {
-                applicationPermission.getReadPartitions().forEach(readPartition -> {
-                    partitions.add(readPartition.getPartitionName());
-                });
-            }
-            Map<String, Object> topicPartitions = new HashMap<>();
-            topicPartitions.put("topic", topicName);
-            topicPartitions.put("partitions", partitions);
-            topicPartitionsList.add(topicPartitions);
+                Set<String> topics = actionTopics.stream().map(this::buildCanonicalName).collect(Collectors.toSet());
+
+                Set<String> partitions = action.getPartitions().stream()
+                        .map(ActionPartition::getPartitionName)
+                        .collect(Collectors.toSet());
+
+                String validityStart = action.getActionInterval().getStartDate().toString();
+                String validityEnd = action.getActionInterval().getEndDate().toString();
+                pubSubList.add(Map.of(
+                        "topics", topics,
+                        "partitions", partitions,
+                        "validityStart", validityStart,
+                        "validityEnd", validityEnd
+                ));
+            });
         });
     }
 
