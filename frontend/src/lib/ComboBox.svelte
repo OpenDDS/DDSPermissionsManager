@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	import { httpAdapter } from '../appconfig';
 	import { inview } from 'svelte-inview';
-	import { createEventDispatcher } from 'svelte';
 	import refreshPage from '../stores/refreshPage';
 	import groupContext from '../stores/groupContext';
 	import singleGroupCheck from '../stores/singleGroupCheck';
@@ -13,8 +12,6 @@
 
 	export let actionAddApplication = false;
 	export let isGroupContext = false;
-
-	const dispatch = createEventDispatcher();
 
 	let status = 'blur';
 	let comboboxfilter;
@@ -74,6 +71,10 @@
 	}
 
 	onMount(async () => {
+		groupContext.subscribe((value) => {
+			if(value?.name) searchGroups = value.name;
+		});
+
 		// Changes the text in the Modal's group field placeholder
 		if (isGroupContext)
 			document.querySelector('#combobox-1').placeholder =
@@ -288,8 +289,6 @@
 									selectedGroup = group;
 									groupContext.set(selectedGroup);
 									searchGroups = group.name;
-
-									dispatch('selected-group', selectedGroup.id);
 
 									comboboxfilter.blur();
 									selected = -1;
