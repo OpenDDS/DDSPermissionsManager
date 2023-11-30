@@ -200,6 +200,10 @@ public class ApplicationGrantService {
             throw new DPMException(ResponseStatusCodes.APPLICATION_GRANT_GRANT_DURATION_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
 
+        if (!grantDurationOptional.get().getPermissionsGroup().getId().equals(groupOptional.get().getId())) {
+            throw new DPMException(ResponseStatusCodes.APPLICATION_GRANT_GRANT_DURATION_DOES_NOT_BELONG_TO_SAME_GROUP, HttpStatus.BAD_REQUEST);
+        }
+
         Optional<Application> applicationById = applicationRepository.findById(applicationId);
         if (applicationById.isEmpty()) {
             throw new DPMException(ResponseStatusCodes.APPLICATION_NOT_FOUND, HttpStatus.NOT_FOUND);

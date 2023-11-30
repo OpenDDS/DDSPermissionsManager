@@ -80,6 +80,7 @@ public interface ResponseStatusCodes {
     String APPLICATION_GRANT_NOT_FOUND = "application-grant.not-found";
     String APPLICATION_GRANT_GROUP_NOT_FOUND = "application-grant.group.not-found";
     String APPLICATION_GRANT_GRANT_DURATION_NOT_FOUND = "application-grant.grant-duration.not-found";
+    String APPLICATION_GRANT_GRANT_DURATION_DOES_NOT_BELONG_TO_SAME_GROUP = "application-grant.grant-duration.not.same-group";
     String APPLICATION_GRANT_ALREADY_EXISTS = "application-grant.exists";
 
     // topic set
