@@ -575,6 +575,51 @@ public class ApplicationGrantApiTest {
             list = body.get();
             assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_DURATION_ASSOCIATION.equals(group.get("code"))));
         }
+
+        @Test
+        public void cannotCreateWithADurationFromAnotherGroup() {
+            HttpResponse response;
+            HttpRequest request;
+
+            Long publicGroupId = privateApplication.getPermissionsGroup().getId();
+
+            // create duration under group publicGroup
+            response = createGrantDuration("DurationB", publicGroupId);
+            assertEquals(OK, response.getStatus());
+            Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(durationOptional.isPresent());
+
+            // attempt to create grant under testGroup with publicGroup's duration - fail
+            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOne.getId());
+            response = blockingClient.exchange(request, String.class);
+            assertEquals(OK, response.getStatus());
+            Optional<String> optional = response.getBody(String.class);
+            assertTrue(optional.isPresent());
+            String applicationGrantToken = optional.get();
+
+            String finalApplicationGrantToken = applicationGrantToken;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                createApplicationGrant(finalApplicationGrantToken, testGroup.getId(), "CreateGrantAttempt-Fail", durationOptional.get().getId());
+            });
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<List> body = exception.getResponse().getBody(List.class);
+            assertTrue(body.isPresent());
+            List<Map> list = body.get();
+            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_GRANT_DURATION_DOES_NOT_BELONG_TO_SAME_GROUP.equals(group.get("code"))));
+
+            // attempt to create a grant under publicGroup with group B duration - pass
+            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOne.getId());
+            response = blockingClient.exchange(request, String.class);
+            assertEquals(OK, response.getStatus());
+            optional = response.getBody(String.class);
+            assertTrue(optional.isPresent());
+            applicationGrantToken = optional.get();
+
+            response = createApplicationGrant(applicationGrantToken, publicGroupId, "CreateGrantAttempt-Pass", durationOptional.get().getId());
+            assertEquals(CREATED, response.getStatus());
+            Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
+            assertTrue(grantDTOOptional.isPresent());
+        }
     }
 
     @Nested
