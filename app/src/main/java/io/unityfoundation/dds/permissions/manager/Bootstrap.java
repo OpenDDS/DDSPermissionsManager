@@ -135,8 +135,7 @@ public class Bootstrap {
                             String grantDurationName = (String) grantDurationMap.get("name");
                             Long grantDurationMilliseconds = (Long) grantDurationMap.get("durationInMilliseconds");
                             String grantDurationMetadata = (String) grantDurationMap.get("durationMetadata");
-                            GrantDuration grantDuration = new GrantDuration(grantDurationName, group);
-                            grantDuration.setDurationInMilliseconds(grantDurationMilliseconds);
+                            GrantDuration grantDuration = new GrantDuration(grantDurationName, group, grantDurationMilliseconds);
                             grantDuration.setDurationMetadata(grantDurationMetadata);
                             group.addGrantDurations(grantDuration);
                         });

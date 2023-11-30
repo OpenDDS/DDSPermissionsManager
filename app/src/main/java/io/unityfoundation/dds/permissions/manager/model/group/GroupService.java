@@ -64,6 +64,7 @@ public class GroupService {
             groupsResponseDTO.setApplications(group.getApplications().stream().map(Application::getId).collect(Collectors.toSet()));
             groupsResponseDTO.setTopicCount(group.getTopics().size());
             groupsResponseDTO.setApplicationCount(group.getApplications().size());
+            groupsResponseDTO.setGrantCount(group.getApplicationGrants().size());
             groupsResponseDTO.setMembershipCount(groupUserService.getMembershipCountByGroup(group));
 
             return groupsResponseDTO;

@@ -30,7 +30,11 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.*;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDurationRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupAdminRole;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
@@ -82,6 +86,12 @@ public class GroupApiTest {
     ApplicationPermissionRepository applicationPermissionRepository;
 
     @Inject
+    ApplicationGrantRepository applicationGrantRepository;
+
+    @Inject
+    GrantDurationRepository grantDurationRepository;
+
+    @Inject
     GroupUserRepository groupUserRepository;
 
     @Inject
@@ -130,7 +140,9 @@ public class GroupApiTest {
             Topic topicOne = topicRepository.save(new Topic("TopicOne", TopicKind.B, groupOne));
             Topic topicOne1 = topicRepository.save(new Topic("TopicOne!", TopicKind.C, groupOne));
             Application applicationOne = applicationRepository.save(new Application("ApplicationOne", groupOne));
+            GrantDuration grantDurationOne = grantDurationRepository.save(new GrantDuration("DurationOne", groupOne, 3000L));
             applicationPermissionRepository.save(new ApplicationPermission(applicationOne, topicOne, true, true));
+            applicationGrantRepository.save(new ApplicationGrant("GrantOne", applicationOne, groupOne, grantDurationOne));
             groupUserRepository.save(new GroupUser(groupOne, jjones));
             groupUserRepository.save(new GroupUser(groupOne, eclair));
 
@@ -582,6 +594,7 @@ public class GroupApiTest {
             assertEquals(2, groupOne.get("membershipCount"));
             assertEquals(2, groupOne.get("topicCount"));
             assertEquals(1, groupOne.get("applicationCount"));
+            assertEquals(1, groupOne.get("grantCount"));
         }
 
         // delete
