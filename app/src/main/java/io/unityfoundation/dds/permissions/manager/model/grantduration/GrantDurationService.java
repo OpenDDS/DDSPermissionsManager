@@ -136,8 +136,9 @@ public class GrantDurationService {
 
         GrantDuration newGrantDuration = new GrantDuration(
                 grantDurationDTO.getName(),
-                groupOptional.get());
-        newGrantDuration.setDurationInMilliseconds(grantDurationDTO.getDurationInMilliseconds());
+                groupOptional.get(),
+                grantDurationDTO.getDurationInMilliseconds()
+                );
         newGrantDuration.setDurationMetadata(grantDurationDTO.getDurationMetadata());
 
         GrantDurationDTO responseTopicDTO = createDTO(grantDurationRepository.save(newGrantDuration));

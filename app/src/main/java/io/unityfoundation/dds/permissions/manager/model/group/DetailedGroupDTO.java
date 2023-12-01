@@ -30,6 +30,7 @@ public class DetailedGroupDTO implements EntityDTO {
     private int membershipCount;
     private int topicCount;
     private int applicationCount;
+    private int grantCount;
 
     public DetailedGroupDTO() {
     }
@@ -87,6 +88,14 @@ public class DetailedGroupDTO implements EntityDTO {
 
     public void setApplicationCount(int applicationCount) {
         this.applicationCount = applicationCount;
+    }
+
+    public int getGrantCount() {
+        return grantCount;
+    }
+
+    public void setGrantCount(int grantCount) {
+        this.grantCount = grantCount;
     }
 
     public String getDescription() {

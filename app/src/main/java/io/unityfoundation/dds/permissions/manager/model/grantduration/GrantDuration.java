@@ -49,9 +49,10 @@ public class GrantDuration {
     public GrantDuration() {
     }
 
-    public GrantDuration(@NonNull String name, @NonNull Group group) {
+    public GrantDuration(@NonNull String name, @NonNull Group group, @NonNull Long durationInMilliseconds) {
         this.name = name;
         this.permissionsGroup = group;
+        this.durationInMilliseconds = durationInMilliseconds;
     }
 
     public Long getId() {
