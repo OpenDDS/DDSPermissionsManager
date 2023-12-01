@@ -30,6 +30,7 @@
 		"table.column.four": "Users",
 		"table.column.five": "Topics",
 		"table.column.six": "Applications",
+		"table.column.seven": "Grants",
 		"empty.groups": "No Groups Found.",
 		"empty.groups.action": "Click here",
 		"empty.groups.action.result": "to create a new Group."

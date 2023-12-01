@@ -600,8 +600,11 @@
 									<td class="header-column" style="width: 4rem; text-align:center">
 										{messages['group']['table.column.five']}
 									</td>
-									<td class="header-column" style="width: 4rem; text-align:right; padding-right: 1rem">
+									<td class="header-column" style="width: 4rem; text-align:center">
 										{messages['group']['table.column.six']}
+									</td>
+									<td class="header-column" style="width: 4rem; text-align:right; padding-right: 1rem">
+										{messages['group']['table.column.seven']}
 									</td>
 								</tr>
 							</thead>
@@ -870,6 +873,17 @@
 													style="vertical-align: middle"
 													href="/applications"
 													on:click={() => groupContext.set(group)}>{group.applicationCount}</a
+												>
+											</center>
+										</td>
+
+										<td style="width: max-content">
+											<center>
+												<a
+													tabindex="-1"
+													style="vertical-align: middle"
+													href="/grants"
+													on:click={() => groupContext.set(group)}>{group.grantCount}</a
 												>
 											</center>
 										</td>
