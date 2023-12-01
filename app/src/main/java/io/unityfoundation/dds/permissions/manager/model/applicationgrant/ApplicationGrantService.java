@@ -326,4 +326,8 @@ public class ApplicationGrantService {
     public void deleteAllByApplication(Application application) {
         applicationGrantRepository.deleteByPermissionsApplicationEquals(application);
     }
+
+    public List<ApplicationGrant> findAllByApplication(Application application) {
+        return applicationGrantRepository.findByPermissionsApplication(application);
+    }
 }

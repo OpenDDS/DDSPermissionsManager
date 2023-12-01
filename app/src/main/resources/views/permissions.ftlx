@@ -25,6 +25,10 @@
                     </#list>
                     </partitions>
                     </#if>
+                    <validity>
+                        <not_before>${pub.validityStart}</not_before>
+                        <not_after>${pub.validityEnd}</not_after>
+                    </validity>
                 </publish>
                 </#list>
                 <#list subscribes as sub>
@@ -41,6 +45,10 @@
                     </#list>
                     </partitions>
                     </#if>
+                    <validity>
+                        <not_before>${sub.validityStart}</not_before>
+                        <not_after>${sub.validityEnd}</not_after>
+                    </validity>
                 </subscribe>
                 </#list>
             </allow_rule>

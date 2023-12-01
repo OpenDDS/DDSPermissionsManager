@@ -17,16 +17,12 @@ package io.unityfoundation.dds.permissions.manager.model.actioninterval;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
-import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "permissions_action_interval")
@@ -95,7 +91,7 @@ public class ActionInterval {
         this.permissionsGroup = permissionsGroup;
     }
 
-    @Nullable
+    @NotNull
     public Instant getStartDate() {
         return startDate;
     }
@@ -104,7 +100,7 @@ public class ActionInterval {
         this.startDate = startDate;
     }
 
-    @Nullable
+    @NotNull
     public Instant getEndDate() {
         return endDate;
     }

@@ -668,7 +668,6 @@ The following environment variables should be set to configure the application:
 The following environment variables can be used to set the validity of DDS Security Documents produced by the API:
 
 * PERMISSIONS_MANAGER_APPLICATION_CLIENT_CERTIFICATES_TIME_EXPIRY - Days that certificates are valid.
-* PERMISSIONS_MANAGER_APPLICATION_PERMISSIONS_FILE_TIME_EXPIRY - Days that permissions files are valid.
 * PERMISSIONS_MANAGER_APPLICATION_PERMISSIONS_FILE_DOMAIN - The DDS domain in use.
 * PERMISSIONS_MANAGER_APPLICATION_PASSPHRASE_LENGTH - The length of the passwords generated for applications.
 
