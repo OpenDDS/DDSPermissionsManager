@@ -48,10 +48,6 @@
 		grantsRowsSelectedTrue = false,
 		grantsAllRowsSelectedTrue = false;
 
-	let newGrantsRowsSelected = [],
-		newGrantsRowsSelectedTrue = false,
-		newGrantsAllRowsSelectedTrue = false;
-
 	// Modals
 	let reloadMessageVisible = false;
 	let actionsModalVisible = false;
@@ -60,7 +56,7 @@
 
 	// checkboxes selection
 	$: if (
-		selectedTopicApplications?.length === grantsRowsSelected?.length &&
+		applicationGrants?.length === grantsRowsSelected?.length &&
 		grantsRowsSelected?.length > 0
 	) {
 		grantsRowsSelectedTrue = false;
@@ -71,26 +67,12 @@
 		grantsAllRowsSelectedTrue = false;
 	}
 
-	// checkboxes selection
-	$: if (
-		applicationGrants?.length === newGrantsRowsSelected?.length &&
-		newGrantsRowsSelected?.length > 0
-	) {
-		newGrantsRowsSelectedTrue = false;
-		newGrantsAllRowsSelectedTrue = true;
-	} else if (newGrantsRowsSelected?.length > 0) {
-		newGrantsRowsSelectedTrue = true;
-	} else {
-		newGrantsAllRowsSelectedTrue = false;
-	}
-
 	let selectedAppDescriptionSelector,
 		checkboxSelector,
 		isPublic = selectedAppPublic;
 
 	let editApplicationVisible = false,
-		deleteSelectedGrantsVisible = false,
-		newDeleteSelectedGrantsVisible = false;
+		deleteSelectedGrantsVisible = false;
 
 	// Websocket
 	let applicationSocketIsPaused = false;
@@ -177,11 +159,6 @@
 		resumeSocketListener();
 	};
 
-	const deleteTopicApplicationAssociation = async () => {
-		for (const grant of grantsRowsSelected) {
-			await httpAdapter.delete(`/application_permissions/${grant.id}`);
-		}
-	};
 
 	const deselectAllGrantsCheckboxes = () => {
 		grantsAllRowsSelectedTrue = false;
@@ -191,17 +168,9 @@
 		checkboxes.forEach((checkbox) => (checkbox.checked = false));
 	};
 
-	const newDeselectAllGrantsCheckboxes = () => {
-		newGrantsAllRowsSelectedTrue = false;
-		newGrantsRowsSelectedTrue = false;
-		newGrantsRowsSelected = [];
-		let checkboxes = document.querySelectorAll('.grants-checkbox');
-		checkboxes.forEach((checkbox) => (checkbox.checked = false));
-	};
-
 	const deleteSelectedGrants = async () => {
 		try {
-			for (const duration of newGrantsRowsSelected) {
+			for (const duration of grantsRowsSelected) {
 				await httpAdapter.delete(`/application_grants/${duration.id}`);
 			}
 		} catch (err) {
@@ -322,28 +291,9 @@
 			deleteSelectedGrantsVisible = false;
 		}}
 		on:deleteGrants={async () => {
-			await deleteTopicApplicationAssociation();
-			await getAppPermissions();
-
+			await deleteSelectedGrants();
 			deselectAllGrantsCheckboxes();
 			deleteSelectedGrantsVisible = false;
-		}}
-	/>
-{/if}
-
-{#if newDeleteSelectedGrantsVisible}
-	<Modal
-		actionDeleteGrants={true}
-		title="{messages['application.detail']['delete.grants.title']} {newGrantsRowsSelected.length > 1
-			? messages['application.detail']['delete.grants.multiple']
-			: messages['application.detail']['delete.grants.single']}"
-		on:cancel={() => {
-			newDeleteSelectedGrantsVisible = false;
-		}}
-		on:deleteGrants={async () => {
-			await deleteSelectedGrants();
-			newDeselectAllGrantsCheckboxes();
-			newDeleteSelectedGrantsVisible = false;
 			applicationGrants = await getApplicationGrants();
 		}}
 	/>
@@ -427,233 +377,6 @@
 				style="display: flex; justify-content: space-between; align-items:center; margin-top: 2rem"
 			>
 				<div style="font-size:1.3rem; margin-bottom: 1rem">
-					{messages['application.detail']['table.applications.label']}
-				</div>
-
-				<div>
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
-							grantsRowsSelected?.length === 0}
-						style="margin-left: 0.5rem; margin-right: 1rem"
-						on:click={() => {
-							if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
-						}}
-						on:keydown={(event) => {
-							if (event.which === returnKey) {
-								if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
-							}
-						}}
-						on:mouseenter={() => {
-							deleteMouseEnter = true;
-							if ($isAdmin || isApplicationAdmin) {
-								if (grantsRowsSelected.length === 0) {
-									deleteToolip = messages['topic.detail']['delete.tooltip'];
-									const tooltip = document.querySelector('#delete-topics');
-									setTimeout(() => {
-										if (deleteMouseEnter) {
-											tooltip.classList.remove('tooltip-hidden');
-											tooltip.classList.add('tooltip');
-										}
-									}, 1000);
-								}
-							} else {
-								deleteToolip = messages['topic']['delete.tooltip.topic.admin.required'];
-								const tooltip = document.querySelector('#delete-topics');
-								setTimeout(() => {
-									if (deleteMouseEnter) {
-										tooltip.classList.remove('tooltip-hidden');
-										tooltip.classList.add('tooltip');
-										tooltip.setAttribute('style', 'margin-left:10.2rem; margin-top: -1.8rem');
-									}
-								}, 1000);
-							}
-						}}
-						on:mouseleave={() => {
-							deleteMouseEnter = false;
-							if (grantsRowsSelected.length === 0) {
-								const tooltip = document.querySelector('#delete-topics');
-								setTimeout(() => {
-									if (!deleteMouseEnter) {
-										tooltip.classList.add('tooltip-hidden');
-										tooltip.classList.remove('tooltip');
-									}
-								}, 1000);
-							}
-						}}
-					/>
-					<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
-						>{deleteToolip}
-					</span>
-				</div>
-			</div>
-		</div>
-
-		<table style="min-width: 59rem; max-width: 59rem">
-			<thead>
-				<tr style="border-top: 1px solid black; border-bottom: 2px solid">
-					<td>
-						<input
-							tabindex="-1"
-							type="checkbox"
-							class="grants-checkbox"
-							style="margin-right: 0.5rem"
-							bind:indeterminate={grantsRowsSelectedTrue}
-							on:click={(e) => {
-								if (e.target.checked) {
-									grantsRowsSelected = selectedTopicApplications;
-									grantsRowsSelectedTrue = false;
-									grantsAllRowsSelectedTrue = true;
-								} else {
-									grantsAllRowsSelectedTrue = false;
-									grantsRowsSelectedTrue = false;
-									grantsRowsSelected = [];
-								}
-							}}
-							checked={grantsAllRowsSelectedTrue}
-						/>
-					</td>
-					<td>{messages['application.detail']['table.applications.column.one']}</td>
-					<td>{messages['application.detail']['table.applications.column.two']}</td>
-					<td>{messages['application.detail']['table.applications.column.three']}</td>
-					{#if !$page.url.pathname.includes('search')}
-						<td>{messages['application.detail']['table.applications.column.four']}</td>
-						<td>{messages['application.detail']['table.applications.column.five']}</td>
-					{/if}
-
-					{#if isApplicationAdmin || $isAdmin}
-						<td />
-					{/if}
-				</tr>
-			</thead>
-			{#if selectedTopicApplications}
-				{#each selectedTopicApplications as appPermission}
-					<tbody>
-						<tr>
-							<td style="line-height: 1rem;">
-								<input
-									tabindex="-1"
-									type="checkbox"
-									class="grants-checkbox"
-									style="margin-right: 0.5rem"
-									checked={grantsAllRowsSelectedTrue}
-									on:change={(e) => {
-										if (e.target.checked === true) {
-											grantsRowsSelected.push(appPermission);
-											// reactive statement
-											grantsRowsSelected = grantsRowsSelected;
-											grantsRowsSelectedTrue = true;
-										} else {
-											grantsRowsSelected = grantsRowsSelected.filter(
-												(selection) => selection !== appPermission
-											);
-											if (grantsRowsSelected.length === 0) {
-												grantsRowsSelectedTrue = false;
-											}
-										}
-									}}
-								/>
-							</td>
-							<td style="min-width: 10rem">
-								{appPermission.topicGroup}
-							</td>
-							<td style="min-width: 18rem">
-								{appPermission.topicName} ({appPermission.topicCanonicalName})
-							</td>
-							<td style="min-width: 6.5rem">
-								{#if appPermission.read && appPermission.write}
-									{messages['application.detail']['table.applications.access.readwrite']}
-									{messages['application.detail']['table.applications.access.write']}
-								{:else if appPermission.read}
-									{messages['application.detail']['table.applications.access.read']}
-								{:else if appPermission.write}
-									{messages['application.detail']['table.applications.access.write']}
-								{/if}
-							</td>
-
-							{#if !$page.url.pathname.includes('search')}
-								<td style="min-width: 10rem; max-width: 10rem">
-									{#if appPermission.readPartitions?.length > 0}
-										{#each appPermission.readPartitions as partition}
-											<div
-												style="display:inline; align-items: center; background-color: #bad5ff; border-radius: 25px; font-size: 0.8rem; width: fit-content; padding: 0 0.3rem 0 0.3rem; margin: 0 0.1rem 0 0.1rem"
-											>
-												{partition}
-											</div>
-										{/each}
-									{/if}
-								</td>
-								<td style="min-width: 10rem; max-width: 10rem">
-									{#if appPermission.writePartitions?.length > 0}
-										{#each appPermission.writePartitions as partition}
-											<div
-												style="display:inline; align-items: center; background-color: #bad5ff; border-radius: 25px; font-size: 0.8rem; width: fit-content; padding: 0 0.3rem 0 0.3rem; margin: 0 0.1rem 0 0.1rem"
-											>
-												{partition}
-											</div>
-										{/each}
-									{/if}
-								</td>
-							{:else}
-								<td />
-								<td />
-							{/if}
-
-							{#if isApplicationAdmin || $isAdmin}
-								<td>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-									<img
-										src={deleteSVG}
-										tabindex="0"
-										alt="delete topic"
-										height="23px"
-										width="23px"
-										style="vertical-align: -0.4rem; float: right; cursor: pointer"
-										on:click={() => {
-											if (!grantsRowsSelected.some((grant) => grant === appPermission))
-												grantsRowsSelected.push(appPermission);
-											deleteSelectedGrantsVisible = true;
-										}}
-									/>
-								</td>
-							{:else}
-								<td />
-							{/if}
-						</tr>
-					</tbody>
-				{/each}
-			{:else}
-				<p style="margin:0.3rem 0 0.6rem 0">
-					{messages['application.detail']['empty.topics.associated']}
-				</p>
-			{/if}
-			<tr style="font-size: 0.7rem; text-align: right">
-				<td style="border: none" />
-				<td style="border: none" />
-				<td style="border: none" />
-				<td style="border: none" />
-				<td style="border: none" />
-				<td style="border: none" />
-				<td style="border: none; min-width: 3.5rem; text-align:right">
-					{#if selectedTopicApplications}
-						{selectedTopicApplications.length} of {selectedTopicApplications.length}
-					{:else}
-						0 of 0
-					{/if}
-				</td>
-			</tr>
-		</table>
-	{/if}
-
-	{#if !$page.url.pathname.includes('search')}
-		<div style="margin-top: 3.5rem">
-			<div
-				style="display: flex; justify-content: space-between; align-items:center; margin-top: 2rem"
-			>
-				<div style="font-size:1.3rem; margin-bottom: 1rem">
 					{messages['application.detail']['table.applications.label-temp']}
 				</div>
 
@@ -664,20 +387,20 @@
 							alt="options"
 							class="dot"
 							class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
-								newGrantsRowsSelected?.length === 0}
+								grantsRowsSelected?.length === 0}
 							style="margin-left: 0.5rem; margin-right: 1rem"
 							on:click={() => {
-								if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
+								if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
 							}}
 							on:keydown={(event) => {
 								if (event.which === returnKey) {
-									if (newGrantsRowsSelected.length > 0) newDeleteSelectedGrantsVisible = true;
+									if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
 								}
 							}}
 							on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if ($isAdmin || isApplicationAdmin) {
-									if (newGrantsRowsSelected.length === 0) {
+									if (grantsRowsSelected.length === 0) {
 										deleteToolip = messages['topic.detail']['delete.tooltip'];
 										const tooltip = document.querySelector('#delete-topics');
 										setTimeout(() => {
@@ -701,7 +424,7 @@
 							}}
 							on:mouseleave={() => {
 								deleteMouseEnter = false;
-								if (newGrantsRowsSelected.length === 0) {
+								if (grantsRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-topics');
 									setTimeout(() => {
 										if (!deleteMouseEnter) {
@@ -730,19 +453,19 @@
 							type="checkbox"
 							class="grants-checkbox"
 							style="margin-right: 0.5rem"
-							bind:indeterminate={newGrantsRowsSelectedTrue}
+							bind:indeterminate={grantsRowsSelectedTrue}
 							on:click={(e) => {
 								if (e.target.checked) {
-									newGrantsRowsSelected = applicationGrants;
-									newGrantsRowsSelectedTrue = false;
-									newGrantsAllRowsSelectedTrue = true;
+									grantsRowsSelected = applicationGrants;
+									grantsRowsSelectedTrue = false;
+									grantsAllRowsSelectedTrue = true;
 								} else {
-									newGrantsAllRowsSelectedTrue = false;
-									newGrantsRowsSelectedTrue = false;
-									newGrantsRowsSelected = [];
+									grantsAllRowsSelectedTrue = false;
+									grantsRowsSelectedTrue = false;
+									grantsRowsSelected = [];
 								}
 							}}
-							checked={newGrantsAllRowsSelectedTrue}
+							checked={grantsAllRowsSelectedTrue}
 						/>
 					</td>
 					<td>{messages['application.detail']['table.applications.column.one-temp']}</td>
@@ -767,19 +490,19 @@
 									type="checkbox"
 									class="grants-checkbox"
 									style="margin-right: 0.5rem"
-									checked={newGrantsAllRowsSelectedTrue}
+									checked={grantsAllRowsSelectedTrue}
 									on:change={(e) => {
 										if (e.target.checked === true) {
-											newGrantsRowsSelected.push(grant);
+											grantsRowsSelected.push(grant);
 											// reactive statement
-											newGrantsRowsSelected = newGrantsRowsSelected;
-											newGrantsRowsSelectedTrue = true;
+											grantsRowsSelected = grantsRowsSelected;
+											grantsRowsSelectedTrue = true;
 										} else {
-											newGrantsRowsSelected = newGrantsRowsSelected.filter(
+											grantsRowsSelected = grantsRowsSelected.filter(
 												(selection) => selection !== grant
 											);
-											if (newGrantsRowsSelected.length === 0) {
-												newGrantsRowsSelectedTrue = false;
+											if (grantsRowsSelected.length === 0) {
+												grantsRowsSelectedTrue = false;
 											}
 										}
 									}}
@@ -835,9 +558,9 @@
 										width="23px"
 										style="vertical-align: -0.4rem; float: right; cursor: pointer"
 										on:click={() => {
-											if (!newGrantsRowsSelected.some((grant) => grant === grant))
-												newGrantsRowsSelected.push(grant);
-											newDeleteSelectedGrantsVisible = true;
+											if (!grantsRowsSelected.some((grant) => grant === grant))
+												grantsRowsSelected.push(grant);
+											deleteSelectedGrantsVisible = true;
 										}}
 									/>
 								</td>
