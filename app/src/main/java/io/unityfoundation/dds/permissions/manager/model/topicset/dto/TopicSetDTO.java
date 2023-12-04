@@ -18,6 +18,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ public class TopicSetDTO implements EntityDTO {
     private Long groupId;
     private String groupName;
     private Set<Map<Long, String>> topics;
+    private List<String> admins;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateCreated;
@@ -84,6 +86,14 @@ public class TopicSetDTO implements EntityDTO {
 
     public void setTopics(Set<Map<Long, String>> topics) {
         this.topics = topics;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(List<String> admins) {
+        this.admins = admins;
     }
 
     public Instant getDateCreated() {

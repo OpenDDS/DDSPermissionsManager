@@ -116,7 +116,11 @@ public class TopicSetService {
 
         checkExistenceAndAuthorization(topicSetOptional);
 
-        return createDTO(topicSetOptional.get());
+        TopicSetDTO topicSetDTO = createDTO(topicSetOptional.get());
+        List<String> admins = groupUserService.getAllTopicAdminsOfGroup(topicSetOptional.get().getId());
+        topicSetDTO.setAdmins(admins);
+
+        return topicSetDTO;
     }
 
     // POST /topic-set
