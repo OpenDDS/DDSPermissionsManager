@@ -54,8 +54,9 @@ import org.bouncycastle.asn1.cms.Time;
 import org.bouncycastle.asn1.smime.SMIMECapabilitiesAttribute;
 import org.bouncycastle.asn1.smime.SMIMECapability;
 import org.bouncycastle.asn1.smime.SMIMECapabilityVector;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.RFC4519Style;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.cert.CertIOException;
@@ -580,12 +581,8 @@ public class ApplicationService {
     }
 
     private Map<String, Object> buildTemplateDataModel(String nonce, Application application) {
-        HashMap<String, String> oidMap = new HashMap<>();
-        oidMap.put("2.5.4.4", "SN");
-        oidMap.put("2.5.4.42", "GN");
-
         HashMap<String, Object> dataModel = new HashMap<>();
-        final String sn = (new X500Principal(buildSubject(application, nonce))).getName(X500Principal.RFC2253, oidMap);
+        final String sn = buildSubjectString(application, nonce);
         dataModel.put("subject", xmlEscaper.escape(sn));
         dataModel.put("applicationId", application.getId());
         dataModel.put("domain", permissionDomain);
@@ -786,12 +783,12 @@ public class ApplicationService {
             throws GeneralSecurityException, CertIOException, OperatorCreationException {
 
         X509v3CertificateBuilder v3CertBldr = new JcaX509v3CertificateBuilder(
-                caCertificate.getSubjectX500Principal(), // issuer
+                caCertificate, // issuer
                 BigInteger.valueOf(System.currentTimeMillis()) // serial number
                         .multiply(BigInteger.valueOf(10)),
                 new Date(System.currentTimeMillis() - 1000L * 5), // start time
                 new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(certExpiry)), // expiry time
-                new X500Principal(buildSubject(application, nonce)), // subject
+                buildSubject(application, nonce), // subject
                 eePublicKey); // subject public key
 
         // extensions
@@ -813,12 +810,18 @@ public class ApplicationService {
         return new JcaX509CertificateConverter().getCertificate(v3CertBldr.build(signerBuilder.build(caPrivateKey)));
     }
 
-    private String buildSubject(Application application, String nonce) {
-        X500NameBuilder nameBuilder = new X500NameBuilder();
-        nameBuilder.addRDN(BCStyle.CN, application.getId() + "_" + nonce);
-        nameBuilder.addRDN(BCStyle.GIVENNAME, application.getName());
-        nameBuilder.addRDN(BCStyle.SURNAME, String.valueOf(application.getPermissionsGroup().getId()));
-        return nameBuilder.build().toString();
+    private X500Name buildSubject(Application application, String nonce) {
+        X500NameBuilder nameBuilder = new X500NameBuilder(RFC4519Style.INSTANCE);
+        nameBuilder.addRDN(RFC4519Style.cn, application.getId() + "_" + nonce);
+        nameBuilder.addRDN(RFC4519Style.givenName, application.getName());
+        nameBuilder.addRDN(RFC4519Style.sn, String.valueOf(application.getPermissionsGroup().getId()));
+        return nameBuilder.build();
+    }
+
+    private String buildSubjectString(Application application, String nonce) {
+        return "CN=" + application.getId() + "_" + nonce + "," +
+            "GN=" + application.getName().replaceAll(",", "\\,") + "," +
+            "SN=" + String.valueOf(application.getPermissionsGroup().getId());
     }
 
     public String objectToPEMString(X509Certificate certificate) throws IOException {
