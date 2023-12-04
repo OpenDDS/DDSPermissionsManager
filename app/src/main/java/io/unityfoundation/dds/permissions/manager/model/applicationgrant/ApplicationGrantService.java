@@ -166,7 +166,11 @@ public class ApplicationGrantService {
             }
         }
 
-        return createDTO(grantOptional.get());
+        GrantDTO grantDTO = createDTO(grantOptional.get());
+        List<String> admins = groupUserService.getAllTopicAdminsOfGroup(grantOptional.get().getId());
+        grantDTO.setAdmins(admins);
+
+        return grantDTO;
     }
 
     public Publisher<HttpResponse<GrantDTO>> create(String grantToken, CreateGrantDTO createGrantDTO) {

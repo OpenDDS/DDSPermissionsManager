@@ -60,4 +60,7 @@ public interface GroupUserRepository extends PageableRepository<GroupUser, Long>
     Page<Group> findPermissionsGroupByPermissionsUserEqualsAndPermissionsGroupNameContainsIgnoreCaseAndGroupAdminTrue(User permissionsUser, String group, Pageable pageable);
     Page<Group> findPermissionsGroupByPermissionsUserEqualsAndPermissionsGroupNameContainsIgnoreCaseAndTopicAdminTrue(User permissionsUser, String group, Pageable pageable);
     Page<Group> findPermissionsGroupByPermissionsUserEqualsAndPermissionsGroupNameContainsIgnoreCaseAndApplicationAdminTrue(User permissionsUser, String group, Pageable pageable);
+
+    List<User> findPermissionsUserByPermissionsGroupIdAndTopicAdminTrue(Long groupId);
+    List<User> findPermissionsUserByPermissionsGroupIdAndApplicationAdminTrue(Long groupId);
 }

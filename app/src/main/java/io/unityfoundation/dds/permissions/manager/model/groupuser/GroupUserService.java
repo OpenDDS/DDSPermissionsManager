@@ -334,4 +334,14 @@ public class GroupUserService {
         }
         throw new DPMException(ResponseStatusCodes.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
+
+    public List<String> getAllTopicAdminsOfGroup(Long groupId) {
+        return groupUserRepository.findPermissionsUserByPermissionsGroupIdAndTopicAdminTrue(groupId).stream()
+                .map(User::getEmail).collect(Collectors.toList());
+    }
+
+    public List<String> getAllApplicationAdminsOfGroup(Long groupId) {
+        return groupUserRepository.findPermissionsUserByPermissionsGroupIdAndApplicationAdminTrue(groupId).stream()
+                .map(User::getEmail).collect(Collectors.toList());
+    }
 }

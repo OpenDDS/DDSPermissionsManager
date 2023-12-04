@@ -194,6 +194,8 @@ public class TopicService {
             throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
         }
         TopicDTO topicResponseDTO = new TopicDTO(topic);
+        List<String> adminEmails = groupUserService.getAllTopicAdminsOfGroup(topic.getPermissionsGroup().getId());
+        topicResponseDTO.setAdmins(adminEmails);
 
         return HttpResponse.ok(topicResponseDTO);
     }

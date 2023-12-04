@@ -16,6 +16,8 @@ package io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto;
 import io.micronaut.core.annotation.Introspected;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
+import java.util.List;
+
 @Introspected
 public class GrantDTO implements EntityDTO {
     private final Long id;
@@ -27,6 +29,7 @@ public class GrantDTO implements EntityDTO {
     private final String groupName;
     private final Long durationInMilliseconds;
     private final String durationMetadata;
+    private List<String> admins;
 
     public GrantDTO(Long id, String name, Long applicationId, String applicationName, String applicationGroupName, Long groupId, String groupName, Long durationInMilliseconds, String durationMetadata) {
         this.id = id;
@@ -76,5 +79,13 @@ public class GrantDTO implements EntityDTO {
 
     public String getDurationMetadata() {
         return durationMetadata;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(List<String> admins) {
+        this.admins = admins;
     }
 }

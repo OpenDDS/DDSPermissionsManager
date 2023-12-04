@@ -343,6 +343,8 @@ public class ApplicationService {
             throw new DPMException(ResponseStatusCodes.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
         }
         ApplicationDTO applicationDTO = new ApplicationDTO(application);
+        List<String> applicationAdmins = groupUserService.getAllApplicationAdminsOfGroup(application.getPermissionsGroup().getId());
+        applicationDTO.setAdmins(applicationAdmins);
 
         return HttpResponse.ok(applicationDTO);
     }

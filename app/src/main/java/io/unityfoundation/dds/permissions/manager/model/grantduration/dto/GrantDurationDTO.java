@@ -19,6 +19,7 @@ import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Introspected
 public class GrantDurationDTO implements EntityDTO {
@@ -37,16 +38,19 @@ public class GrantDurationDTO implements EntityDTO {
 
     private String durationMetadata;
 
+    private List<String> admins;
+
     public GrantDurationDTO() {
     }
 
-    public GrantDurationDTO(Long id, String name, Long groupId, String groupName, Long durationInMilliseconds, String durationMetadata) {
+    public GrantDurationDTO(Long id, String name, Long groupId, String groupName, Long durationInMilliseconds, String durationMetadata, List<String> admins) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
         this.groupName = groupName;
         this.durationInMilliseconds = durationInMilliseconds;
         this.durationMetadata = durationMetadata;
+        this.admins = admins;
     }
 
     public Long getId() {
@@ -95,5 +99,13 @@ public class GrantDurationDTO implements EntityDTO {
 
     public void setDurationMetadata(String durationMetadata) {
         this.durationMetadata = durationMetadata;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(List<String> admins) {
+        this.admins = admins;
     }
 }

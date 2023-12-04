@@ -186,14 +186,14 @@ public class GrantDurationService {
     }
 
     public GrantDurationDTO createDTO(GrantDuration grantDuration) {
-        return new GrantDurationDTO(
-                grantDuration.getId(),
+        List<String> admins = groupUserService.getAllTopicAdminsOfGroup(grantDuration.getPermissionsGroup().getId());
+        return new GrantDurationDTO(grantDuration.getId(),
                 grantDuration.getName(),
                 grantDuration.getPermissionsGroup().getId(),
                 grantDuration.getPermissionsGroup().getName(),
                 grantDuration.getDurationInMilliseconds(),
-                grantDuration.getDurationMetadata()
-        );
+                grantDuration.getDurationMetadata(),
+                admins);
     }
 
     private void checkExistenceAndAdminAuthorization(Optional<GrantDuration> grantDurationOptional) {

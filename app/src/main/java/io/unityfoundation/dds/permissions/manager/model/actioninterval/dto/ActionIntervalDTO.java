@@ -22,6 +22,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 
 @Introspected
 public class ActionIntervalDTO implements EntityDTO {
@@ -34,6 +35,7 @@ public class ActionIntervalDTO implements EntityDTO {
     private String name;
     private Long groupId;
     private String groupName;
+    private List<String> admins;
 
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -46,22 +48,14 @@ public class ActionIntervalDTO implements EntityDTO {
     public ActionIntervalDTO() {
     }
 
-    public ActionIntervalDTO(Long id, String name, Long groupId, String groupName, Instant startDate, Instant endDate) {
+    public ActionIntervalDTO(Long id, String name, Long groupId, String groupName, Instant startDate, Instant endDate, List<String> admins) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
         this.groupName = groupName;
         this.startDate = startDate;
         this.endDate = endDate;
-    }
-
-    public ActionIntervalDTO(ActionInterval actionInterval) {
-        this.id = actionInterval.getId();
-        this.name = actionInterval.getName();
-        this.groupId = actionInterval.getPermissionsGroup().getId();
-        this.groupName = actionInterval.getPermissionsGroup().getName();
-        this.startDate = actionInterval.getStartDate();
-        this.endDate = actionInterval.getEndDate();
+        this.admins = admins;
     }
 
     public Long getId() {
@@ -90,6 +84,14 @@ public class ActionIntervalDTO implements EntityDTO {
 
     public String getGroupName() {
         return groupName;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(List<String> admins) {
+        this.admins = admins;
     }
 
     public void setGroupName(String groupName) {

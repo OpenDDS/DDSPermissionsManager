@@ -21,6 +21,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 
 @Introspected
 public class ApplicationDTO implements EntityDTO {
@@ -41,6 +42,8 @@ public class ApplicationDTO implements EntityDTO {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateUpdated;
+
+    private List<String> admins;
 
     public ApplicationDTO() {
     }
@@ -118,5 +121,13 @@ public class ApplicationDTO implements EntityDTO {
 
     public void setDateUpdated(Instant dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
+    }
+
+    public void setAdmins(List<String> admins) {
+        this.admins = admins;
     }
 }
