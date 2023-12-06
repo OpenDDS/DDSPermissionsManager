@@ -52,9 +52,6 @@ public class Action {
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<TopicSet> topicSets = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<Topic> topics = new HashSet<>();
-
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "action")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ActionPartition> partitions = new HashSet<>();
@@ -74,33 +71,12 @@ public class Action {
         this.canPublish = canPublish;
     }
 
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-
-    public Set<Topic> getTopics() {
-        if (topics == null) return null;
-        return Collections.unmodifiableSet(topics);
-    }
-
-    public void setTopics(Set<Topic> topics) {
-        this.topics = topics;
-    }
-
-    public boolean removeTopic(Long topicId) {
-        this.dateUpdated = Instant.now();
-        return topics.removeIf(topic -> topicId != null && topicId.equals(topic.getId()));
-    }
-
-    public void addTopic(Topic topic) {
-        topics.add(topic);
-        this.dateUpdated = Instant.now();
     }
 
     public Set<TopicSet> getTopicSets() {
@@ -114,7 +90,7 @@ public class Action {
 
     public boolean removeTopicSet(Long topicSetId) {
         this.dateUpdated = Instant.now();
-        return topics.removeIf(topicSet -> topicSetId != null && topicSetId.equals(topicSet.getId()));
+        return topicSets.removeIf(topicSet -> topicSetId != null && topicSetId.equals(topicSet.getId()));
     }
 
     public void addTopicSet(TopicSet topicSet) {

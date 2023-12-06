@@ -28,11 +28,14 @@ import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.CreateTopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.TopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.UpdateTopicSetDTO;
+import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopic;
+import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
 
 import javax.validation.constraints.NotNull;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,13 +46,15 @@ public class TopicSetService {
 
     private final TopicSetRepository topicSetRepository;
     private final TopicRepository topicRepository;
+    private final TopicSetTopicRepository topicSetTopicRepository;
     private final GroupRepository groupRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
 
-    public TopicSetService(TopicSetRepository topicSetRepository, TopicRepository topicRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
+    public TopicSetService(TopicSetRepository topicSetRepository, TopicRepository topicRepository, TopicSetTopicRepository topicSetTopicRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
         this.topicSetRepository = topicSetRepository;
         this.topicRepository = topicRepository;
+        this.topicSetTopicRepository = topicSetTopicRepository;
         this.groupRepository = groupRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
@@ -197,9 +202,9 @@ public class TopicSetService {
             throw new DPMException(ResponseStatusCodes.TOPIC_ALREADY_EXISTS);
         }
 
-        topicSet.addTopic(topic);
-        TopicSet updated = topicSetRepository.update(topicSet);
-        return HttpResponse.created(createDTO(updated));
+        topicSetTopicRepository.save(new TopicSetTopic(topicSet, topic));
+        topicSet.setDateUpdated(Instant.now());
+        return HttpResponse.created(createDTO(topicSetRepository.update(topicSet)));
     }
 
     public HttpResponse<TopicSetDTO> removeTopic(Long topicSetId, Long topicId) {
@@ -222,22 +227,23 @@ public class TopicSetService {
             throw new DPMException(ResponseStatusCodes.TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET, HttpStatus.NOT_FOUND);
         }
 
-        topicSet.removeTopic(topic.getId());
-        TopicSet updated = topicSetRepository.update(topicSet);
-        return HttpResponse.ok(createDTO(updated));
+        topicSetTopicRepository.deleteByPermissionsTopicSetAndPermissionsTopic(topicSet, topic);
+        topicSet.setDateUpdated(Instant.now());
+        return HttpResponse.ok(createDTO(topicSetRepository.update(topicSet)));
     }
 
     public boolean doesTopicSetContainTopic(TopicSet topicSet, Topic topic) {
-        return topicSet.getTopics().stream().map(Topic::getId).anyMatch(aLong -> aLong.equals(topic.getId()));
+        return topicSetTopicRepository.existsByPermissionsTopicSetAndPermissionsTopic(topicSet, topic);
     }
 
     public TopicSetDTO createDTO(TopicSet topicSet) {
+        List<Topic> topics = topicSetTopicRepository.findPermissionsTopicByPermissionsTopicSet(topicSet);
         return new TopicSetDTO(
                 topicSet.getId(),
                 topicSet.getName(),
                 topicSet.getPermissionsGroup().getId(),
                 topicSet.getPermissionsGroup().getName(),
-                topicSet.getTopics().stream()
+                topics.stream()
                         .map(topic -> Map.of(topic.getId(), topic.getName()))
                         .collect(Collectors.toSet()),
                 topicSet.getDateCreated(),

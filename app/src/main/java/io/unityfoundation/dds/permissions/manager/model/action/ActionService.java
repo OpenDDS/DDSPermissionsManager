@@ -25,6 +25,8 @@ import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionD
 import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalRepository;
+import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopic;
+import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
@@ -37,6 +39,7 @@ import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
 
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Function;
@@ -51,16 +54,18 @@ public class ActionService {
     private final TopicRepository topicRepository;
     private final TopicSetRepository topicSetRepository;
     private final ActionPartitionRepository actionPartitionRepository;
+    private final ActionTopicRepository actionTopicRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
 
-    public ActionService(ActionRepository actionRepository, ApplicationGrantRepository applicationGrantRepository, ActionIntervalRepository actionIntervalRepository, TopicRepository topicRepository, TopicSetRepository topicSetRepository, ActionPartitionRepository actionPartitionRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
+    public ActionService(ActionRepository actionRepository, ApplicationGrantRepository applicationGrantRepository, ActionIntervalRepository actionIntervalRepository, TopicRepository topicRepository, TopicSetRepository topicSetRepository, ActionPartitionRepository actionPartitionRepository, GroupRepository groupRepository, ActionTopicRepository actionTopicRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
         this.actionRepository = actionRepository;
         this.applicationGrantRepository = applicationGrantRepository;
         this.actionIntervalRepository = actionIntervalRepository;
         this.topicRepository = topicRepository;
         this.topicSetRepository = topicSetRepository;
         this.actionPartitionRepository = actionPartitionRepository;
+        this.actionTopicRepository = actionTopicRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
     }
@@ -211,12 +216,18 @@ public class ActionService {
 
         Action newAction = new Action(applicationGrant, actionIntervalOptional.get(), createActionDTO.getPublishAction());
         newAction.setTopicSets(topicSets);
-        newAction.setTopics(topics);
 
+        Action updateAction = persistNewAction(createActionDTO.getPartitions(), topics, newAction);
+        return HttpResponse.ok(createDTO(updateAction));
+    }
+
+    @Transactional
+    public Action persistNewAction(Set<String> partitions, Set<Topic> topics, Action newAction) {
         Action savedAction = actionRepository.save(newAction);
-        addPartitionsToPermission(savedAction, createActionDTO.getPartitions());
+        addPartitionsToAction(savedAction, partitions);
+        addTopicsToAction(savedAction, topics);
 
-        return HttpResponse.ok(createDTO(actionRepository.update(savedAction)));
+        return actionRepository.update(savedAction);
     }
 
     public MutableHttpResponse<?> update(@NotNull Long actionId, UpdateActionDTO updateActionDTO) {
@@ -239,13 +250,20 @@ public class ActionService {
         Action action = actionOptional.get();
         action.setActionInterval(actionIntervalOptional.get());
         action.setTopicSets(topicSets);
-        action.setTopics(topics);
+
+        Action persistedAction = persistExistingAction(updateActionDTO, topics, action, actionOptional);
+        return HttpResponse.ok(createDTO(persistedAction));
+    }
+
+    @Transactional
+    public Action persistExistingAction(UpdateActionDTO updateActionDTO, Set<Topic> topics, Action action, Optional<Action> actionOptional) {
+        actionTopicRepository.deleteByPermissionsActionId(actionOptional.get().getId());
+        addTopicsToAction(action, topics);
 
         actionPartitionRepository.deleteAll(actionOptional.get().getPartitions());
-        addPartitionsToPermission(action, updateActionDTO.getPartitions());
+        addPartitionsToAction(action, updateActionDTO.getPartitions());
 
-        ActionDTO dto = createDTO(actionRepository.update(action));
-        return HttpResponse.ok(dto);
+        return actionRepository.update(action);
     }
 
     public HttpResponse deleteById(Long actionId) {
@@ -259,7 +277,8 @@ public class ActionService {
     }
 
     public ActionDTO createDTO(Action action) {
-        Set<Map> topics = action.getTopics().stream().map((Function<Topic, Map>) topic -> Map.of("id", topic.getId(), "name", topic.getName())).collect(Collectors.toSet());
+        List<Topic> topicList =  actionTopicRepository.findPermissionsTopicByPermissionsAction(action);
+        Set<Map> topics = topicList.stream().map((Function<Topic, Map>) topic -> Map.of("id", topic.getId(), "name", topic.getName())).collect(Collectors.toSet());
         Set<Map> topicSets = action.getTopicSets().stream().map((Function<TopicSet, Map>) topicSet -> Map.of("id", topicSet.getId(), "name", topicSet.getName())).collect(Collectors.toSet());
         Set<String> partitions = action.getPartitions().stream().map(ActionPartition::getPartitionName).collect(Collectors.toSet());
         return new ActionDTO(
@@ -276,11 +295,19 @@ public class ActionService {
                 );
     }
 
-    private void addPartitionsToPermission(Action action, Set<String> partitions) {
+    private void addPartitionsToAction(Action action, Set<String> partitions) {
         if (partitions != null) {
             action.setPartitions(partitions.stream()
                     .map(p -> actionPartitionRepository.save(new ActionPartition(action, p)))
                     .collect(Collectors.toSet()));
+        }
+    }
+
+    private void addTopicsToAction(Action action, Set<Topic> topics) {
+        if (topics != null) {
+            topics.forEach(topic -> {
+                actionTopicRepository.save(new ActionTopic(action, topic));
+            });
         }
     }
 

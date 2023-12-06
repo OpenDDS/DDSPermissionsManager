@@ -21,10 +21,12 @@ import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.security.authentication.AuthenticationException;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
+import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
+import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
@@ -40,14 +42,18 @@ public class TopicService {
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
     private final GroupRepository groupRepository;
+    private final ActionTopicRepository actionTopicRepository;
+    private final TopicSetTopicRepository topicSetTopicRepository;
     private final ApplicationPermissionService applicationPermissionService;
     private final OnUpdateTopicWebSocket onUpdateTopicWebSocket;
 
-    public TopicService(TopicRepository topicRepository, SecurityUtil securityUtil, GroupUserService groupUserService, GroupRepository groupRepository, ApplicationPermissionService applicationPermissionService, OnUpdateTopicWebSocket onUpdateTopicWebSocket) {
+    public TopicService(TopicRepository topicRepository, SecurityUtil securityUtil, GroupUserService groupUserService, GroupRepository groupRepository, ActionTopicRepository actionTopicRepository, TopicSetTopicRepository topicSetTopicRepository, ApplicationPermissionService applicationPermissionService, OnUpdateTopicWebSocket onUpdateTopicWebSocket) {
         this.topicRepository = topicRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
         this.groupRepository = groupRepository;
+        this.actionTopicRepository = actionTopicRepository;
+        this.topicSetTopicRepository = topicSetTopicRepository;
         this.applicationPermissionService = applicationPermissionService;
         this.onUpdateTopicWebSocket = onUpdateTopicWebSocket;
     }
@@ -174,10 +180,16 @@ public class TopicService {
 
         // TODO - Need to investigate cascade management to eliminate this
         applicationPermissionService.deleteAllByTopic(topic);
+        removeFromAssociatedActions(topic);
 
         topicRepository.deleteById(id);
         onUpdateTopicWebSocket.broadcastResourceEvent(OnUpdateTopicWebSocket.TOPIC_DELETED, topic.getId());
         return HttpResponse.seeOther(URI.create("/api/topics"));
+    }
+
+    private void removeFromAssociatedActions(Topic topic) {
+        actionTopicRepository.deleteByPermissionsTopicId(topic.getId());
+        topicSetTopicRepository.deleteByPermissionsTopicId(topic.getId());
     }
 
     public HttpResponse show(Long id) {

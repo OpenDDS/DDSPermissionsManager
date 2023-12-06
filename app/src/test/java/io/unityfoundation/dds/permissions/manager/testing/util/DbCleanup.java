@@ -14,6 +14,7 @@
 package io.unityfoundation.dds.permissions.manager.testing.util;
 
 import io.unityfoundation.dds.permissions.manager.model.action.ActionRepository;
+import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
@@ -22,6 +23,7 @@ import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSetRepository;
+import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import jakarta.inject.Singleton;
 
@@ -39,11 +41,13 @@ public class DbCleanup {
     private final ActionIntervalRepository actionIntervalRepository;
     private final ApplicationGrantRepository applicationGrantRepository;
     private final ActionRepository actionRepository;
+    private final ActionTopicRepository actionTopicRepository;
+    private final TopicSetTopicRepository topicSetTopicRepository;
 
     public DbCleanup(TopicRepository topicRepository, GroupRepository groupRepository,
                      ApplicationRepository applicationRepository, UserRepository userRepository,
                      ApplicationPermissionRepository applicationPermissionRepository, GroupUserRepository groupUserRepository,
-                     TopicSetRepository topicSetRepository, ActionIntervalRepository actionIntervalRepository, ApplicationGrantRepository applicationGrantRepository, ActionRepository actionRepository) {
+                     TopicSetRepository topicSetRepository, ActionIntervalRepository actionIntervalRepository, ApplicationGrantRepository applicationGrantRepository, ActionRepository actionRepository, ActionTopicRepository actionTopicRepository, TopicSetTopicRepository topicSetTopicRepository) {
         this.topicRepository = topicRepository;
         this.groupRepository = groupRepository;
         this.applicationRepository = applicationRepository;
@@ -54,11 +58,15 @@ public class DbCleanup {
         this.topicSetRepository = topicSetRepository;
         this.applicationGrantRepository = applicationGrantRepository;
         this.actionRepository = actionRepository;
+        this.actionTopicRepository = actionTopicRepository;
+        this.topicSetTopicRepository = topicSetTopicRepository;
     }
 
     @Transactional
     public void cleanup() {
+        actionTopicRepository.deleteAll();
         actionRepository.deleteAll();
+        topicSetTopicRepository.deleteAll();
         topicSetRepository.deleteAll();
         actionIntervalRepository.deleteAll();
         groupUserRepository.deleteAll();
