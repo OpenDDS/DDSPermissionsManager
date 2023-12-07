@@ -27,22 +27,18 @@ import io.micronaut.security.filters.AuthenticationFetcher;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.unityfoundation.dds.permissions.manager.model.DPMEntity;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
-import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.*;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermission;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
-import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
-import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
-import io.unityfoundation.dds.permissions.manager.model.user.UserRole;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -50,7 +46,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static io.micronaut.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.*;
@@ -347,65 +345,4 @@ class UniversalSearchApiTest {
             return type.equals(DPMEntity.TOPIC.name());
         }));
     }
-
-
-    private HttpResponse<?> createGroup(String groupName) {
-        SimpleGroupDTO group = new SimpleGroupDTO();
-        group.setName(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
-    }
-
-    private HttpResponse<?> createTopic(String topicName, TopicKind topicKind, Long groupId) {
-        TopicDTO topicDTO = new TopicDTO();
-        topicDTO.setName(topicName);
-        topicDTO.setKind(topicKind);
-        topicDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/topics/save", topicDTO);
-        return blockingClient.exchange(request, TopicDTO.class);
-    }
-
-    private HttpResponse<?> createNonAdminGroupMembership(String email, Long groupId) {
-        return createGroupMembership(email, groupId, false, false, false);
-    }
-
-    private HttpResponse<?> createGroupMembership(String email, Long groupId, boolean groupAdmin, boolean topicAdmin, boolean applicationAdmin) {
-        GroupUserDTO dto = new GroupUserDTO();
-        dto.setPermissionsGroup(groupId);
-        dto.setEmail(email);
-        dto.setGroupAdmin(groupAdmin);
-        dto.setTopicAdmin(topicAdmin);
-        dto.setApplicationAdmin(applicationAdmin);
-        HttpRequest<?> request = HttpRequest.POST("/group_membership", dto);
-        return  blockingClient.exchange(request, GroupUserDTO.class);
-    }
-
-    private HttpResponse<?> createApplicationPermission(Long applicationId, Long topicId, boolean read, boolean write) {
-        HttpRequest<?> request;
-
-        // generate grant token for application
-        request = HttpRequest.GET("/applications/generate_grant_token/" + applicationId);
-        HttpResponse<String> response = blockingClient.exchange(request, String.class);
-        assertEquals(OK, response.getStatus());
-        Optional<String> optional = response.getBody(String.class);
-        assertTrue(optional.isPresent());
-        String applicationGrantToken = optional.get();
-
-        Map<String, Boolean> payload = Map.of("read", read, "write", write);
-
-        request = HttpRequest.POST("/application_permissions/" + topicId, payload)
-                .header(ApplicationPermissionService.APPLICATION_GRANT_TOKEN, applicationGrantToken);
-        return blockingClient.exchange(request, AccessPermissionDTO.class);
-    }
-
 }

@@ -42,6 +42,7 @@ import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +79,9 @@ public class WebSocketTests {
 
     @Inject
     ApplicationContext ctx;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     EmbeddedServer embeddedServer;
@@ -188,14 +192,14 @@ public class WebSocketTests {
 
 
         // create groups
-        response = createGroup("Theta");
+        response = entityUtil.createGroup("Theta");
         assertEquals(OK, response.getStatus());
         Optional<Group> thetaOptional = response.getBody(Group.class);
         assertTrue(thetaOptional.isPresent());
         Group theta = thetaOptional.get();
 
         // create topic
-        response = createTopic("Abc123", TopicKind.B, theta.getId());
+        response = entityUtil.createTopic("Abc123", TopicKind.B, theta.getId());
         assertEquals(OK, response.getStatus());
         Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
         assertTrue(topicOptional.isPresent());
@@ -238,14 +242,14 @@ public class WebSocketTests {
         HttpResponse<?> response;
 
         // create groups
-        response = createGroup("Theta");
+        response = entityUtil.createGroup("Theta");
         assertEquals(OK, response.getStatus());
         Optional<Group> thetaOptional = response.getBody(Group.class);
         assertTrue(thetaOptional.isPresent());
         Group theta = thetaOptional.get();
 
         // create applications
-        response = createApplication("TestApplication", theta.getId());
+        response = entityUtil.createApplication("TestApplication", theta.getId());
         assertEquals(OK, response.getStatus());
         Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
         assertTrue(applicationOptional.isPresent());
@@ -290,35 +294,4 @@ public class WebSocketTests {
         }
 
     }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        Group group = new Group(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-        return blockingClient.exchange(request, Group.class);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        return createApplication(applicationName, groupId, null);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId, String description) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-        applicationDTO.setDescription(description);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
-    }
-
-    private HttpResponse<?> createTopic(String topicName, TopicKind topicKind, Long groupId) {
-        TopicDTO topicDTO = new TopicDTO();
-        topicDTO.setName(topicName);
-        topicDTO.setGroup(groupId);
-        topicDTO.setKind(topicKind);
-
-        HttpRequest<?> request = HttpRequest.POST("/topics/save", topicDTO);
-        return blockingClient.exchange(request, TopicDTO.class);
-    }
-
 }

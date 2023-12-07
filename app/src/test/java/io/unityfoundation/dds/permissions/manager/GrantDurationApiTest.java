@@ -30,12 +30,11 @@ import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.Create
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +57,9 @@ public class GrantDurationApiTest {
     @Inject
     @Client("/api")
     HttpClient client;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     GroupRepository groupRepository;
@@ -124,13 +126,13 @@ public class GrantDurationApiTest {
         void canCreateWithGroupAssociation() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDuration.isPresent());
@@ -143,7 +145,7 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -183,7 +185,7 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -225,14 +227,14 @@ public class GrantDurationApiTest {
         public void cannotCreateWithNameLessThanThreeCharacters() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGrantDuration("A", theta.getId());
+                entityUtil.createGrantDuration("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -245,13 +247,13 @@ public class GrantDurationApiTest {
         public void createShouldTrimNameWhitespaces() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGrantDuration("   Abc123  ", theta.getId());
+            response = entityUtil.createGrantDuration("   Abc123  ", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDuration.isPresent());
@@ -263,19 +265,19 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationOptional.isPresent());
@@ -300,14 +302,14 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", theta.getId(), "MONTHS");
+            response = entityUtil.createGrantDuration("Abc123", theta.getId(), "MONTHS");
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationOptional.isPresent());
@@ -351,14 +353,14 @@ public class GrantDurationApiTest {
         public void cannotCreateGrantDurationWithSameNameInGroup() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationOptional.isPresent());
@@ -366,7 +368,7 @@ public class GrantDurationApiTest {
             assertEquals("Abc123", savedGrantDuration.getName());
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGrantDuration("Abc123", theta.getId());
+                entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -381,13 +383,13 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationOptional.isPresent());
@@ -416,27 +418,27 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Green");
+            response = entityUtil.createGroup("Green");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> greenOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(greenOptional.isPresent());
             SimpleGroupDTO green = greenOptional.get();
 
-            response = createGroup("Yellow");
+            response = entityUtil.createGroup("Yellow");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> yellowOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(yellowOptional.isPresent());
             SimpleGroupDTO yellow = yellowOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", yellow.getId());
+            response = entityUtil.createGrantDuration("Abc123", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", green.getId());
+            response = entityUtil.createGrantDuration("Xyz789", green.getId());
             assertEquals(OK, response.getStatus());
 
             // site-wide test
-            response = createGrantDuration("Xyz789", yellow.getId());
+            response = entityUtil.createGrantDuration("Xyz789", yellow.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/grant_durations");
@@ -457,23 +459,23 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
@@ -503,26 +505,26 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> abcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcOptional.isPresent());
             GrantDurationDTO abcGrantDuration = abcOptional.get();
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzOptional.isPresent());
@@ -568,29 +570,29 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Def456", zeta.getId());
+            response = entityUtil.createGrantDuration("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Def456", theta.getId());
+            response = entityUtil.createGrantDuration("Def456", theta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/grant_durations");
@@ -624,26 +626,26 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Def456", zeta.getId());
+            response = entityUtil.createGrantDuration("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/grant_durations?sort=name,desc");
@@ -693,20 +695,20 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create grant duration
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
         }
 
@@ -720,18 +722,18 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create grant duration
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDuration.isPresent());
@@ -773,21 +775,21 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create grant duration
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGrantDuration("Abc123", theta.getId());
+                entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -805,18 +807,18 @@ public class GrantDurationApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant duration
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -851,25 +853,25 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant durations
-            createGrantDuration("Abc123", zeta.getId());
-            response = createGrantDuration("Xyz789", theta.getId());
+            entityUtil.createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -900,31 +902,31 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
 
-            response = createGroup("Omega");
+            response = entityUtil.createGroup("Omega");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             SimpleGroupDTO omega = omegaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant durations
-            response = createGrantDuration("Abc123", omega.getId());
+            response = entityUtil.createGrantDuration("Abc123", omega.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcGrantDurationOptional.isPresent());
             GrantDurationDTO abcGrantDuration = abcGrantDurationOptional.get();
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -959,29 +961,29 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> abcGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcGrantDurationOptional.isPresent());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -1012,25 +1014,25 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant durations
-            createGrantDuration("Abc123", zeta.getId());
-            response = createGrantDuration("Xyz789", theta.getId());
+            entityUtil.createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -1080,25 +1082,25 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create grant durations
-            createGrantDuration("Abc123", zeta.getId());
-            response = createGrantDuration("Xyz789", theta.getId());
+            entityUtil.createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -1170,7 +1172,7 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -1180,7 +1182,7 @@ public class GrantDurationApiTest {
 
             // create grant durations
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGrantDuration("Abc123", theta.getId());
+                entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1199,14 +1201,14 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", theta.getId());
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> abcTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -1237,23 +1239,23 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzTopiSetcOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzTopiSetcOptional.isPresent());
@@ -1296,28 +1298,28 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -1341,28 +1343,28 @@ public class GrantDurationApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create grant durations
-            response = createGrantDuration("Abc123", zeta.getId());
+            response = entityUtil.createGrantDuration("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createGrantDuration("Xyz789", theta.getId());
+            response = entityUtil.createGrantDuration("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> xyzGrantDurationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(xyzGrantDurationOptional.isPresent());
@@ -1377,38 +1379,5 @@ public class GrantDurationApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        SimpleGroupDTO groupDTO = new SimpleGroupDTO();
-        groupDTO.setName(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", groupDTO);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-
-    private HttpResponse<?> addGroupMembership(Long groupId, String email, boolean isAdmin) {
-        GroupUserDTO dto = new GroupUserDTO();
-        dto.setPermissionsGroup(groupId);
-        dto.setEmail(email);
-        dto.setTopicAdmin(isAdmin);
-
-        HttpRequest<?>  request = HttpRequest.POST("/group_membership", dto);
-        return blockingClient.exchange(request, GroupUserResponseDTO.class);
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId) {
-        return createGrantDuration(name, groupId, null);
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId, String durationMetadata) {
-        CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setDurationInMilliseconds(30000L);
-        abcDTO.setDurationMetadata(durationMetadata);
-
-        HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
-        return blockingClient.exchange(request, GrantDurationDTO.class);
     }
 }

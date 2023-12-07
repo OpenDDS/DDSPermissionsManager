@@ -26,16 +26,15 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +59,9 @@ public class ActionIntervalApiTest {
     @Inject
     @Client("/api")
     HttpClient client;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     GroupRepository groupRepository;
@@ -126,13 +128,13 @@ public class ActionIntervalApiTest {
         void canCreateWithGroupAssociation() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionInterval.isPresent());
@@ -143,7 +145,7 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -182,14 +184,14 @@ public class ActionIntervalApiTest {
         public void cannotCreateWithNameLessThanThreeCharacters() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("A", theta.getId());
+                entityUtil.createActionInterval("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -202,13 +204,13 @@ public class ActionIntervalApiTest {
         public void createShouldTrimNameWhitespaces() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("   Abc123  ", theta.getId());
+            response = entityUtil.createActionInterval("   Abc123  ", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionInterval.isPresent());
@@ -220,19 +222,19 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalOptional.isPresent());
@@ -257,14 +259,14 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalOptional.isPresent());
@@ -304,14 +306,14 @@ public class ActionIntervalApiTest {
         public void cannotCreateActionIntervalWithSameNameInGroup() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalOptional.isPresent());
@@ -319,7 +321,7 @@ public class ActionIntervalApiTest {
             assertEquals("Abc123", savedActionInterval.getName());
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -334,13 +336,13 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalOptional.isPresent());
@@ -370,27 +372,27 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Green");
+            response = entityUtil.createGroup("Green");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> greenOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(greenOptional.isPresent());
             SimpleGroupDTO green = greenOptional.get();
 
-            response = createGroup("Yellow");
+            response = entityUtil.createGroup("Yellow");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> yellowOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(yellowOptional.isPresent());
             SimpleGroupDTO yellow = yellowOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", yellow.getId());
+            response = entityUtil.createActionInterval("Abc123", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", green.getId());
+            response = entityUtil.createActionInterval("Xyz789", green.getId());
             assertEquals(OK, response.getStatus());
 
             // site-wide test
-            response = createActionInterval("Xyz789", yellow.getId());
+            response = entityUtil.createActionInterval("Xyz789", yellow.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/action_intervals");
@@ -411,23 +413,23 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
@@ -457,26 +459,26 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> abcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcOptional.isPresent());
             ActionIntervalDTO abcActionInterval = abcOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzOptional.isPresent());
@@ -522,29 +524,29 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", zeta.getId());
+            response = entityUtil.createActionInterval("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", theta.getId());
+            response = entityUtil.createActionInterval("Def456", theta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/action_intervals");
@@ -578,26 +580,26 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Def456", zeta.getId());
+            response = entityUtil.createActionInterval("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/action_intervals?sort=name,desc");
@@ -640,27 +642,27 @@ public class ActionIntervalApiTest {
 
         // create
         @Test
-        void canCreateActionInterval(){
+        void createActionInterval(){
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
         }
 
@@ -674,18 +676,18 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionInterval.isPresent());
@@ -727,21 +729,21 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create action interval
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -759,18 +761,18 @@ public class ActionIntervalApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action interval
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -805,25 +807,25 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            entityUtil.createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -854,31 +856,31 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
 
-            response = createGroup("Omega");
+            response = entityUtil.createGroup("Omega");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             SimpleGroupDTO omega = omegaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action intervals
-            response = createActionInterval("Abc123", omega.getId());
+            response = entityUtil.createActionInterval("Abc123", omega.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcActionIntervalOptional.isPresent());
             ActionIntervalDTO abcActionInterval = abcActionIntervalOptional.get();
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -913,29 +915,29 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> abcActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcActionIntervalOptional.isPresent());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -966,25 +968,25 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            entityUtil.createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -1034,25 +1036,25 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create action intervals
-            createActionInterval("Abc123", zeta.getId());
-            response = createActionInterval("Xyz789", theta.getId());
+            entityUtil.createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -1124,7 +1126,7 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -1134,7 +1136,7 @@ public class ActionIntervalApiTest {
 
             // create action intervals
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createActionInterval("Abc123", theta.getId());
+                entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1153,14 +1155,14 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", theta.getId());
+            response = entityUtil.createActionInterval("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> abcTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -1191,23 +1193,23 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzTopiSetcOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzTopiSetcOptional.isPresent());
@@ -1250,28 +1252,28 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -1295,28 +1297,28 @@ public class ActionIntervalApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create action intervals
-            response = createActionInterval("Abc123", zeta.getId());
+            response = entityUtil.createActionInterval("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("Xyz789", theta.getId());
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> xyzActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(xyzActionIntervalOptional.isPresent());
@@ -1331,34 +1333,5 @@ public class ActionIntervalApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        SimpleGroupDTO groupDTO = new SimpleGroupDTO();
-        groupDTO.setName(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", groupDTO);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-
-    private HttpResponse<?> addGroupMembership(Long groupId, String email, boolean isAdmin) {
-        GroupUserDTO dto = new GroupUserDTO();
-        dto.setPermissionsGroup(groupId);
-        dto.setEmail(email);
-        dto.setTopicAdmin(isAdmin);
-
-        HttpRequest<?>  request = HttpRequest.POST("/group_membership", dto);
-        return blockingClient.exchange(request, GroupUserResponseDTO.class);
-    }
-
-    private HttpResponse<?> createActionInterval(String name, Long groupId) {
-        CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setStartDate(Instant.now());
-        abcDTO.setEndDate(Instant.now().plus(1, ChronoUnit.DAYS));
-
-        HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
-        return blockingClient.exchange(request, ActionIntervalDTO.class);
     }
 }

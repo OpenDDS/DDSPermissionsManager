@@ -29,19 +29,14 @@ import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import io.micronaut.security.token.jwt.generator.claims.JWTClaimsSetGenerator;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
-import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
-import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.UpdateGrantDTO;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.*;
-import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.AccessPermissionDTO;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
@@ -52,14 +47,13 @@ import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,6 +67,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ApplicationGrantApiTest {
 
     private BlockingHttpClient blockingClient;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     MockSecurityService mockSecurityService;
@@ -163,21 +160,21 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -192,7 +189,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grant
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
@@ -212,7 +209,7 @@ public class ApplicationGrantApiTest {
             Long applicationGroupId = applicationOne.getPermissionsGroup().getId();
 
             // create grant duration
-            response = createGrantDuration("30s Duration", applicationGroupId, "WEEKS");
+            response = entityUtil.createGrantDuration("30s Duration", applicationGroupId, "WEEKS");
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -228,7 +225,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grant
-            response = createApplicationGrant(applicationGrantToken, applicationGroupId, "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, applicationGroupId, "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
@@ -264,21 +261,21 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -289,7 +286,7 @@ public class ApplicationGrantApiTest {
             Optional<String> s = jwtTokenGenerator.generateToken(stringObjectMap);
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(s.get(), primaryGroup.getId(), "GrantName", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(s.get(), primaryGroup.getId(), "GrantName", durationOptional.get().getId());
             });
             assertEquals(FORBIDDEN, exception.getStatus());
         }
@@ -300,14 +297,14 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
@@ -322,7 +319,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -333,7 +330,7 @@ public class ApplicationGrantApiTest {
 
             // create app permission
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "GrantName", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "GrantName", durationOptional.get().getId());
             });
             assertEquals(FORBIDDEN, exception.getStatus());
         }
@@ -344,21 +341,21 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -373,7 +370,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application permission
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
             assertTrue(grantDTOOptional.isPresent());
@@ -391,14 +388,14 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
@@ -413,21 +410,21 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
             assertEquals("Duration1", durationOptional.get().getName());
 
             // create app permission
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<AccessPermissionDTO> permissionOptional = response.getBody(AccessPermissionDTO.class);
             assertTrue(permissionOptional.isPresent());
 
             // second create attempt
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> body = exception.getResponse().getBody(List.class);
@@ -450,13 +447,13 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create grant duration
-            response = createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
+            response = entityUtil.createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationnOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationnOptional.isPresent());
             assertEquals("Duration1", durationnOptional.get().getName());
 
-            response = createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
+            response = entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
                     "Grant2", durationnOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
@@ -483,19 +480,19 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create grant duration
-            response = createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
+            response = entityUtil.createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
             assertEquals("Duration1", durationOptional.get().getName());
 
-            response = createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
+            response = entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
                     "AGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> aGrantOptional = response.getBody(GrantDTO.class);
             assertTrue(aGrantOptional.isPresent());
 
-            response = createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
+            response = entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
                     "BGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> bGrantOptional = response.getBody(GrantDTO.class);
@@ -527,7 +524,7 @@ public class ApplicationGrantApiTest {
             assertTrue(optional.isPresent());
             String applicationGrantToken = optional.get();
 
-            response = createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
+            response = entityUtil.createGrantDuration("Duration1", applicationOne.getPermissionsGroup().getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -535,7 +532,7 @@ public class ApplicationGrantApiTest {
 
             // null name
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
+                entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
                         null, durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
@@ -546,7 +543,7 @@ public class ApplicationGrantApiTest {
 
             // name less than three characters
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
+                entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(),
                         "    ", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
@@ -557,7 +554,7 @@ public class ApplicationGrantApiTest {
 
             // requires group
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, null, "MyGrant", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(applicationGrantToken, null, "MyGrant", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             body = exception.getResponse().getBody(List.class);
@@ -567,7 +564,7 @@ public class ApplicationGrantApiTest {
 
             // requires duration
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(), "MyGrant", null);
+                entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(), "MyGrant", null);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             body = exception.getResponse().getBody(List.class);
@@ -584,7 +581,7 @@ public class ApplicationGrantApiTest {
             Long publicGroupId = privateApplication.getPermissionsGroup().getId();
 
             // create duration under group publicGroup
-            response = createGrantDuration("DurationB", publicGroupId);
+            response = entityUtil.createGrantDuration("DurationB", publicGroupId);
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -599,7 +596,7 @@ public class ApplicationGrantApiTest {
 
             String finalApplicationGrantToken = applicationGrantToken;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(finalApplicationGrantToken, testGroup.getId(), "CreateGrantAttempt-Fail", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(finalApplicationGrantToken, testGroup.getId(), "CreateGrantAttempt-Fail", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> body = exception.getResponse().getBody(List.class);
@@ -615,7 +612,7 @@ public class ApplicationGrantApiTest {
             assertTrue(optional.isPresent());
             applicationGrantToken = optional.get();
 
-            response = createApplicationGrant(applicationGrantToken, publicGroupId, "CreateGrantAttempt-Pass", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, publicGroupId, "CreateGrantAttempt-Pass", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
             assertTrue(grantDTOOptional.isPresent());
@@ -665,7 +662,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -682,14 +679,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -706,7 +703,7 @@ public class ApplicationGrantApiTest {
             loginAsTopicAdmin();
 
             // create application grant
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TopicAdmin-created Grant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TopicAdmin-created Grant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
             assertTrue(grantDTOOptional.isPresent());
@@ -718,7 +715,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -735,14 +732,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -757,7 +754,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grant
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
@@ -782,7 +779,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -799,14 +796,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -821,7 +818,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application permission
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
             assertTrue(grantDTOOptional.isPresent());
@@ -877,13 +874,13 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
             Group primaryGroup = primaryOptional.get();
 
-            response = createGroup("SecondaryGroup");
+            response = entityUtil.createGroup("SecondaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> secondaryGroupOptional = response.getBody(Group.class);
             assertTrue(secondaryGroupOptional.isPresent());
@@ -900,14 +897,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", secondaryGroup.getId());
+            response = entityUtil.createApplication("Application123", secondaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("Duration1", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("Duration1", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -922,7 +919,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grant
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "TempGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
             assertTrue(grantDTOOptional.isPresent());
@@ -975,7 +972,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -992,14 +989,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -1014,12 +1011,12 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grants
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
 
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MySecondGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MySecondGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional1 = response.getBody(GrantDTO.class);
             assertTrue(grantOptional1.isPresent());
@@ -1050,7 +1047,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -1066,14 +1063,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -1091,7 +1088,7 @@ public class ApplicationGrantApiTest {
 
             // attempt to create application grant
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
@@ -1105,7 +1102,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -1121,14 +1118,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -1143,12 +1140,12 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grants
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
 
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MySecondGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MySecondGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional1 = response.getBody(GrantDTO.class);
             assertTrue(grantOptional1.isPresent());
@@ -1176,7 +1173,7 @@ public class ApplicationGrantApiTest {
             HttpRequest<?> request;
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -1192,14 +1189,14 @@ public class ApplicationGrantApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("Application123", primaryGroup.getId());
+            response = entityUtil.createApplication("Application123", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             assertEquals("Application123", applicationOptional.get().getName());
 
             // create grant duration
-            response = createGrantDuration("30s Duration", primaryGroup.getId());
+            response = entityUtil.createGrantDuration("30s Duration", primaryGroup.getId());
             assertEquals(OK, response.getStatus());
             Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(durationOptional.isPresent());
@@ -1214,7 +1211,7 @@ public class ApplicationGrantApiTest {
             String applicationGrantToken = optional.get();
 
             // create application grants
-            response = createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
+            response = entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             assertEquals(CREATED, response.getStatus());
             Optional<GrantDTO> grantOptional = response.getBody(GrantDTO.class);
             assertTrue(grantOptional.isPresent());
@@ -1229,48 +1226,5 @@ public class ApplicationGrantApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        Group group = new Group(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-        return blockingClient.exchange(request, Group.class);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId) {
-        return createGrantDuration(name, groupId, null);
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId, String durationMetadata) {
-        CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setDurationInMilliseconds(30000L);
-        abcDTO.setDurationMetadata(durationMetadata);
-
-
-        HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
-        return blockingClient.exchange(request, GrantDurationDTO.class);
-    }
-
-    private HttpResponse<?> createApplicationGrant(String applicationGrantToken, Long groupId, String name, Long durationId) {
-        CreateGrantDTO createGrantDTO = new CreateGrantDTO();
-        createGrantDTO.setGroupId(groupId);
-        createGrantDTO.setName(name);
-        createGrantDTO.setGrantDurationId(durationId);
-
-        
-        HttpRequest<?> request = HttpRequest.POST("/application_grants/", createGrantDTO)
-                .header(ApplicationPermissionService.APPLICATION_GRANT_TOKEN, applicationGrantToken);
-        return blockingClient.exchange(request, GrantDTO.class);
     }
 }

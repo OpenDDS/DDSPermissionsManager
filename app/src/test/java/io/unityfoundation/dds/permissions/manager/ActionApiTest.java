@@ -32,33 +32,23 @@ import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
-import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
-import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
-import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
-import io.unityfoundation.dds.permissions.manager.model.topicset.dto.CreateTopicSetDTO;
-import io.unityfoundation.dds.permissions.manager.model.topicset.dto.TopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static io.micronaut.http.HttpStatus.*;
@@ -73,6 +63,9 @@ public class ActionApiTest {
     @Inject
     @Client("/api")
     HttpClient client;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     GroupRepository groupRepository;
@@ -126,13 +119,13 @@ public class ActionApiTest {
         void cannotCreateOnItsOwnWithoutAGrantAssociation() {
             HttpResponse<?> response;
 
-            response = createGroup("MyGroup");
+            response = entityUtil.createGroup("MyGroup");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> groupDTOOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(groupDTOOptional.isPresent());
             SimpleGroupDTO groupDTO = groupDTOOptional.get();
 
-            response = createActionInterval("MyActionInterval", groupDTO.getId());
+            response = entityUtil.createActionInterval("MyActionInterval", groupDTO.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
@@ -169,16 +162,16 @@ public class ActionApiTest {
 
         @Test
         void canCreate() {
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
 
             HttpResponse<?> response;
-            response = createActionInterval("MyActionInterval", applicationGrant.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -188,7 +181,7 @@ public class ActionApiTest {
             assertFalse(actionDTO.getPublishAction());
 
             // partitions
-            response = createAction(applicationGrant.getId(), actionInterval.getId(), null,
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), null,
                     null, null, Set.of("p1", "p2"));
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
@@ -197,14 +190,14 @@ public class ActionApiTest {
             assertFalse(actionDTO.getPartitions().isEmpty());
 
             // topics
-            response = createTopic("MyTopic", TopicKind.B, applicationGrant.getGroupId());
+            response = entityUtil.createTopic("MyTopic", TopicKind.B, applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
             assertTrue(topicOptional.isPresent());
             TopicDTO topicDTO = topicOptional.get();
             Set<Long> topicIds = Set.of(topicDTO.getId());
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId(), null, topicIds, null, null);
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), null, topicIds, null, null);
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -212,8 +205,8 @@ public class ActionApiTest {
             assertFalse(actionDTO.getTopics().isEmpty());
 
             // topic sets
-            Long topicSetId = createTopicSetWithTopics("MyTopicSet", applicationGrant.getGroupId(), Set.of());
-            response = createAction(applicationGrant.getId(), actionInterval.getId(), true,
+            Long topicSetId = entityUtil.createTopicSetWithTopics("MyTopicSet", applicationGrant.getGroupId(), Set.of());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), true,
                     null, Set.of(topicSetId), null);
             assertEquals(OK, response.getStatus());
             actionOptional = response.getBody(ActionDTO.class);
@@ -239,30 +232,30 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
 
             // build second ApplicationGrant
-            response = getApplicationGrantToken(applicationGrantOne.getApplicationId());
+            response = entityUtil.getApplicationGrantToken(applicationGrantOne.getApplicationId());
             Optional<String> grantTokenOptional = response.getBody(String.class);
             assertTrue(grantTokenOptional.isPresent());
 
-            response = createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
+            response = entityUtil.createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
             Optional<GrantDurationDTO> grantDurationDTOOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationDTOOptional.isPresent());
 
-            response = createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
+            response = entityUtil.createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
             Optional<GrantDTO> applicationGrantTwoOptional = response.getBody(GrantDTO.class);
             assertTrue(applicationGrantTwoOptional.isPresent());
 
             // action interval
-            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // action
-            response = createAction(applicationGrantOne.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -288,15 +281,15 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
 
-            response = createActionInterval("MyActionInterval", applicationGrant.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -325,33 +318,33 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
 
             // build second ApplicationGrant
-            response = getApplicationGrantToken(applicationGrantOne.getApplicationId());
+            response = entityUtil.getApplicationGrantToken(applicationGrantOne.getApplicationId());
             Optional<String> grantTokenOptional = response.getBody(String.class);
             assertTrue(grantTokenOptional.isPresent());
 
-            response = createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
+            response = entityUtil.createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
             Optional<GrantDurationDTO> grantDurationDTOOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationDTOOptional.isPresent());
 
-            response = createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
+            response = entityUtil.createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
             Optional<GrantDTO> applicationGrantTwoOptional = response.getBody(GrantDTO.class);
             assertTrue(applicationGrantTwoOptional.isPresent());
 
             // action interval
-            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create actions
-            createAction(applicationGrantOne.getId(), actionInterval.getId());
+            entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
 
-            createAction(applicationGrantTwoOptional.get().getId(), actionInterval.getId());
+            entityUtil.createAction(applicationGrantTwoOptional.get().getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
@@ -373,35 +366,35 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
 
             // build second ApplicationGrant
-            response = getApplicationGrantToken(applicationGrantOne.getApplicationId());
+            response = entityUtil.getApplicationGrantToken(applicationGrantOne.getApplicationId());
             Optional<String> grantTokenOptional = response.getBody(String.class);
             assertTrue(grantTokenOptional.isPresent());
 
-            response = createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
+            response = entityUtil.createGrantDuration("MySecondGrantDuration", applicationGrantOne.getGroupId());
             Optional<GrantDurationDTO> grantDurationDTOOptional = response.getBody(GrantDurationDTO.class);
             assertTrue(grantDurationDTOOptional.isPresent());
 
-            response = createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
+            response = entityUtil.createApplicationGrant(grantTokenOptional.get(), applicationGrantOne.getGroupId(), "MySecondGrant", grantDurationDTOOptional.get().getId());
             Optional<GrantDTO> applicationGrantTwoOptional = response.getBody(GrantDTO.class);
             assertTrue(applicationGrantTwoOptional.isPresent());
 
             // action interval
-            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create actions
-            response = createAction(applicationGrantOne.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOneDTOOptional.isPresent());
 
-            response = createAction(applicationGrantTwoOptional.get().getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrantTwoOptional.get().getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionTwoDTOOptional = response.getBody(ActionDTO.class);
             assertTrue(actionTwoDTOOptional.isPresent());
@@ -431,17 +424,17 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
 
             // action interval
-            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create actions
-            response = createAction(applicationGrantOne.getId(), actionInterval.getId(), true,
+            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId(), true,
                     null, null, Set.of("dog", "cat"));
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
@@ -466,19 +459,19 @@ public class ActionApiTest {
 
         @Test
         public void canViewAllApplicationGrantsAndActionsByApplicationId() {
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
 
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createActionInterval("MyActionInterval", applicationGrant.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // partitions
-            response = createAction(applicationGrant.getId(), actionInterval.getId(), null,
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), null,
                     null, null, Set.of("p1", "p2"));
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
@@ -514,17 +507,17 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = createGenericApplicationGrant();
+            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
 
             // action interval
-            response = createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create actions
-            response = createAction(applicationGrantOne.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOneDTOOptional.isPresent());
@@ -571,14 +564,14 @@ public class ActionApiTest {
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             HttpResponse<?> response;
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
@@ -586,7 +579,7 @@ public class ActionApiTest {
 
             loginAsNonAdmin();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -603,39 +596,39 @@ public class ActionApiTest {
 
             HttpResponse<?> response;
             HttpRequest<?> request;
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
 
-            response = createActionInterval("MySecondActionInterval", groupId);
+            response = entityUtil.createActionInterval("MySecondActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> secondActionIntervalOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(secondActionIntervalOptional.isPresent());
             ActionIntervalDTO secondActionInterval = secondActionIntervalOptional.get();
 
             // create topics
-            response = createTopic("MyBTopic", TopicKind.B, applicationGrant.getGroupId());
+            response = entityUtil.createTopic("MyBTopic", TopicKind.B, applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> topicBOptional = response.getBody(TopicDTO.class);
             assertTrue(topicBOptional.isPresent());
             TopicDTO topicBDTO = topicBOptional.get();
             Long topicBId = topicBDTO.getId();
 
-            response = createTopic("MyCTopic", TopicKind.C, applicationGrant.getGroupId());
+            response = entityUtil.createTopic("MyCTopic", TopicKind.C, applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> topicCOptional = response.getBody(TopicDTO.class);
             assertTrue(topicCOptional.isPresent());
@@ -681,14 +674,14 @@ public class ActionApiTest {
 
             HttpRequest<?> request;
             HttpResponse<?> response;
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
@@ -696,7 +689,7 @@ public class ActionApiTest {
 
             loginAsNonAdmin();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -745,24 +738,24 @@ public class ActionApiTest {
 
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create grant duration
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createAction(applicationGrant.getId(), actionInterval.getId());
+                entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -780,19 +773,19 @@ public class ActionApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = addGroupMembership(groupId, "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -824,19 +817,19 @@ public class ActionApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = addGroupMembership(groupId, "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -865,22 +858,22 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
             ActionDTO actionDTO = actionOptional.get();
 
-            response = addGroupMembership(groupId, "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
@@ -903,45 +896,45 @@ public class ActionApiTest {
             HttpResponse<?> response;
 
             // create Group theta's Grant, Action, etc
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+            GrantDTO thetaApplicationGrant = entityUtil.createGenericApplicationGrant(theta.getId());
 
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("ThetaActionInterval", theta.getId());
+            response = entityUtil.createActionInterval("ThetaActionInterval", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(thetaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
 
-            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            response = entityUtil.createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
             assertTrue(thetaActionOptional.isPresent());
             ActionDTO thetaActionDTO = thetaActionOptional.get();
 
             // create Group omega's Grant, Action, etc
-            response = createGroup("Omega");
+            response = entityUtil.createGroup("Omega");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             SimpleGroupDTO omega = omegaOptional.get();
 
-            GrantDTO omegaApplicationGrant = createGenericApplicationGrant(omega.getId());
+            GrantDTO omegaApplicationGrant = entityUtil.createGenericApplicationGrant(omega.getId());
 
-            response = createActionInterval("OmegaActionInterval", omega.getId());
+            response = entityUtil.createActionInterval("OmegaActionInterval", omega.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> omegaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(omegaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO omegaActionInterval = omegaActionIntervalDTOOptional.get();
 
-            response = createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
+            response = entityUtil.createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> omegaActionOptional = response.getBody(ActionDTO.class);
             assertTrue(omegaActionOptional.isPresent());
@@ -971,45 +964,45 @@ public class ActionApiTest {
             HttpResponse<?> response;
 
             // create Group theta's Grant, Action, etc
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+            GrantDTO thetaApplicationGrant = entityUtil.createGenericApplicationGrant(theta.getId());
 
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("ThetaActionInterval", theta.getId());
+            response = entityUtil.createActionInterval("ThetaActionInterval", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(thetaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
 
-            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            response = entityUtil.createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
             assertTrue(thetaActionOptional.isPresent());
             ActionDTO thetaActionDTO = thetaActionOptional.get();
 
             // create Group omega's Grant, Action, etc
-            response = createGroup("Omega");
+            response = entityUtil.createGroup("Omega");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             SimpleGroupDTO omega = omegaOptional.get();
 
-            GrantDTO omegaApplicationGrant = createGenericApplicationGrant(omega.getId());
+            GrantDTO omegaApplicationGrant = entityUtil.createGenericApplicationGrant(omega.getId());
 
-            response = createActionInterval("OmegaActionInterval", omega.getId());
+            response = entityUtil.createActionInterval("OmegaActionInterval", omega.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> omegaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(omegaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO omegaActionInterval = omegaActionIntervalDTOOptional.get();
 
-            response = createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
+            response = entityUtil.createAction(omegaApplicationGrant.getId(), omegaActionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> omegaActionOptional = response.getBody(ActionDTO.class);
             assertTrue(omegaActionOptional.isPresent());
@@ -1046,24 +1039,24 @@ public class ActionApiTest {
             HttpResponse<?> response;
 
             // create Group theta's Grant, Action, etc
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            GrantDTO thetaApplicationGrant = createGenericApplicationGrant(theta.getId());
+            GrantDTO thetaApplicationGrant = entityUtil.createGenericApplicationGrant(theta.getId());
 
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("ThetaActionInterval", theta.getId());
+            response = entityUtil.createActionInterval("ThetaActionInterval", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> thetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(thetaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO thetaActionInterval = thetaActionIntervalDTOOptional.get();
 
-            response = createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
+            response = entityUtil.createAction(thetaApplicationGrant.getId(), thetaActionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> thetaActionOptional = response.getBody(ActionDTO.class);
             assertTrue(thetaActionOptional.isPresent());
@@ -1107,10 +1100,10 @@ public class ActionApiTest {
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             HttpResponse<?> response;
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
@@ -1120,7 +1113,7 @@ public class ActionApiTest {
 
             // create action
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createAction(applicationGrant.getId(), actionInterval.getId());
+                entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1138,16 +1131,16 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -1177,16 +1170,16 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOptional.isPresent());
@@ -1227,36 +1220,36 @@ public class ActionApiTest {
 
             HttpRequest<?> request;
             HttpResponse<?> response;
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // other group and Grant
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
-            GrantDTO applicationGrantZeta = createGenericApplicationGrant(zeta.getId());
+            GrantDTO applicationGrantZeta = entityUtil.createGenericApplicationGrant(zeta.getId());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            response = createActionInterval("MyZetaActionInterval", zeta.getId());
+            response = entityUtil.createActionInterval("MyZetaActionInterval", zeta.getId());
             Optional<ActionIntervalDTO> zetaActionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(zetaActionIntervalDTOOptional.isPresent());
             ActionIntervalDTO zetaActionIntervalDTO = zetaActionIntervalDTOOptional.get();
 
             // create grant durations
-            response = createAction(applicationGrantZeta.getId(), zetaActionIntervalDTO.getId());
+            response = entityUtil.createAction(applicationGrantZeta.getId(), zetaActionIntervalDTO.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
@@ -1277,20 +1270,20 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrant = createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
             Long groupId = applicationGrant.getGroupId();
 
             // add member to group
-            response = addGroupMembership(groupId, "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(groupId, "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
-            response = createActionInterval("MyActionInterval", groupId);
+            response = entityUtil.createActionInterval("MyActionInterval", groupId);
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
             // create action
-            response = createAction(applicationGrant.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId());
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionDTOOPtional = response.getBody(ActionDTO.class);
             assertTrue(actionDTOOPtional.isPresent());
@@ -1305,174 +1298,5 @@ public class ActionApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private GrantDTO createGenericApplicationGrant() {
-        return createGenericApplicationGrant(null);
-    }
-    private GrantDTO createGenericApplicationGrant(Long groupId) {
-        HttpResponse<?> response;
-
-        if (groupId == null) {
-            response = createGroup("MyGroup");
-            assertEquals(OK, response.getStatus());
-            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
-            assertTrue(thetaOptional.isPresent());
-            SimpleGroupDTO group = thetaOptional.get();
-            groupId = group.getId();
-        }
-
-        response = createApplication("MyApplication", groupId);
-        assertEquals(OK, response.getStatus());
-        Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
-        assertTrue(applicationOptional.isPresent());
-        ApplicationDTO applicationDTO = applicationOptional.get();
-
-        response = getApplicationGrantToken(applicationDTO.getId());
-        assertEquals(OK, response.getStatus());
-        Optional<String> grantTokenOptional = response.getBody(String.class);
-        assertTrue(grantTokenOptional.isPresent());
-        String applicationGrantToken = grantTokenOptional.get();
-
-        response = createGrantDuration("MyGrantDuration", groupId);
-        assertEquals(OK, response.getStatus());
-        Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
-        assertTrue(grantDuration.isPresent());
-
-        response = createApplicationGrant(applicationGrantToken, groupId, "MyGrant", grantDuration.get().getId());
-        assertEquals(CREATED, response.getStatus());
-        Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
-        assertTrue(grantDTOOptional.isPresent());
-        return grantDTOOptional.get();
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        SimpleGroupDTO groupDTO = new SimpleGroupDTO();
-        groupDTO.setName(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", groupDTO);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-    private HttpResponse<?> addGroupMembership(Long groupId, String email, boolean isAdmin) {
-        GroupUserDTO dto = new GroupUserDTO();
-        dto.setPermissionsGroup(groupId);
-        dto.setEmail(email);
-        dto.setTopicAdmin(isAdmin);
-
-        HttpRequest<?>  request = HttpRequest.POST("/group_membership", dto);
-        return blockingClient.exchange(request, GroupUserResponseDTO.class);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
-    }
-
-    private HttpResponse<?> getApplicationGrantToken(Long applicationId) {
-        HttpRequest<?> request = HttpRequest.GET("/applications/generate_grant_token/" + applicationId);
-        return blockingClient.exchange(request, String.class);
-    }
-
-    private HttpResponse<?> createTopic(String topicName, TopicKind topicKind, Long groupId) {
-        TopicDTO topicDTO = new TopicDTO();
-        topicDTO.setName(topicName);
-        topicDTO.setGroup(groupId);
-        topicDTO.setKind(topicKind);
-
-        HttpRequest<?> request = HttpRequest.POST("/topics/save", topicDTO);
-        return blockingClient.exchange(request, TopicDTO.class);
-    }
-
-    private HttpResponse<?> createTopicSet(String name, Long groupId) {
-        CreateTopicSetDTO abcDTO = new CreateTopicSetDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/topic-sets", abcDTO);
-        return blockingClient.exchange(request, TopicSetDTO.class);
-    }
-
-    private HttpResponse<?> addTopicToTopicSet(Long topicSetId, Long topicId) {
-        HttpRequest<?> request = HttpRequest.POST("/topic-sets/" + topicSetId + "/" + topicId, Map.of());
-        return blockingClient.exchange(request, TopicSetDTO.class);
-    }
-
-    private Long createTopicSetWithTopics(String name, Long groupId, Set<Long> topicIds) {
-        CreateTopicSetDTO abcDTO = new CreateTopicSetDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/topic-sets", abcDTO);
-        HttpResponse<?> response = blockingClient.exchange(request, TopicSetDTO.class);
-        Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
-        assertTrue(topicSetOptional.isPresent());
-        TopicSetDTO topicSetDTO = topicSetOptional.get();
-
-        topicIds.forEach(topicId -> addTopicToTopicSet(topicSetDTO.getId(), topicId));
-
-        return topicSetDTO.getId();
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId) {
-        return createGrantDuration(name, groupId, null);
-    }
-
-    private HttpResponse<?> createGrantDuration(String name, Long groupId, String durationMetadata) {
-        CreateGrantDurationDTO abcDTO = new CreateGrantDurationDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setDurationInMilliseconds(30000L);
-        abcDTO.setDurationMetadata(durationMetadata);
-
-
-        HttpRequest<?> request = HttpRequest.POST("/grant_durations", abcDTO);
-        return blockingClient.exchange(request, GrantDurationDTO.class);
-    }
-
-    private HttpResponse<?> createApplicationGrant(String applicationGrantToken, Long groupId, String name, Long durationId) {
-        CreateGrantDTO createGrantDTO = new CreateGrantDTO();
-        createGrantDTO.setGroupId(groupId);
-        createGrantDTO.setName(name);
-        createGrantDTO.setGrantDurationId(durationId);
-
-        HttpRequest<?> request = HttpRequest.POST("/application_grants/", createGrantDTO)
-                .header(ApplicationPermissionService.APPLICATION_GRANT_TOKEN, applicationGrantToken);
-        return blockingClient.exchange(request, GrantDTO.class);
-    }
-
-    private HttpResponse<?> createActionInterval(String name, Long groupId) {
-        CreateActionIntervalDTO abcDTO = new CreateActionIntervalDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-        abcDTO.setStartDate(Instant.now());
-        abcDTO.setEndDate(Instant.now().plus(1, ChronoUnit.DAYS));
-
-        HttpRequest<?> request = HttpRequest.POST("/action_intervals", abcDTO);
-        return blockingClient.exchange(request, ActionIntervalDTO.class);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId) {
-        return createAction(grantId, intervalId, null, null, null, null);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction) {
-        return createAction(grantId, intervalId, isPublishAction, null, null, null);
-    }
-
-    private HttpResponse<?> createAction(Long grantId, Long intervalId, Boolean isPublishAction, Set<Long> topics, Set<Long> topicSets, Set<String> partitions) {
-        CreateActionDTO create = new CreateActionDTO();
-        create.setPublishAction(isPublishAction);
-        create.setApplicationGrantId(grantId);
-        create.setActionIntervalId(intervalId);
-        create.setTopicIds(topics);
-        create.setTopicSetIds(topicSets);
-        create.setPartitions(partitions);
-
-        HttpRequest<?> request = HttpRequest.POST("/actions", create);
-        return blockingClient.exchange(request, ActionDTO.class);
     }
 }
