@@ -29,6 +29,7 @@ import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.model.action.Action;
 import io.unityfoundation.dds.permissions.manager.model.action.ActionPartition;
 import io.unityfoundation.dds.permissions.manager.model.action.ActionService;
+import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantService;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
@@ -37,6 +38,8 @@ import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
+import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
+import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRole;
 import io.unityfoundation.dds.permissions.manager.security.ApplicationSecretsClient;
@@ -83,7 +86,6 @@ import javax.mail.Session;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeMessage;
-import javax.security.auth.x500.X500Principal;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -118,6 +120,8 @@ public class ApplicationService {
     protected Integer appGrantTokenExpiry;
     private final ApplicationRepository applicationRepository;
     private final GroupRepository groupRepository;
+    private final ActionTopicRepository actionTopicRepository;
+    private final TopicSetTopicRepository topicSetTopicRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
     private final ApplicationPermissionService applicationPermissionService;
@@ -133,14 +137,15 @@ public class ApplicationService {
     private final OnUpdateApplicationWebSocket onUpdateApplicationWebSocket;
 
 
-    public ApplicationService(ApplicationRepository applicationRepository, GroupRepository groupRepository,
-                              ApplicationPermissionService applicationPermissionService,
+    public ApplicationService(ApplicationRepository applicationRepository, GroupRepository groupRepository, ActionTopicRepository actionTopicRepository, TopicSetTopicRepository topicSetTopicRepository, ApplicationPermissionService applicationPermissionService,
                               SecurityUtil securityUtil, GroupUserService groupUserService, ApplicationGrantService applicationGrantService, ActionService actionService, PassphraseGenerator passphraseGenerator,
                               BCryptPasswordEncoderService passwordEncoderService, ApplicationSecretsClient applicationSecretsClient,
                               TemplateService templateService, JwtTokenGenerator jwtTokenGenerator,
                               JWTClaimsSetGenerator jwtClaimsSetGenerator, XMLEscaper xmlEscaper, OnUpdateApplicationWebSocket onUpdateApplicationWebSocket) {
         this.applicationRepository = applicationRepository;
         this.groupRepository = groupRepository;
+        this.actionTopicRepository = actionTopicRepository;
+        this.topicSetTopicRepository = topicSetTopicRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
         this.applicationPermissionService = applicationPermissionService;
@@ -698,10 +703,11 @@ public class ApplicationService {
 
             actions.stream().filter(action -> Boolean.compare(publishing, action.getCanPublish()) == 0).forEach(action -> {
 
+                List<Topic> topicList = actionTopicRepository.findPermissionsTopicByPermissionsAction(action);
                 // collect all Topics
-                Set<Topic> actionTopics = new HashSet<>(action.getTopics());
+                Set<Topic> actionTopics = new HashSet<>(topicList);
                 action.getTopicSets().forEach(topicSet -> {
-                    actionTopics.addAll(topicSet.getTopics());
+                    actionTopics.addAll(getAllTopicsByTopicSet(topicSet));
                 });
                 Set<String> topics = actionTopics.stream().map(this::buildCanonicalName).collect(Collectors.toSet());
 
@@ -751,10 +757,11 @@ public class ApplicationService {
 
             actions.stream().filter(action -> Boolean.compare(publishing, action.getCanPublish()) == 0).forEach(action -> {
 
+                List<Topic> topicList = actionTopicRepository.findPermissionsTopicByPermissionsAction(action);
                 // collect all Topics
-                Set<Topic> actionTopics = new HashSet<>(action.getTopics());
+                Set<Topic> actionTopics = new HashSet<>(topicList);
                 action.getTopicSets().forEach(topicSet -> {
-                    actionTopics.addAll(topicSet.getTopics());
+                    actionTopics.addAll(getAllTopicsByTopicSet(topicSet));
                 });
                 Set<String> topics = actionTopics.stream().map(this::buildCanonicalName).collect(Collectors.toSet());
 
@@ -772,6 +779,10 @@ public class ApplicationService {
                 ));
             });
         });
+    }
+
+    private Collection<? extends Topic> getAllTopicsByTopicSet(TopicSet topicSet) {
+        return topicSetTopicRepository.findPermissionsTopicByPermissionsTopicSet(topicSet);
     }
 
     private String buildCanonicalName(Topic permissionsTopic) {

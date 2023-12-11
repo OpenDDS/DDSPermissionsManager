@@ -44,9 +44,6 @@ public class TopicSet {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Group permissionsGroup;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<Topic> topics = new HashSet<>();
-
     @DateCreated
     private Instant dateCreated;
 
@@ -91,25 +88,6 @@ public class TopicSet {
 
     public void setPermissionsGroup(@NonNull Group permissionsGroup) {
         this.permissionsGroup = permissionsGroup;
-    }
-
-    public Set<Topic> getTopics() {
-        if (topics == null) return null;
-        return Collections.unmodifiableSet(topics);
-    }
-
-    public void setTopics(Set<Topic> topics) {
-        this.topics = topics;
-    }
-
-    public boolean removeTopic(Long topicId) {
-        this.dateUpdated = Instant.now();
-        return topics.removeIf(topic -> topicId != null && topicId.equals(topic.getId()));
-    }
-
-    public void addTopic(Topic topic) {
-        topics.add(topic);
-        this.dateUpdated = Instant.now();
     }
 
     public Instant getDateCreated() {
