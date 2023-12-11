@@ -26,12 +26,9 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
-import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.CreateTopicSetDTO;
@@ -40,6 +37,7 @@ import io.unityfoundation.dds.permissions.manager.model.topicset.dto.UpdateTopic
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +61,9 @@ public class TopicSetApiTest {
     @Inject
     @Client("/api")
     HttpClient client;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     TopicRepository topicRepository;
@@ -132,13 +133,13 @@ public class TopicSetApiTest {
         void canCreateWithGroupAssociation() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSet = response.getBody(TopicSetDTO.class);
             assertTrue(topicSet.isPresent());
@@ -149,13 +150,13 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -192,7 +193,7 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -231,14 +232,14 @@ public class TopicSetApiTest {
         public void cannotCreateWithNameLessThanThreeCharacters() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createTopicSet("A", theta.getId());
+                entityUtil.createTopicSet("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -251,13 +252,13 @@ public class TopicSetApiTest {
         public void createShouldTrimNameWhitespaces() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createTopicSet("   Abc123  ", theta.getId());
+            response = entityUtil.createTopicSet("   Abc123  ", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSet = response.getBody(TopicSetDTO.class);
             assertTrue(topicSet.isPresent());
@@ -269,19 +270,19 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -306,14 +307,14 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -335,14 +336,14 @@ public class TopicSetApiTest {
         public void cannotCreateTopicSetWithSameNameInGroup() {
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -350,7 +351,7 @@ public class TopicSetApiTest {
             assertEquals("Abc123", savedTopicSet.getName());
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createTopicSet("Abc123", theta.getId());
+                entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -365,13 +366,13 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -399,27 +400,27 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Green");
+            response = entityUtil.createGroup("Green");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> greenOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(greenOptional.isPresent());
             SimpleGroupDTO green = greenOptional.get();
 
-            response = createGroup("Yellow");
+            response = entityUtil.createGroup("Yellow");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> yellowOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(yellowOptional.isPresent());
             SimpleGroupDTO yellow = yellowOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", yellow.getId());
+            response = entityUtil.createTopicSet("Abc123", yellow.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", green.getId());
+            response = entityUtil.createTopicSet("Xyz789", green.getId());
             assertEquals(OK, response.getStatus());
 
             // site-wide test
-            response = createTopicSet("Xyz789", yellow.getId());
+            response = entityUtil.createTopicSet("Xyz789", yellow.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/topic-sets");
@@ -440,23 +441,23 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create topics
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
             // support case-insensitive
@@ -486,26 +487,26 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create topics
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> abcOptional = response.getBody(TopicSetDTO.class);
             assertTrue(abcOptional.isPresent());
             TopicSetDTO abcTopicSet = abcOptional.get();
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzOptional.isPresent());
@@ -551,29 +552,29 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create topics
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Def456", zeta.getId());
+            response = entityUtil.createTopicSet("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Def456", theta.getId());
+            response = entityUtil.createTopicSet("Def456", theta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/topic-sets");
@@ -607,26 +608,26 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create topics
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Def456", zeta.getId());
+            response = entityUtil.createTopicSet("Def456", zeta.getId());
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/topic-sets?sort=name,desc");
@@ -654,31 +655,31 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Alpha");
+            response = entityUtil.createGroup("Alpha");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> alphaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(alphaOptional.isPresent());
             SimpleGroupDTO alpha = alphaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", alpha.getId());
+            response = entityUtil.createTopicSet("Abc123", alpha.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -706,25 +707,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -761,25 +762,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -807,31 +808,31 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetXyzOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetXyzOptional.isPresent());
             TopicSetDTO topicSetXyz = topicSetXyzOptional.get();
 
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetAbcOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetAbcOptional.isPresent());
@@ -864,25 +865,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create group
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetXyzOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetXyzOptional.isPresent());
@@ -948,20 +949,20 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
         }
 
@@ -975,18 +976,18 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSet = response.getBody(TopicSetDTO.class);
             assertTrue(topicSet.isPresent());
@@ -1008,25 +1009,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1053,25 +1054,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", true);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1127,21 +1128,21 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             loginAsNonAdmin();
 
             // create topic set
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createTopicSet("Abc123", theta.getId());
+                entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1159,18 +1160,18 @@ public class TopicSetApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> abcTopiSetcOptional = response.getBody(TopicSetDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -1205,25 +1206,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic sets
-            createTopicSet("Abc123", zeta.getId());
-            response = createTopicSet("Xyz789", theta.getId());
+            entityUtil.createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1254,31 +1255,31 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
 
-            response = createGroup("Omega");
+            response = entityUtil.createGroup("Omega");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             SimpleGroupDTO omega = omegaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic sets
-            response = createTopicSet("Abc123", omega.getId());
+            response = entityUtil.createTopicSet("Abc123", omega.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> abcTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(abcTopicOptional.isPresent());
             TopicDTO abcTopic = abcTopicOptional.get();
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1313,29 +1314,29 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic sets
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> abcTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(abcTopicOptional.isPresent());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1366,25 +1367,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic sets
-            createTopicSet("Abc123", zeta.getId());
-            response = createTopicSet("Xyz789", theta.getId());
+            entityUtil.createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1434,25 +1435,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic sets
-            createTopicSet("Abc123", zeta.getId());
-            response = createTopicSet("Xyz789", theta.getId());
+            entityUtil.createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1504,25 +1505,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1552,25 +1553,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1629,7 +1630,7 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -1639,7 +1640,7 @@ public class TopicSetApiTest {
 
             // create topic sets
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createTopicSet("Abc123", theta.getId());
+                entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
             Optional<List> listOptional = exception.getResponse().getBody(List.class);
@@ -1658,14 +1659,14 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> abcTopiSetcOptional = response.getBody(TopicSetDTO.class);
             assertTrue(abcTopiSetcOptional.isPresent());
@@ -1696,23 +1697,23 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = zetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopiSetcOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopiSetcOptional.isPresent());
@@ -1741,25 +1742,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1789,25 +1790,25 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // create topic
-            response = createTopic(theta.getId(), "MyTopicA");
+            response = entityUtil.createTopic(theta.getId(), "MyTopicA");
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> aTopicOptional = response.getBody(TopicDTO.class);
             assertTrue(aTopicOptional.isPresent());
             TopicDTO aTopic = aTopicOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // create topic set
-            response = createTopicSet("Abc123", theta.getId());
+            response = entityUtil.createTopicSet("Abc123", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> topicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(topicSetOptional.isPresent());
@@ -1860,28 +1861,28 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1905,28 +1906,28 @@ public class TopicSetApiTest {
             HttpResponse<?> response;
 
             // create groups
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             SimpleGroupDTO theta = thetaOptional.get();
 
             // add member to group
-            response = addGroupMembership(theta.getId(), "jjones@test.test", false);
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", false);
             assertEquals(OK, response.getStatus());
 
             // other group
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             SimpleGroupDTO zeta = thetaOptional.get();
 
             // create topic sets
-            response = createTopicSet("Abc123", zeta.getId());
+            response = entityUtil.createTopicSet("Abc123", zeta.getId());
             assertEquals(OK, response.getStatus());
 
-            response = createTopicSet("Xyz789", theta.getId());
+            response = entityUtil.createTopicSet("Xyz789", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicSetDTO> xyzTopicSetOptional = response.getBody(TopicSetDTO.class);
             assertTrue(xyzTopicSetOptional.isPresent());
@@ -1941,40 +1942,5 @@ public class TopicSetApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        SimpleGroupDTO groupDTO = new SimpleGroupDTO();
-        groupDTO.setName(groupName);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", groupDTO);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-    private HttpResponse<?> createTopic(Long groupId, String name) {
-        TopicDTO topicDTO = new TopicDTO();
-        topicDTO.setName(name);
-        topicDTO.setGroup(groupId);
-
-        HttpRequest<?>  request = HttpRequest.POST("/topics/save", topicDTO);
-        return blockingClient.exchange(request, TopicDTO.class);
-    }
-
-    private HttpResponse<?> addGroupMembership(Long groupId, String email, boolean isAdmin) {
-        GroupUserDTO dto = new GroupUserDTO();
-        dto.setPermissionsGroup(groupId);
-        dto.setEmail(email);
-        dto.setTopicAdmin(isAdmin);
-
-        HttpRequest<?>  request = HttpRequest.POST("/group_membership", dto);
-        return blockingClient.exchange(request, GroupUserResponseDTO.class);
-    }
-
-    private HttpResponse<?> createTopicSet(String name, Long groupId) {
-        CreateTopicSetDTO abcDTO = new CreateTopicSetDTO();
-        abcDTO.setName(name);
-        abcDTO.setGroupId(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/topic-sets", abcDTO);
-        return blockingClient.exchange(request, TopicSetDTO.class);
     }
 }

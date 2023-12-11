@@ -50,6 +50,7 @@ import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,6 +73,9 @@ public class GroupApiTest {
 
     @Inject
     MockSecurityService mockSecurityService;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     AuthenticationFetcherReplacement mockAuthenticationFetcher;
@@ -157,7 +161,7 @@ public class GroupApiTest {
         // create
         @Test
         void canCreateGroup(){
-            HttpResponse<?> response = createGroup("Theta");
+            HttpResponse<?> response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
             // with description and isPublic flag
@@ -176,13 +180,13 @@ public class GroupApiTest {
 
         @Test
         public void cannotCreateGroupWithSameNameAsAnExistingGroup() {
-            HttpResponse<?> response = createGroup("Theta");
+            HttpResponse<?> response = entityUtil.createGroup("Theta");
             Optional<Group> thetaOptional = response.getBody(Group.class);
             assertTrue(thetaOptional.isPresent());
             Group theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGroup("Theta");
+                entityUtil.createGroup("Theta");
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -194,7 +198,7 @@ public class GroupApiTest {
         @Test
         public void cannotCreateGroupWithNullNorWhitespace() {
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGroup(null);
+                entityUtil.createGroup(null);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -203,7 +207,7 @@ public class GroupApiTest {
             assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
 
             HttpClientResponseException exception1 = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGroup("   ");
+                entityUtil.createGroup("   ");
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
             bodyOptional = exception.getResponse().getBody(List.class);
@@ -214,7 +218,7 @@ public class GroupApiTest {
 
         @Test
         public void createShouldTrimWhitespace() {
-            HttpResponse<?> response = createGroup("   Theta  ");
+            HttpResponse<?> response = entityUtil.createGroup("   Theta  ");
             assertEquals(OK, response.getStatus());
             Optional<Group> thetaOptional = response.getBody(Group.class);
             assertTrue(thetaOptional.isPresent());
@@ -225,7 +229,7 @@ public class GroupApiTest {
         @Test
         public void cannotCreateWithNameLessThanThreeCharacters() {
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGroup("g");
+                entityUtil.createGroup("g");
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
             Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
@@ -284,7 +288,7 @@ public class GroupApiTest {
         public void createWithIsPublic() {
 
             // null isPublic should return false
-            HttpResponse<?> response = createGroup("NotAPublicGroup");
+            HttpResponse<?> response = entityUtil.createGroup("NotAPublicGroup");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -306,7 +310,7 @@ public class GroupApiTest {
         // update
         @Test
         void canUpdateGroup(){
-            HttpResponse<?> response = createGroup("Theta");
+            HttpResponse<?> response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
@@ -335,10 +339,10 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
             Optional<Group> betaOptional = response.getBody(Group.class);
             assertTrue(betaOptional.isPresent());
@@ -469,13 +473,13 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Zeta");
+            response = entityUtil.createGroup("Zeta");
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/groups");
@@ -488,13 +492,13 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta", "ThetaDescription");
+            response = entityUtil.createGroup("Theta", "ThetaDescription");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("SecondGroup");
+            response = entityUtil.createGroup("SecondGroup");
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/groups?filter=EtA");
@@ -511,13 +515,13 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("SecondGroup");
+            response = entityUtil.createGroup("SecondGroup");
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/groups?filter=foobarbaz");
@@ -530,13 +534,13 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("SecondGroup");
+            response = entityUtil.createGroup("SecondGroup");
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/groups");
@@ -557,13 +561,13 @@ public class GroupApiTest {
             HttpResponse<?> response;
             HttpRequest<?> request;
 
-            response = createGroup("Theta");
+            response = entityUtil.createGroup("Theta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("Beta");
+            response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
 
-            response = createGroup("SecondGroup");
+            response = entityUtil.createGroup("SecondGroup");
             assertEquals(OK, response.getStatus());
 
             request = HttpRequest.GET("/groups?sort=name,desc");
@@ -600,7 +604,7 @@ public class GroupApiTest {
         // delete
         @Test
         void canDeleteGroup(){
-            HttpResponse response = createGroup("Beta");
+            HttpResponse response = entityUtil.createGroup("Beta");
             Optional<Group> betaOptional = response.getBody(Group.class);
             assertTrue(betaOptional.isPresent());
             Group beta = betaOptional.get();
@@ -637,7 +641,7 @@ public class GroupApiTest {
             HttpRequest<?> request;
 
             // create group
-            response = createGroup("CascadeTestTheta");
+            response = entityUtil.createGroup("CascadeTestTheta");
             Optional<Group> thetaOptional = response.getBody(Group.class);
             assertTrue(thetaOptional.isPresent());
             Group theta = thetaOptional.get();
@@ -650,21 +654,21 @@ public class GroupApiTest {
             GroupUserResponseDTO cascadeUser = jonesOptional.get();
 
             // create application
-            response = createApplication("CascadeTestApplication", theta.getId());
+            response = entityUtil.createApplication("CascadeTestApplication", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOptional.isPresent());
             ApplicationDTO application = applicationOptional.get();
 
             // create topic
-            response = createTopic("CascadeTestTopic", TopicKind.B, theta.getId());
+            response = entityUtil.createTopic("CascadeTestTopic", TopicKind.B, theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
             assertTrue(topicOptional.isPresent());
             TopicDTO topic = topicOptional.get();
 
             // create application permission
-            response = createApplicationPermission(application.getId(), topic.getId(), true, false);
+            response = entityUtil.createApplicationPermission(application.getId(), topic.getId(), true, false);
             assertEquals(CREATED, response.getStatus());
             Optional<AccessPermissionDTO> permissionOptional = response.getBody(AccessPermissionDTO.class);
             assertTrue(permissionOptional.isPresent());
@@ -708,7 +712,7 @@ public class GroupApiTest {
         void cannotCreateGroup() {
             loginAsNonAdmin();
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                createGroup("Theta");
+                entityUtil.createGroup("Theta");
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
         }
@@ -721,7 +725,7 @@ public class GroupApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
@@ -755,7 +759,7 @@ public class GroupApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
@@ -779,12 +783,12 @@ public class GroupApiTest {
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             // create groups
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> primaryOptional = response.getBody(Group.class);
             assertTrue(primaryOptional.isPresent());
 
-            response = createGroup("SecondaryGroup");
+            response = entityUtil.createGroup("SecondaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<Group> secondaryOptional = response.getBody(Group.class);
             assertTrue(secondaryOptional.isPresent());
@@ -852,7 +856,7 @@ public class GroupApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("ApplicationOne", theta.getId());
+            response = entityUtil.createApplication("ApplicationOne", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOneOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOneOptional.isPresent());
@@ -929,7 +933,7 @@ public class GroupApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            response = createGroup("PrimaryGroup");
+            response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
             Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
@@ -983,39 +987,6 @@ public class GroupApiTest {
                     Map.of("isAdmin", false)
             ));
         }
-
-
-    }
-
-    private HttpResponse<?> createGroup(String groupName) {
-        return createGroup(groupName, null);
-    }
-
-    private HttpResponse<?> createGroup(String groupName, String description) {
-        SimpleGroupDTO group = new SimpleGroupDTO();
-        group.setName(groupName);
-        group.setDescription(description);
-        HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-        return blockingClient.exchange(request, SimpleGroupDTO.class);
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
-    }
-
-    private HttpResponse<?> createTopic(String topicName, TopicKind topicKind, Long groupId) {
-        TopicDTO topicDTO = new TopicDTO();
-        topicDTO.setName(topicName);
-        topicDTO.setKind(topicKind);
-        topicDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/topics/save", topicDTO);
-        return blockingClient.exchange(request, TopicDTO.class);
     }
 
     private HttpResponse<?> createNonAdminGroupMembership(String email, Long groupId) {
@@ -1031,23 +1002,5 @@ public class GroupApiTest {
         dto.setApplicationAdmin(applicationAdmin);
         HttpRequest<?> request = HttpRequest.POST("/group_membership", dto);
         return  blockingClient.exchange(request, GroupUserDTO.class);
-    }
-
-    private HttpResponse<?> createApplicationPermission(Long applicationId, Long topicId, boolean read, boolean write) {
-        HttpRequest<?> request;
-
-        // generate grant token for application
-        request = HttpRequest.GET("/applications/generate_grant_token/" + applicationId);
-        HttpResponse<String> response = blockingClient.exchange(request, String.class);
-        assertEquals(OK, response.getStatus());
-        Optional<String> optional = response.getBody(String.class);
-        assertTrue(optional.isPresent());
-        String applicationGrantToken = optional.get();
-
-        Map<String, Boolean> payload = Map.of("read", read, "write", write);
-
-        request = HttpRequest.POST("/application_permissions/" + topicId, payload)
-                .header(ApplicationPermissionService.APPLICATION_GRANT_TOKEN, applicationGrantToken);
-        return blockingClient.exchange(request, AccessPermissionDTO.class);
     }
 }

@@ -38,6 +38,7 @@ import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
+import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.junit.jupiter.api.*;
@@ -59,6 +60,9 @@ public class TopicApiTest {
     @Inject
     @Client("/api")
     HttpClient client;
+
+    @Inject
+    EntityLifecycleUtil entityUtil;
 
     @Inject
     TopicRepository topicRepository;
@@ -1170,7 +1174,7 @@ public class TopicApiTest {
             assertEquals(OK, response.getStatus());
 
             // create application
-            response = createApplication("ApplicationOne", theta.getId());
+            response = entityUtil.createApplication("ApplicationOne", theta.getId());
             assertEquals(OK, response.getStatus());
             Optional<ApplicationDTO> applicationOneOptional = response.getBody(ApplicationDTO.class);
             assertTrue(applicationOneOptional.isPresent());
@@ -2150,14 +2154,5 @@ public class TopicApiTest {
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
         }
-    }
-
-    private HttpResponse<?> createApplication(String applicationName, Long groupId) {
-        ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setName(applicationName);
-        applicationDTO.setGroup(groupId);
-
-        HttpRequest<?> request = HttpRequest.POST("/applications/save", applicationDTO);
-        return blockingClient.exchange(request, ApplicationDTO.class);
     }
 }
