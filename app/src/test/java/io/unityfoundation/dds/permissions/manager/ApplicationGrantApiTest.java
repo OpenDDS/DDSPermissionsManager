@@ -111,9 +111,6 @@ public class ApplicationGrantApiTest {
     @Inject
     AuthenticationFetcherReplacement mockAuthenticationFetcher;
 
-    @Inject
-    MockSecretSignature mockJwtSecret;
-
     @BeforeEach
     void setup() {
         blockingClient = client.toBlocking();
@@ -325,12 +322,13 @@ public class ApplicationGrantApiTest {
             assertTrue(durationOptional.isPresent());
             assertEquals("Duration1", durationOptional.get().getName());
 
-            // change signature secret
-            mockJwtSecret.setSecret("thisIsASecretThatIsInvalidAndIsMoreThan256BitsLong");
+            // change signature
+            applicationGrantToken = applicationGrantToken + "w";
 
             // create app permission
+            String finalApplicationGrantToken = applicationGrantToken;
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
-                entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "GrantName", durationOptional.get().getId());
+                entityUtil.createApplicationGrant(finalApplicationGrantToken, primaryGroup.getId(), "GrantName", durationOptional.get().getId());
             });
             assertEquals(FORBIDDEN, exception.getStatus());
         }
