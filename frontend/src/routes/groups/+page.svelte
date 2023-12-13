@@ -387,7 +387,7 @@
 							e.detail.groupId,
 							e.detail.newGroupName,
 							e.detail.newGroupDescription,
-							e.detail.newGroupPublic
+							e.detail.newGroupPublicf
 						);
 					}}
 					on:cancel={() => (editGroupVisible = false)}
@@ -402,7 +402,6 @@
 						detailView.set();
 						groupDetailView = false;
 					}}
-					on:reload={async () => await reloadAllGroups()}
 				/>
 			{/if}
 
