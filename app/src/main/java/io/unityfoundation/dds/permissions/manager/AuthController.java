@@ -37,6 +37,6 @@ public class AuthController {
     @Get("/public_keys")
     @ExecuteOn(TaskExecutors.IO)
     public HttpResponse<?> getPublicKeys() throws Exception {
-        return authConfigService.getPublicKeyText();
+        return authConfigService.getPublicKeys();
     }
 }

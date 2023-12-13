@@ -35,6 +35,8 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.List;
+import java.util.Map;
 
 @Singleton
 public class AuthConfigService {
@@ -51,9 +53,9 @@ public class AuthConfigService {
         this.environment = environment;
     }
 
-    public HttpResponse<?> getPublicKeyText() throws Exception {
+    public HttpResponse<?> getPublicKeys() throws Exception {
         String publicKey = objectToPEMString(readX509PublicKey());
-        return HttpResponse.ok(publicKey);
+        return HttpResponse.ok(List.of(Map.of("public", publicKey)));
     }
 
     public RSAPublicKey readX509PublicKey() throws Exception {
