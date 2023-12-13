@@ -387,7 +387,7 @@
 							e.detail.groupId,
 							e.detail.newGroupName,
 							e.detail.newGroupDescription,
-							e.detail.newGroupPublicf
+							e.detail.newGroupPublic
 						);
 					}}
 					on:cancel={() => (editGroupVisible = false)}
