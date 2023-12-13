@@ -424,29 +424,44 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
 
             // action interval
-            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
-            // create actions
-            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId(), true,
-                    null, null, Set.of("dog", "cat"));
+            // topic
+            response = entityUtil.createTopic("MyTopicB", TopicKind.B, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicOptional.isPresent());
+            TopicDTO topicDTO = topicOptional.get();
+
+            // topic set
+            response = entityUtil.createTopic("MyTopicC", TopicKind.C, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            topicOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicOptional.isPresent());
+
+            Long topicSetId = entityUtil.createTopicSetWithTopics("MyTopicSet", applicationGrant.getGroupId(), Set.of(topicOptional.get().getId()));
+
+            // create action
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), true,
+                    Set.of(topicDTO.getId()), Set.of(topicSetId), Set.of("dog", "cat"));
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOneDTOOptional.isPresent());
 
             // delete application grant
-            request = HttpRequest.DELETE("/application_grants/"+applicationGrantOne.getId());
+            request = HttpRequest.DELETE("/application_grants/"+applicationGrant.getId());
             response = blockingClient.exchange(request, HashMap.class);
             assertEquals(NO_CONTENT, response.getStatus());
 
-            // make sure actions and parititions are deleted
-            request = HttpRequest.GET("/actions?grantId="+applicationGrantOne.getId());
+            // make sure actions and partitions are deleted
+            request = HttpRequest.GET("/actions?grantId="+applicationGrant.getId());
             response = blockingClient.exchange(request, Page.class);
             assertEquals(OK, response.getStatus());
             Optional<Page> actionPage = response.getBody(Page.class);
@@ -507,17 +522,32 @@ public class ActionApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            GrantDTO applicationGrantOne = entityUtil.createGenericApplicationGrant();
+            GrantDTO applicationGrant = entityUtil.createGenericApplicationGrant();
 
             // action interval
-            response = entityUtil.createActionInterval("MyActionInterval", applicationGrantOne.getGroupId());
+            response = entityUtil.createActionInterval("MyActionInterval", applicationGrant.getGroupId());
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionIntervalDTOOptional = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionIntervalDTOOptional.isPresent());
             ActionIntervalDTO actionInterval = actionIntervalDTOOptional.get();
 
+            response = entityUtil.createTopic("MyTopicB", TopicKind.B, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            Optional<TopicDTO> topicOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicOptional.isPresent());
+            TopicDTO topicDTO = topicOptional.get();
+
+            // topic set
+            response = entityUtil.createTopic("MyTopicC", TopicKind.C, applicationGrant.getGroupId());
+            assertEquals(OK, response.getStatus());
+            topicOptional = response.getBody(TopicDTO.class);
+            assertTrue(topicOptional.isPresent());
+
+            Long topicSetId = entityUtil.createTopicSetWithTopics("MyTopicSet", applicationGrant.getGroupId(), Set.of(topicOptional.get().getId()));
+
             // create actions
-            response = entityUtil.createAction(applicationGrantOne.getId(), actionInterval.getId());
+            response = entityUtil.createAction(applicationGrant.getId(), actionInterval.getId(), true,
+                    Set.of(topicDTO.getId()), Set.of(topicSetId), Set.of("dog", "cat"));
             assertEquals(OK, response.getStatus());
             Optional<ActionDTO> actionOneDTOOptional = response.getBody(ActionDTO.class);
             assertTrue(actionOneDTOOptional.isPresent());

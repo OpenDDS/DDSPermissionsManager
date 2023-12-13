@@ -272,8 +272,14 @@ public class ActionService {
 
         checkExistenceAndAdminAuthorization(actionOptional);
 
-        actionRepository.delete(actionOptional.get());
+        deleteAction(actionOptional.get());
         return HttpResponse.noContent();
+    }
+
+    @Transactional
+    public void deleteAction(Action action) {
+        actionTopicRepository.deleteByPermissionsActionId(action.getId());
+        actionRepository.delete(action);
     }
 
     public ActionDTO createDTO(Action action) {
@@ -365,7 +371,10 @@ public class ActionService {
         return actionRepository.findAllByApplicationGrantId(applicationGrantId);
     }
 
-    public void deleteByApplicationGrantId(Long grantId) {
-        actionRepository.deleteByApplicationGrantId(grantId);
+    @Transactional
+    public void deleteAllActionsByApplicationGrantId(Long grantId) {
+        List<Action> allActionsByGrantId = actionRepository.findAllByApplicationGrantId(grantId);
+        actionTopicRepository.deleteByPermissionsActionIdIn(allActionsByGrantId.stream().map(Action::getId).collect(Collectors.toList()));
+        actionRepository.deleteAll(allActionsByGrantId);
     }
 }
