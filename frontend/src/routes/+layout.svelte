@@ -23,7 +23,6 @@
 	import lastActivity from '../stores/lastActivity';
 	import userEmail from '../stores/userEmail';
 	import modalOpen from '../stores/modalOpen';
-	import updatePermissionsForAllGroups from '../stores/updatePermissionsForAllGroups';
 	import messages from '$lib/messages.json';
 	import '../app.css';
 
@@ -158,8 +157,6 @@
 		onLoggedIn(updatedTokenInfo);
 		avatarName = updatedTokenInfo.username.slice(0, 1).toUpperCase();
 		userEmail.set(updatedTokenInfo.username);
-
-		updatePermissionsForAllGroups.set(true);
 
 		if (!APIisBroadcastingEvents) {
 			refreshPageFn();
