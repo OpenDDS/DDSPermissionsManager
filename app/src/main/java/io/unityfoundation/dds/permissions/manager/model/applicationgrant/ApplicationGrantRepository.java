@@ -18,6 +18,7 @@ import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.data.repository.PageableRepository;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 
 import java.util.Collection;
@@ -26,7 +27,7 @@ import java.util.Optional;
 
 @Repository
 public interface ApplicationGrantRepository extends PageableRepository<ApplicationGrant, Long> {
-//    boolean existsByPermissionsApplicationAndPermissionsTopic(Application permissionsApplication, Topic permissionsTopic);
+    boolean existsByGrantDuration(GrantDuration grantDuration);
     Page<ApplicationGrant> findByPermissionsApplicationId(Long applicationId, Pageable pageable);
     Page<ApplicationGrant> findAllByPermissionsApplicationIdAndPermissionsGroupIdIn(Long applicationId, List<Long> groups, Pageable pageable);
     List<ApplicationGrant> findByPermissionsApplication(Application permissionsApplication);

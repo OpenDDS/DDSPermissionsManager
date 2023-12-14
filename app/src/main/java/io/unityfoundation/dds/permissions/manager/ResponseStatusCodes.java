@@ -109,6 +109,8 @@ public interface ResponseStatusCodes {
     String GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL = "grant-duration.durationInMilliseconds.cannot-be-blank-or-null";
     String GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE = "grant-duration.durationInMilliseconds.cannot-be-a-negative-value";
     String GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION = "grant-duration.cannot-update-group-association";
+    String GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS = "grant-duration.has-one-or-more-grant-associations";
+
 
     // security
     String JWT_REFRESH_TOKEN_PARSE_EXCEPTION = "security.jwt-refresh-token-parse-exception";
