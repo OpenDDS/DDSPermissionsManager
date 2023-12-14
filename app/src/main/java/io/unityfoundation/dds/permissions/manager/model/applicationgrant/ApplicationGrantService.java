@@ -47,7 +47,6 @@ import org.reactivestreams.Publisher;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -288,7 +287,7 @@ public class ApplicationGrantService {
             }
         }
 
-        actionService.deleteByApplicationGrantId(grantId);
+        actionService.deleteAllActionsByApplicationGrantId(grantId);
         applicationGrantRepository.deleteById(grantId);
         return HttpResponse.noContent();
     }

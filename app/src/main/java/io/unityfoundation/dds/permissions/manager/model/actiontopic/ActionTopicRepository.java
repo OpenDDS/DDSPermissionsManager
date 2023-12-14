@@ -25,4 +25,5 @@ public interface ActionTopicRepository extends PageableRepository<ActionTopic, L
     void deleteByPermissionsTopicId(Long topicId);
     void deleteByPermissionsActionId(Long actionId);
     List<Topic> findPermissionsTopicByPermissionsAction(Action action);
+    void deleteByPermissionsActionIdIn(List<Long> actionIds);
 }
