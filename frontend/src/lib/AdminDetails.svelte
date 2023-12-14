@@ -10,7 +10,7 @@
 	// Promises
 	let promise;
 
-	// Topic Admins
+	// Admins
 	let groupMembership;
 	let admins;
 
