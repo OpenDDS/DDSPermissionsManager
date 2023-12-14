@@ -46,11 +46,3 @@
 		{/if}
 	{/await}
 {/if}
-
-<style>
-	.admin-details {
-		color: red;
-		list-style-type: none;
-		padding-left: 0;
-	}
-</style>
