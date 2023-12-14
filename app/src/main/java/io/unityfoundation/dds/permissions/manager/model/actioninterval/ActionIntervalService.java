@@ -20,6 +20,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpResponse;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionRepository;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
@@ -39,12 +40,14 @@ public class ActionIntervalService {
 
     private final ActionIntervalRepository actionIntervalRepository;
     private final GroupRepository groupRepository;
+    private final ActionRepository actionRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
 
-    public ActionIntervalService(ActionIntervalRepository actionIntervalRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
+    public ActionIntervalService(ActionIntervalRepository actionIntervalRepository, GroupRepository groupRepository, ActionRepository actionRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
         this.actionIntervalRepository = actionIntervalRepository;
         this.groupRepository = groupRepository;
+        this.actionRepository = actionRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
     }
@@ -180,8 +183,16 @@ public class ActionIntervalService {
 
         checkExistenceAndAdminAuthorization(actionIntervalOptional);
 
+        if (hasActionAssociations(actionIntervalOptional.get())) {
+            throw new DPMException(ResponseStatusCodes.ACTION_INTERVAL_HAS_ONE_OR_MORE_ACTION_ASSOCIATIONS, HttpStatus.BAD_REQUEST);
+        }
+
         actionIntervalRepository.delete(actionIntervalOptional.get());
         return HttpResponse.noContent();
+    }
+
+    private boolean hasActionAssociations(ActionInterval actionInterval) {
+        return actionRepository.existsByActionInterval(actionInterval);
     }
 
     public ActionIntervalDTO createDTO(ActionInterval actionInterval) {
