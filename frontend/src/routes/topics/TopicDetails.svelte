@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { createWebSocket, httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
+	import AdminDetails from './AdminDetails.svelte';
 	import Modal from '../../lib/Modal.svelte';
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';
@@ -526,6 +527,10 @@
 		</div>
 		{#if $topicDetails.dateUpdated}
 			<p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p>
+		{/if}
+
+		{#if selectedTopicGroupId}
+			<AdminDetails groupId={selectedTopicGroupId}/>
 		{/if}
 
 		{#if !$page.url.pathname.includes('search')}
