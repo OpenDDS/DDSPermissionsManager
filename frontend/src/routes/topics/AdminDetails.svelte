@@ -5,6 +5,7 @@
 	import { httpAdapter } from '../../appconfig';
 
 	export let groupId;
+	export let adminCategory;
 
 	// Promises
 	let promise;
@@ -20,7 +21,7 @@
 		groupMembership = promise.data.content;
 
 		adminEmails = groupMembership
-			.filter((member) => member.topicAdmin)
+			.filter((member) => member[`${adminCategory}Admin`])
 			.map((member) => member.permissionsUserEmail);
 
 		return adminEmails;

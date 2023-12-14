@@ -530,7 +530,10 @@
 		{/if}
 
 		{#if selectedTopicGroupId}
-			<AdminDetails groupId={selectedTopicGroupId}/>
+			<AdminDetails
+				groupId={selectedTopicGroupId}
+				adminCategory="topic"
+			/>
 		{/if}
 
 		{#if !$page.url.pathname.includes('search')}
