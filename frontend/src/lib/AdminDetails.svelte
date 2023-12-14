@@ -38,8 +38,10 @@
 {#if $isAuthenticated}
 	{#await promise then _}
 		{#if admins}
-			{#each admins as email}
-				<div>{email}</div>
+			{#each admins as admin, i}
+				<div>
+					{admin}{#if i < admins.length - 1},{/if}
+				</div>
 			{/each}
 		{/if}
 	{/await}
