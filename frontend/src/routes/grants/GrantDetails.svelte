@@ -20,6 +20,7 @@
 	import addSVG from '../../icons/add.svg';
 	import GrantModal from './GrantModal.svelte';
 	import ActionsModal from './ActionsModal.svelte';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 
 	export let selectedGrant, isTopicAdmin;
 
@@ -322,6 +323,13 @@
 		<!-- {#if $grantDetailsStore.dateUpdated}
 			<p style="font-weight: 200; margin-bottom: 2rem;">Last updated {timeAgo} ({browserFormat})</p>
 		{/if} -->
+
+		{#if selectedGrant.groupId}
+			<AdminDetails
+				groupId={selectedGrant.groupId}
+				adminCategory="topic"
+			/>
+		{/if}
 
 		<div class="pub-sub-wrapper">
 			<div>
