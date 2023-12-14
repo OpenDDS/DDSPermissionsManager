@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import { createWebSocket, httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
-	import AdminDetails from './AdminDetails.svelte';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 	import Modal from '../../lib/Modal.svelte';
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';

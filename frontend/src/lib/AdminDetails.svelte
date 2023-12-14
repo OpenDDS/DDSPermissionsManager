@@ -1,8 +1,8 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
-	import { isAuthenticated } from '../../stores/authentication';
+	import { isAuthenticated } from '../stores/authentication';
 	import { onMount } from 'svelte';
-	import { httpAdapter } from '../../appconfig';
+	import { httpAdapter } from '../appconfig';
 
 	export let groupId;
 	export let adminCategory;
