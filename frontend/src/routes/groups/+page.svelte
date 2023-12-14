@@ -32,7 +32,6 @@
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import groupsTotalPages from '../../stores/groupsTotalPages';
 	import groupsTotalSize from '../../stores/groupsTotalSize';
-	import updatePermissionsForAllGroups from '../../stores/updatePermissionsForAllGroups';
 	import permissionsForAllGroups from '../../stores/permissionsForAllGroups';
 	import createItem from '../../stores/createItem';
 	import modalOpen from '../../stores/modalOpen';
@@ -137,12 +136,6 @@
 		timer = setTimeout(() => {
 			reloadAllGroups();
 		}, waitTime);
-	}
-
-	$: if ($updatePermissionsForAllGroups) {
-		getPermissionsForAllGroups();
-		refreshGroups();
-		updatePermissionsForAllGroups.set(false);
 	}
 
 	const refreshGroups = () => {
@@ -409,7 +402,6 @@
 						detailView.set();
 						groupDetailView = false;
 					}}
-					on:reload={async () => await reloadAllGroups()}
 				/>
 			{/if}
 
@@ -603,7 +595,10 @@
 									<td class="header-column" style="width: 4rem; text-align:center">
 										{messages['group']['table.column.six']}
 									</td>
-									<td class="header-column" style="width: 4rem; text-align:right; padding-right: 1rem">
+									<td
+										class="header-column"
+										style="width: 4rem; text-align:right; padding-right: 1rem"
+									>
 										{messages['group']['table.column.seven']}
 									</td>
 								</tr>
