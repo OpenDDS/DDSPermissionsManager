@@ -284,7 +284,6 @@
 		{#if $topicSetsDetails.dateUpdated}
 			<p style="font-weight: 200; margin-bottom: 2rem;">Last updated {timeAgo} ({browserFormat})</p>
 		{/if}
-
 		<div style="font-size:1.3rem; margin-bottom: 1rem">Topics</div>
 		<div class="search-delete-container">
 			<div class="search-wrapper">
