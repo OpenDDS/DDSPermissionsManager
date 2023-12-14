@@ -36,29 +36,19 @@
 </script>
 
 {#if $isAuthenticated}
-
 	{#await promise then _}
 		{#if admins}
-			<div>
-				<strong>Admins</strong>
-			</div>
-			<div style="display: inline-flex;">
-				<ul class="topics-details">
-					{#each admins as email}
-						<li>{email}</li>
-					{/each}
-				</ul>
-			</div>
+			{#each admins as email}
+				<div>{email}</div>
+			{/each}
 		{/if}
 	{/await}
 {/if}
 
 <style>
-	.topics-details {
-		font-size: 12pt;
-		height: auto;
-		width: 41rem;
-		/* margin: 0 0; */
-		margin-top: 1.6rem;
+	.admin-details {
+		color: red;
+		list-style-type: none;
+		padding-left: 0;
 	}
 </style>

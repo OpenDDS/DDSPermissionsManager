@@ -366,17 +366,21 @@
 				/>
 			</td>
 		</tr>
+		<tr>
+			<td>Admins:</td>
+			<td>
+				{#if selectedAppGroupId}
+					<AdminDetails
+						groupId={selectedAppGroupId}
+						adminCategory="application"
+					/>
+				{/if}
+			</td>
+		</tr>
 	</table>
 
 	{#if selectedAppDateUpdated}
 		<p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p>
-	{/if}
-
-	{#if selectedAppGroupId}
-		<AdminDetails
-			groupId={selectedAppGroupId}
-			adminCategory="application"
-		/>
 	{/if}
 
 	{#if !$page.url.pathname.includes('search')}

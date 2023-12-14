@@ -304,6 +304,18 @@
 					<td>Duration:</td>
 					<td>{getDuration(selectedGrant)}</td>
 				</tr>
+
+				<tr>
+					<td>Admins:</td>
+					<td>
+						{#if selectedGrant.groupId}
+							<AdminDetails
+								groupId={selectedGrant.groupId}
+								adminCategory="topic"
+							/>
+						{/if}
+					</td>
+				</tr>
 			</table>
 
 			{#if $isAdmin || isTopicAdmin}
@@ -323,13 +335,6 @@
 		<!-- {#if $grantDetailsStore.dateUpdated}
 			<p style="font-weight: 200; margin-bottom: 2rem;">Last updated {timeAgo} ({browserFormat})</p>
 		{/if} -->
-
-		{#if selectedGrant.groupId}
-			<AdminDetails
-				groupId={selectedGrant.groupId}
-				adminCategory="topic"
-			/>
-		{/if}
 
 		<div class="pub-sub-wrapper">
 			<div>

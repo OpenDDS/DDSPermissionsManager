@@ -510,6 +510,18 @@
 						/>
 					</td>
 				</tr>
+
+				<tr>
+					<td>Admins:</td>
+					<td>
+						{#if selectedTopicGroupId}
+							<AdminDetails
+								groupId={selectedTopicGroupId}
+								adminCategory="topic"
+							/>
+						{/if}
+					</td>
+				</tr>
 			</table>
 
 			{#if $isAdmin || $permissionsByGroup.find((permission) => permission.groupId === selectedTopicGroupId && permission.isTopicAdmin)}
@@ -527,13 +539,6 @@
 		</div>
 		{#if $topicDetails.dateUpdated}
 			<p style="font-weight: 200;">Last updated {timeAgo} ({browserFormat})</p>
-		{/if}
-
-		{#if selectedTopicGroupId}
-			<AdminDetails
-				groupId={selectedTopicGroupId}
-				adminCategory="topic"
-			/>
 		{/if}
 
 		{#if !$page.url.pathname.includes('search')}
