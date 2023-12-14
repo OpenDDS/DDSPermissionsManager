@@ -10,6 +10,7 @@
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';
 	import deleteSVG from '../../icons/delete.svg';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 	import SearchIcon from './SearchIcon.svelte';
 	import groupContext from '../../stores/groupContext';
 	import Modal from '../../lib/Modal.svelte';
@@ -271,6 +272,14 @@
 		{#if $topicSetsDetails.dateUpdated}
 			<p style="font-weight: 200; margin-bottom: 2rem;">Last updated {timeAgo} ({browserFormat})</p>
 		{/if}
+
+		{#if selectedTopicsSetGroupId}
+			<AdminDetails
+				groupId={selectedTopicsSetGroupId}
+				adminCategory="topic"
+			/>
+		{/if}
+
 		<div style="font-size:1.3rem; margin-bottom: 1rem">Topics</div>
 		<div class="search-delete-container">
 			<div class="search-wrapper">
