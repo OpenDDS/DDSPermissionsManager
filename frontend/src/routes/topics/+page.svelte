@@ -594,9 +594,7 @@
 												/>
 											</td>
 										{/if}
-										<td class="header-column" style="min-width: 7rem"
-											>{messages['topic']['table.column.one']}</td
-										>
+										<td class="header-column" style="min-width: 7rem">{messages['topic']['table.column.one']}</td>
 										<td class="header-column">{messages['topic']['table.column.two']}</td>
 									</tr>
 								</thead>
