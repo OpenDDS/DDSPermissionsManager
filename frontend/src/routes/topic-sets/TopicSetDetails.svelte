@@ -24,6 +24,7 @@
 		selectedTopicsSetGroupId,
 		selectedTopicApplications = [],
 		selectedTopicSetUpdateDate,
+		selectedTopicsSetAdmins,
 		topicCurrentGroupPublic;
 	// Selection
 	let grantsRowsSelected = [],
@@ -82,6 +83,7 @@
 		selectedTopicsSetName = $topicSetsDetails.name;
 		selectedTopicsSetGroupName = $topicSetsDetails.groupName;
 		selectedTopicsSetGroupId = $topicSetsDetails.groupId;
+		selectedTopicsSetAdmins = $topicSetsDetails.admins;
 		selectedTopicSetUpdateDate = $topicSetsDetails.dateUpdated;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicsSetGroupName);
@@ -257,12 +259,9 @@
 				<tr>
 					<td>Admins:</td>
 					<td>
-						{#if selectedTopicsSetGroupId}
-							<AdminDetails
-								groupId={selectedTopicsSetGroupId}
-								adminCategory="topic"
-							/>
-						{/if}
+						<AdminDetails
+							admins={selectedTopicsSetAdmins}
+						/>
 					</td>
 				</tr>
 			</table>
