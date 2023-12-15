@@ -282,18 +282,15 @@
 				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
 				>Admins:</span
 			>
-			{#if selectedGrantDuration.groupId}
-				<table>
-					<tr>
-						<td style="border-bottom: none;">
-							<AdminDetails
-								groupId={selectedGrantDuration.groupId}
-								adminCategory="topic"
-							/>
-						</td>
-					</tr>
-				</table>
-			{/if}
+			<table>
+				<tr>
+					<td style="border-bottom: none;">
+						<AdminDetails
+							admins={selectedGrantDuration.admins}
+						/>
+					</td>
+				</tr>
+			</table>
 		</div>
 
 		<hr />
