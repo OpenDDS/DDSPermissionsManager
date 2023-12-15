@@ -239,18 +239,15 @@
 				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem;padding-right: 1rem; min-width: 9.2rem; text-align: right"
 				>Admins:</span
 			>
-			{#if selectedActionInterval.groupId}
 				<table>
-					<tr>
-						<td style="border-bottom: none;">
-							<AdminDetails
-								groupId={selectedActionInterval.groupId}
-								adminCategory="topic"
-							/>
-						</td>
-					</tr>
-				</table>
-			{/if}
+				<tr>
+					<td style="border-bottom: none;">
+						<AdminDetails
+							admins={selectedActionInterval.admins}
+						/>
+					</td>
+				</tr>
+			</table>
 		</div>
 
 		<hr />
