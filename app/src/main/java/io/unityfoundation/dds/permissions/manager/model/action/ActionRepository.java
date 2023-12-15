@@ -17,6 +17,7 @@ import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.data.repository.PageableRepository;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 
 import java.util.List;
 
@@ -36,4 +37,5 @@ public interface ActionRepository extends PageableRepository<Action, Long> {
     Page<Action> findAllByIdInAndApplicationGrantIdIn(List<Long> grandDurationIds, List<Long> groupIds, Pageable pageable);
     List<Action> findAllByApplicationGrantId(Long applicationGrantId);
     void deleteByApplicationGrantId(Long grantId);
+    Integer countByActionInterval(ActionInterval actionInterval);
 }

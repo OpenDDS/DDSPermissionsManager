@@ -36,6 +36,7 @@ public class ActionIntervalDTO implements EntityDTO {
     private Long groupId;
     private String groupName;
     private List<String> admins;
+    private Integer actionCount;
 
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -48,7 +49,8 @@ public class ActionIntervalDTO implements EntityDTO {
     public ActionIntervalDTO() {
     }
 
-    public ActionIntervalDTO(Long id, String name, Long groupId, String groupName, Instant startDate, Instant endDate, List<String> admins) {
+    public ActionIntervalDTO(Long id, String name, Long groupId, String groupName, Instant startDate, Instant endDate,
+                             List<String> admins, Integer actionCount) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
@@ -56,6 +58,7 @@ public class ActionIntervalDTO implements EntityDTO {
         this.startDate = startDate;
         this.endDate = endDate;
         this.admins = admins;
+        this.actionCount = actionCount;
     }
 
     public Long getId() {
@@ -112,5 +115,13 @@ public class ActionIntervalDTO implements EntityDTO {
 
     public void setEndDate(Instant endDate) {
         this.endDate = endDate;
+    }
+
+    public Integer getActionCount() {
+        return actionCount;
+    }
+
+    public void setActionCount(Integer actionCount) {
+        this.actionCount = actionCount;
     }
 }
