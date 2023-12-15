@@ -28,6 +28,9 @@ import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
+import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
@@ -138,6 +141,85 @@ public class ActionIntervalApiTest {
             assertEquals(OK, response.getStatus());
             Optional<ActionIntervalDTO> actionInterval = response.getBody(ActionIntervalDTO.class);
             assertTrue(actionInterval.isPresent());
+        }
+
+        @Test
+        void canCreateWithActionAssociation() {
+            HttpResponse<?> response;
+            HttpRequest<?> request;
+
+            response = entityUtil.createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            // create application
+            response = entityUtil.createApplication("Application123", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(applicationOptional.isPresent());
+            assertEquals("Application123", applicationOptional.get().getName());
+
+            // create grant duration
+            response = entityUtil.createGrantDuration("Duration1", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<GrantDurationDTO> durationOptional = response.getBody(GrantDurationDTO.class);
+            assertTrue(durationOptional.isPresent());
+            assertEquals("Duration1", durationOptional.get().getName());
+
+            // show grant duration
+            request = HttpRequest.GET("/grant_durations/"+durationOptional.get().getId());
+            response = blockingClient.exchange(request, GrantDurationDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<GrantDurationDTO> grantDurationShowResponse = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDurationShowResponse.isPresent());
+            assertNotNull(grantDurationShowResponse.get().getGrantCount());
+            assertEquals(0, grantDurationShowResponse.get().getGrantCount());
+
+            // generate grant token for application
+            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOptional.get().getId());
+            response = blockingClient.exchange(request, String.class);
+            assertEquals(OK, response.getStatus());
+            Optional<String> optional = response.getBody(String.class);
+            assertTrue(optional.isPresent());
+            String applicationGrantToken = optional.get();
+
+            // create application grant
+            response = entityUtil.createApplicationGrant(applicationGrantToken, theta.getId(), "TempGrant", durationOptional.get().getId());
+            assertEquals(CREATED, response.getStatus());
+            Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
+            assertTrue(grantDTOOptional.isPresent());
+
+            // create action interval
+            response = entityUtil.createActionInterval("Xyz789", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalOptional = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalOptional.isPresent());
+            ActionIntervalDTO xyzActionInterval = actionIntervalOptional.get();
+
+            // show action interval
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            assertEquals(OK, response.getStatus());
+            Optional<ActionIntervalDTO> actionIntervalShowResponse = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalShowResponse.isPresent());
+            assertNotNull(actionIntervalShowResponse.get().getId());
+            assertNotNull(actionIntervalShowResponse.get().getActionCount());
+            assertEquals(0, actionIntervalShowResponse.get().getActionCount());
+
+            // create action with action interval
+            entityUtil.createAction(grantDTOOptional.get().getId(), xyzActionInterval.getId());
+
+            // show action interval
+            request = HttpRequest.GET("/action_intervals/"+xyzActionInterval.getId());
+            response = blockingClient.exchange(request, ActionIntervalDTO.class);
+            assertEquals(OK, response.getStatus());
+            actionIntervalShowResponse = response.getBody(ActionIntervalDTO.class);
+            assertTrue(actionIntervalShowResponse.isPresent());
+            assertNotNull(actionIntervalShowResponse.get().getId());
+            assertNotNull(actionIntervalShowResponse.get().getActionCount());
+            assertEquals(1, actionIntervalShowResponse.get().getActionCount());
         }
 
         @Test

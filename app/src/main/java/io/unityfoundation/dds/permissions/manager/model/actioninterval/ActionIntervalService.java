@@ -20,6 +20,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpResponse;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
+import io.unityfoundation.dds.permissions.manager.model.action.ActionRepository;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
@@ -39,12 +40,14 @@ public class ActionIntervalService {
 
     private final ActionIntervalRepository actionIntervalRepository;
     private final GroupRepository groupRepository;
+    private final ActionRepository actionRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
 
-    public ActionIntervalService(ActionIntervalRepository actionIntervalRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
+    public ActionIntervalService(ActionIntervalRepository actionIntervalRepository, GroupRepository groupRepository, ActionRepository actionRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
         this.actionIntervalRepository = actionIntervalRepository;
         this.groupRepository = groupRepository;
+        this.actionRepository = actionRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
     }
@@ -186,6 +189,7 @@ public class ActionIntervalService {
 
     public ActionIntervalDTO createDTO(ActionInterval actionInterval) {
         List<String> admins = groupUserService.getAllTopicAdminsOfGroup(actionInterval.getPermissionsGroup().getId());
+        Integer actionCount = actionRepository.countByActionInterval(actionInterval);
         return new ActionIntervalDTO(
                 actionInterval.getId(),
                 actionInterval.getName(),
@@ -193,7 +197,8 @@ public class ActionIntervalService {
                 actionInterval.getPermissionsGroup().getName(),
                 actionInterval.getStartDate(),
                 actionInterval.getEndDate(),
-                admins);
+                admins,
+                actionCount);
     }
 
     private void checkExistenceAndAdminAuthorization(Optional<ActionInterval> actionIntervalOptional) {
