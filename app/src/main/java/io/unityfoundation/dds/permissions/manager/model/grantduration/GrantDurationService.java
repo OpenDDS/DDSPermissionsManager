@@ -184,8 +184,16 @@ public class GrantDurationService {
 
         checkExistenceAndAdminAuthorization(grantDurationOptional);
 
+        if (hasGrantAssociations(grantDurationOptional.get())) {
+            throw new DPMException(ResponseStatusCodes.GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS, HttpStatus.BAD_REQUEST);
+        }
+
         grantDurationRepository.delete(grantDurationOptional.get());
         return HttpResponse.noContent();
+    }
+
+    private boolean hasGrantAssociations(GrantDuration grantDuration) {
+        return grantRepository.existsByGrantDuration(grantDuration);
     }
 
     public GrantDurationDTO createDTO(GrantDuration grantDuration) {

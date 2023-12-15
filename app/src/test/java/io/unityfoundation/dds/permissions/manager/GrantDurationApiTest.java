@@ -802,6 +802,67 @@ public class GrantDurationApiTest {
             response = blockingClient.exchange(request);
             assertEquals(NO_CONTENT, response.getStatus());
         }
+
+        @Test
+        void cannotDeleteGrantDurationIfAssociatedToAGrant(){
+            mockSecurityService.postConstruct();
+            mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
+
+            HttpRequest<?> request;
+            HttpResponse<?> response;
+
+            // create groups
+            response = entityUtil.createGroup("Theta");
+            assertEquals(OK, response.getStatus());
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
+            assertTrue(thetaOptional.isPresent());
+            SimpleGroupDTO theta = thetaOptional.get();
+
+            // create application
+            response = entityUtil.createApplication("Application123", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<ApplicationDTO> applicationOptional = response.getBody(ApplicationDTO.class);
+            assertTrue(applicationOptional.isPresent());
+            assertEquals("Application123", applicationOptional.get().getName());
+
+            // add member to group
+            response = entityUtil.addGroupMembership(theta.getId(), "jjones@test.test", true);
+            assertEquals(OK, response.getStatus());
+
+            // create grant duration
+            response = entityUtil.createGrantDuration("Abc123", theta.getId());
+            assertEquals(OK, response.getStatus());
+            Optional<GrantDurationDTO> grantDuration = response.getBody(GrantDurationDTO.class);
+            assertTrue(grantDuration.isPresent());
+
+            // generate grant token for application
+            request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOptional.get().getId());
+            response = blockingClient.exchange(request, String.class);
+            assertEquals(OK, response.getStatus());
+            Optional<String> optional = response.getBody(String.class);
+            assertTrue(optional.isPresent());
+            String applicationGrantToken = optional.get();
+
+            // create application permission
+            response = entityUtil.createApplicationGrant(applicationGrantToken, theta.getId(), "TempGrant", grantDuration.get().getId());
+            assertEquals(CREATED, response.getStatus());
+            Optional<GrantDTO> grantDTOOptional = response.getBody(GrantDTO.class);
+            assertTrue(grantDTOOptional.isPresent());
+
+            loginAsNonAdmin();
+
+            // delete attempt
+            request = HttpRequest.DELETE("/grant_durations/"+grantDuration.get().getId(), Map.of());
+            HttpRequest<?> finalRequest = request;
+            HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
+                blockingClient.exchange(finalRequest);
+            });
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
+            assertTrue(bodyOptional.isPresent());
+            List<Map> list = bodyOptional.get();
+            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS.equals(map.get("code"))));
+        }
     }
 
     @Nested

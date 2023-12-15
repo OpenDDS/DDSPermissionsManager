@@ -27,7 +27,7 @@ import java.util.Optional;
 
 @Repository
 public interface ApplicationGrantRepository extends PageableRepository<ApplicationGrant, Long> {
-//    boolean existsByPermissionsApplicationAndPermissionsTopic(Application permissionsApplication, Topic permissionsTopic);
+    boolean existsByGrantDuration(GrantDuration grantDuration);
     Page<ApplicationGrant> findByPermissionsApplicationId(Long applicationId, Pageable pageable);
     Page<ApplicationGrant> findAllByPermissionsApplicationIdAndPermissionsGroupIdIn(Long applicationId, List<Long> groups, Pageable pageable);
     List<ApplicationGrant> findByPermissionsApplication(Application permissionsApplication);
