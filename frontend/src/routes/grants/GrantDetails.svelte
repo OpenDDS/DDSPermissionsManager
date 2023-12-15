@@ -308,12 +308,9 @@
 				<tr>
 					<td>Admins:</td>
 					<td>
-						{#if selectedGrant.groupId}
-							<AdminDetails
-								groupId={selectedGrant.groupId}
-								adminCategory="topic"
-							/>
-						{/if}
+						<AdminDetails
+							admins={selectedGrant.admins}
+						/>
 					</td>
 				</tr>
 			</table>
