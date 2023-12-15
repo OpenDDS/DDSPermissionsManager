@@ -29,6 +29,7 @@
 		selectedTopicApplications = [];
 
 	let applicationGrants = [];
+	let applicationAdmins = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -189,6 +190,7 @@
 		selectedAppDescription = appDetail.data.description;
 		selectedAppPublic = appDetail.data.public;
 		selectedAppDateUpdated = appDetail.data.dateUpdated;
+		applicationAdmins = appDetail.data.admins;
 		isPublic = selectedAppPublic;
 	};
 
@@ -218,6 +220,7 @@
 
 	onMount(async () => {
 		if (APIisBroadcastingEvents) subscribeApplicationMessage(socket);
+		await loadApplicationDetail(selectedAppId, selectedAppGroupId);
 		applicationGrants = await getApplicationGrants();
 		headerTitle.set(selectedAppName);
 		await getAppPermissions();
@@ -369,12 +372,9 @@
 		<tr>
 			<td>Admins:</td>
 			<td>
-				{#if selectedAppGroupId}
-					<AdminDetails
-						groupId={selectedAppGroupId}
-						adminCategory="application"
-					/>
-				{/if}
+				<AdminDetails
+					admins={applicationAdmins}
+				/>
 			</td>
 		</tr>
 	</table>
