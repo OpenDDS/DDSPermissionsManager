@@ -32,6 +32,7 @@
 		selectedTopicCanonicalName,
 		selectedTopicDescription,
 		selectedTopicPublic,
+		selectedTopicAdmins,
 		selectedTopicApplications = [],
 		selectedApplicationList,
 		selectedGrant,
@@ -110,6 +111,7 @@
 		selectedTopicGroupName = $topicDetails.groupName;
 		selectedTopicGroupId = $topicDetails.group;
 		selectedTopicKind = $topicDetails.kind;
+		selectedTopicAdmins = $topicDetails.admins;
 		isPublic = $topicDetails.public;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicGroupName);
@@ -514,12 +516,9 @@
 				<tr>
 					<td>Admins:</td>
 					<td>
-						{#if selectedTopicGroupId}
-							<AdminDetails
-								groupId={selectedTopicGroupId}
-								adminCategory="topic"
-							/>
-						{/if}
+						<AdminDetails
+							admins={selectedTopicAdmins}
+						/>
 					</td>
 				</tr>
 			</table>
