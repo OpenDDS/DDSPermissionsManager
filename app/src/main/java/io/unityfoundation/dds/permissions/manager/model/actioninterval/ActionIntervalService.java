@@ -197,6 +197,7 @@ public class ActionIntervalService {
 
     public ActionIntervalDTO createDTO(ActionInterval actionInterval) {
         List<String> admins = groupUserService.getAllTopicAdminsOfGroup(actionInterval.getPermissionsGroup().getId());
+        Integer actionCount = actionRepository.countByActionInterval(actionInterval);
         return new ActionIntervalDTO(
                 actionInterval.getId(),
                 actionInterval.getName(),
@@ -204,7 +205,8 @@ public class ActionIntervalService {
                 actionInterval.getPermissionsGroup().getName(),
                 actionInterval.getStartDate(),
                 actionInterval.getEndDate(),
-                admins);
+                admins,
+                actionCount);
     }
 
     private void checkExistenceAndAdminAuthorization(Optional<ActionInterval> actionIntervalOptional) {

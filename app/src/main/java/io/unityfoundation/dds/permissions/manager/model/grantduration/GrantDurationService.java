@@ -20,6 +20,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpResponse;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
@@ -38,12 +39,14 @@ import java.util.Optional;
 public class GrantDurationService {
 
     private final GrantDurationRepository grantDurationRepository;
+    private final ApplicationGrantRepository grantRepository;
     private final GroupRepository groupRepository;
     private final SecurityUtil securityUtil;
     private final GroupUserService groupUserService;
 
-    public GrantDurationService(GrantDurationRepository grantDurationRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
+    public GrantDurationService(GrantDurationRepository grantDurationRepository, ApplicationGrantRepository grantRepository, GroupRepository groupRepository, SecurityUtil securityUtil, GroupUserService groupUserService) {
         this.grantDurationRepository = grantDurationRepository;
+        this.grantRepository = grantRepository;
         this.groupRepository = groupRepository;
         this.securityUtil = securityUtil;
         this.groupUserService = groupUserService;
@@ -181,19 +184,30 @@ public class GrantDurationService {
 
         checkExistenceAndAdminAuthorization(grantDurationOptional);
 
+        if (hasGrantAssociations(grantDurationOptional.get())) {
+            throw new DPMException(ResponseStatusCodes.GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS, HttpStatus.BAD_REQUEST);
+        }
+
         grantDurationRepository.delete(grantDurationOptional.get());
         return HttpResponse.noContent();
     }
 
+    private boolean hasGrantAssociations(GrantDuration grantDuration) {
+        return grantRepository.existsByGrantDuration(grantDuration);
+    }
+
     public GrantDurationDTO createDTO(GrantDuration grantDuration) {
         List<String> admins = groupUserService.getAllTopicAdminsOfGroup(grantDuration.getPermissionsGroup().getId());
+        Integer grantCount = grantRepository.countByGrantDuration(grantDuration);
         return new GrantDurationDTO(grantDuration.getId(),
                 grantDuration.getName(),
                 grantDuration.getPermissionsGroup().getId(),
                 grantDuration.getPermissionsGroup().getName(),
                 grantDuration.getDurationInMilliseconds(),
                 grantDuration.getDurationMetadata(),
-                admins);
+                admins,
+                grantCount
+                );
     }
 
     private void checkExistenceAndAdminAuthorization(Optional<GrantDuration> grantDurationOptional) {

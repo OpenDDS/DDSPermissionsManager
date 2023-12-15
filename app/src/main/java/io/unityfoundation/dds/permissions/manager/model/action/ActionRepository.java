@@ -37,4 +37,5 @@ public interface ActionRepository extends PageableRepository<Action, Long> {
     Page<Action> findAllByIdInAndApplicationGrantIdIn(List<Long> grandDurationIds, List<Long> groupIds, Pageable pageable);
     List<Action> findAllByApplicationGrantId(Long applicationGrantId);
     boolean existsByActionInterval(ActionInterval actionInterval);
+    Integer countByActionInterval(ActionInterval actionInterval);
 }
