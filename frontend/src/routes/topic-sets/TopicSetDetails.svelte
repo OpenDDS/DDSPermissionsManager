@@ -10,6 +10,7 @@
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';
 	import deleteSVG from '../../icons/delete.svg';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 	import SearchIcon from './SearchIcon.svelte';
 	import groupContext from '../../stores/groupContext';
 	import Modal from '../../lib/Modal.svelte';
@@ -23,6 +24,7 @@
 		selectedTopicsSetGroupId,
 		selectedTopicApplications = [],
 		selectedTopicSetUpdateDate,
+		selectedTopicsSetAdmins,
 		topicCurrentGroupPublic;
 	// Selection
 	let grantsRowsSelected = [],
@@ -81,6 +83,7 @@
 		selectedTopicsSetName = $topicSetsDetails.name;
 		selectedTopicsSetGroupName = $topicSetsDetails.groupName;
 		selectedTopicsSetGroupId = $topicSetsDetails.groupId;
+		selectedTopicsSetAdmins = $topicSetsDetails.admins;
 		selectedTopicSetUpdateDate = $topicSetsDetails.dateUpdated;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicsSetGroupName);
@@ -251,6 +254,15 @@
 				<tr>
 					<td>{messages['topic-sets.detail']['row.two']}</td>
 					<td>{$topicSetsDetails.groupName}</td>
+				</tr>
+
+				<tr>
+					<td>Admins:</td>
+					<td>
+						<AdminDetails
+							admins={selectedTopicsSetAdmins}
+						/>
+					</td>
 				</tr>
 			</table>
 

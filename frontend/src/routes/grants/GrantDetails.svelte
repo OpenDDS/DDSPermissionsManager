@@ -20,6 +20,7 @@
 	import addSVG from '../../icons/add.svg';
 	import GrantModal from './GrantModal.svelte';
 	import ActionsModal from './ActionsModal.svelte';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 
 	export let selectedGrant, isTopicAdmin;
 
@@ -302,6 +303,15 @@
 				<tr>
 					<td>Duration:</td>
 					<td>{getDuration(selectedGrant)}</td>
+				</tr>
+
+				<tr>
+					<td>Admins:</td>
+					<td>
+						<AdminDetails
+							admins={selectedGrant.admins}
+						/>
+					</td>
 				</tr>
 			</table>
 

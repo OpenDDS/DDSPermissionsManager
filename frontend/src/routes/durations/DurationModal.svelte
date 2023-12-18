@@ -12,6 +12,7 @@
 	import groupContext from '../../stores/groupContext';
 	import modalOpen from '../../stores/modalOpen';
 	import { convertFromMilliseconds, getDurationInMilliseconds } from '../../utils';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 
 	export let title;
 
@@ -274,6 +275,22 @@
 			<span style="line-height: 2rem"
 				>{duration || 0} {duration > 1 ? `${selectedSegment}s` : selectedSegment}</span
 			>
+		</div>
+
+		<div style="font-size: 1rem; margin: 1.1rem 0 0 0.2rem; width: fit-content; display: flex">
+			<span
+				style="font-weight: 300; vertical-align: 1.12rem;  line-height: 2rem; padding-right: 1rem; min-width: 7.5rem"
+				>Admins:</span
+			>
+			<table>
+				<tr>
+					<td style="border-bottom: none;">
+						<AdminDetails
+							admins={selectedGrantDuration.admins}
+						/>
+					</td>
+				</tr>
+			</table>
 		</div>
 
 		<hr />

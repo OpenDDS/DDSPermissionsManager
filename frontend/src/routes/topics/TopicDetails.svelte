@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import { createWebSocket, httpAdapter } from '../../appconfig';
 	import topicDetails from '../../stores/groupDetails';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 	import Modal from '../../lib/Modal.svelte';
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';
@@ -31,6 +32,7 @@
 		selectedTopicCanonicalName,
 		selectedTopicDescription,
 		selectedTopicPublic,
+		selectedTopicAdmins,
 		selectedTopicApplications = [],
 		selectedApplicationList,
 		selectedGrant,
@@ -109,6 +111,7 @@
 		selectedTopicGroupName = $topicDetails.groupName;
 		selectedTopicGroupId = $topicDetails.group;
 		selectedTopicKind = $topicDetails.kind;
+		selectedTopicAdmins = $topicDetails.admins;
 		isPublic = $topicDetails.public;
 
 		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicGroupName);
@@ -506,6 +509,15 @@
 							style="vertical-align: middle; margin-left: 0.1rem; width: 15px; height: 15px"
 							bind:checked={isPublic}
 							on:change={() => (isPublic = selectedTopicPublic)}
+						/>
+					</td>
+				</tr>
+
+				<tr>
+					<td>Admins:</td>
+					<td>
+						<AdminDetails
+							admins={selectedTopicAdmins}
 						/>
 					</td>
 				</tr>

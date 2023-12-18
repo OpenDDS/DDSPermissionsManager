@@ -15,6 +15,7 @@
 	import featureFlagConfigStore from '../../stores/featureFlagConfig';
 	import { convertFromMilliseconds } from '../../utils';
 	import ActionsDetails from '../../lib/ActionsDetails.svelte';
+	import AdminDetails from '../../lib/AdminDetails.svelte';
 
 	export let isApplicationAdmin,
 		selectedAppId,
@@ -28,6 +29,7 @@
 		selectedTopicApplications = [];
 
 	let applicationGrants = [];
+	let applicationAdmins = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -188,6 +190,7 @@
 		selectedAppDescription = appDetail.data.description;
 		selectedAppPublic = appDetail.data.public;
 		selectedAppDateUpdated = appDetail.data.dateUpdated;
+		applicationAdmins = appDetail.data.admins;
 		isPublic = selectedAppPublic;
 	};
 
@@ -217,6 +220,7 @@
 
 	onMount(async () => {
 		if (APIisBroadcastingEvents) subscribeApplicationMessage(socket);
+		await loadApplicationDetail(selectedAppId, selectedAppGroupId);
 		applicationGrants = await getApplicationGrants();
 		headerTitle.set(selectedAppName);
 		await getAppPermissions();
@@ -362,6 +366,14 @@
 					bind:checked={isPublic}
 					on:change={() => (isPublic = selectedAppPublic)}
 					bind:this={checkboxSelector}
+				/>
+			</td>
+		</tr>
+		<tr>
+			<td>Admins:</td>
+			<td>
+				<AdminDetails
+					admins={applicationAdmins}
 				/>
 			</td>
 		</tr>
