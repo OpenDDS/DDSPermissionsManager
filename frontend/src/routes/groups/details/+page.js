@@ -5,7 +5,7 @@ export async function load() {
 	return new Promise(resolve => {
 		const unsubscribe = groupContext.subscribe(value => {
 			resolve({
-				group: value
+				group: value ? value : 0
 			});
 		});
 	})
