@@ -99,6 +99,7 @@ public interface ResponseStatusCodes {
     String ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS = "action-interval.name.cannot-be-less-than-three-characters";
     String ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL = "action-interval.cannot-be-blank-or-null";
     String ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION = "action-interval.cannot-update-group-association";
+    String ACTION_INTERVAL_HAS_ONE_OR_MORE_ACTION_ASSOCIATIONS = "action-interval.has-one-or-more-action-associations";
 
     // grant duration
     String GRANT_DURATION_NOT_FOUND = "grant-duration.not-found";

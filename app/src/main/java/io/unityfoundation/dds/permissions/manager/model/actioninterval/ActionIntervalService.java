@@ -183,8 +183,16 @@ public class ActionIntervalService {
 
         checkExistenceAndAdminAuthorization(actionIntervalOptional);
 
+        if (hasActionAssociations(actionIntervalOptional.get())) {
+            throw new DPMException(ResponseStatusCodes.ACTION_INTERVAL_HAS_ONE_OR_MORE_ACTION_ASSOCIATIONS, HttpStatus.BAD_REQUEST);
+        }
+
         actionIntervalRepository.delete(actionIntervalOptional.get());
         return HttpResponse.noContent();
+    }
+
+    private boolean hasActionAssociations(ActionInterval actionInterval) {
+        return actionRepository.existsByActionInterval(actionInterval);
     }
 
     public ActionIntervalDTO createDTO(ActionInterval actionInterval) {
