@@ -33,11 +33,11 @@ import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationService;
+import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import org.bouncycastle.mail.smime.SMIMEException;
 import org.bouncycastle.operator.OperatorCreationException;
 
-import javax.mail.MessagingException;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;

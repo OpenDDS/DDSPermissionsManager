@@ -17,13 +17,12 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.core.annotation.NonNull;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Singleton;
+import jakarta.validation.constraints.NotBlank;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.validation.constraints.NotBlank;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 @Singleton
 public class BCryptPasswordEncoderService {

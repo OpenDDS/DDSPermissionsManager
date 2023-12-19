@@ -19,12 +19,11 @@ import io.micronaut.data.annotation.DateCreated;
 import io.micronaut.data.annotation.DateUpdated;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
-import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
+import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
