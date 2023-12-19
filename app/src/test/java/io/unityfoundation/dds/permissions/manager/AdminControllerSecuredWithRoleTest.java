@@ -52,7 +52,7 @@ class AdminControllerSecuredWithRoleTest {
 
     @Requires(property = "spec.name", value = "AdminControllerSecuredWithRoleTest")
     @Singleton
-    static class MockAuthenticationFetcher implements AuthenticationFetcher {
+    static class MockAuthenticationFetcher implements AuthenticationFetcher<HttpRequest<?>> {
 
         @Override
         public Publisher<Authentication> fetchAuthentication(HttpRequest<?> request) {
