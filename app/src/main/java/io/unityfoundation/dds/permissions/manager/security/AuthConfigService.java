@@ -52,10 +52,7 @@ public class AuthConfigService {
     @Property(name = "permissions-manager.application.jwt.signature.private")
     protected String privateKey;
 
-    private final Environment environment;
-
-    public AuthConfigService(Environment environment) {
-        this.environment = environment;
+    public AuthConfigService() {
     }
 
     public HttpResponse<?> getPublicKeys() throws Exception {
@@ -90,10 +87,15 @@ public class AuthConfigService {
 
     public RSAPrivateKey readPKCS8PrivateKey() throws IOException, URISyntaxException {
         File file;
-        if (environment.getActiveNames().contains("dev") || environment.getActiveNames().contains("test")) {
-            file = getFileFromResource(privateKey);
-        } else {
+        if (privateKey != null ) {
             file = new File(privateKey);
+            if (!file.exists()) {
+                LOG.warn("Could not find private key with given path. Using fallback resource key.");
+                file = getFileFromResource(privateKey);
+            }
+        } else {
+            LOG.warn("Private Key is null. Using fallback resource key.");
+            file = getFileFromResource(privateKey);
         }
 
         try (FileReader keyReader = new FileReader(file)) {
