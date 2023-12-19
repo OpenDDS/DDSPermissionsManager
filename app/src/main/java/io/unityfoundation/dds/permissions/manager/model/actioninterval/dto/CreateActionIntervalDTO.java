@@ -13,17 +13,16 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.actioninterval.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.time.Instant;
 
-@Introspected
+@Serdeable
 public class CreateActionIntervalDTO implements EntityDTO {
 
     @NotBlank
@@ -34,11 +33,9 @@ public class CreateActionIntervalDTO implements EntityDTO {
     private Long groupId;
 
     @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant startDate;
 
     @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant endDate;
 
 
