@@ -681,7 +681,7 @@
 												selectedGroup = group;
 												groupDetailView = true;
 												history.pushState({ path: '/groups' }, 'My Groups', '/groups');
-												goto(`/groups/details/`, group.id);
+												goto(`/groups/details/`);
 											}}
 										>
 											{group.name}
