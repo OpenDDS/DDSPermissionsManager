@@ -26,6 +26,10 @@ micronaut:
 ---
 permissions-manager:
   application:
+    jwt:
+      signature:
+        public: "publickey.crt"
+        private: "pkcs8.key"
     passphrase:
       salt: "changeme"
   test:
