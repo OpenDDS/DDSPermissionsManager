@@ -1,5 +1,6 @@
 <script>
 	import groupContext from '../../../stores/groupContext';
+	import groupDetailsButton from '../../../stores/groupDetailsButton';
 	import groupMembershipList from '../../../stores/groupMembershipList';
 	import { httpAdapter } from '../../../appconfig';
 	import groupMembershipsTotalPages from '../../../stores/groupMembershipsTotalPages';
@@ -84,16 +85,17 @@
 
 	{#await promise then _}
 
-		<!-- User Table -->
-		{#if $groupMembershipList?.length > 0}
-			<UserTable users={groupMembershipList}/>
+		{#if $groupDetailsButton == 'Users'}
+			{#if $groupMembershipList?.length > 0}
+				<UserTable users={groupMembershipList}/>
+			{/if}
+		{:else if $groupDetailsButton == 'Topics'}
+			<p>Topics Table</p>
+		{:else if $groupDetailsButton == 'Applications'}
+			<p>Applications Table</p>
+		{:else if $groupDetailsButton == 'Grants'}
+			<p>Grants Table</p>
 		{/if}
-
-		<!-- Topic Table -->
-
-		<!-- Application Table -->
-
-		<!-- Grant Table -->
 
 	{/await}
 
