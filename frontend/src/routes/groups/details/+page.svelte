@@ -4,6 +4,7 @@
 	import UserTable from './UserTable.svelte';
 	import TopicTable from './TopicTable.svelte';
 	import ApplicationTable from './ApplicationTable.svelte';
+	import GrantTable from './GrantTable.svelte';
 </script>
 
 {#if $groupContext && $groupContext.name}
@@ -15,7 +16,7 @@
 		{:else if $groupDetailsButton == 'Applications'}
 			<ApplicationTable/>
 		{:else if $groupDetailsButton == 'Grants'}
-			<p>Grants Table</p>
+			<GrantTable/>
 		{/if}
 
 {/if}
