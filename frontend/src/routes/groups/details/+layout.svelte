@@ -3,6 +3,9 @@
 	import messages from '$lib/messages.json';
 	import groupContext from '../../../stores/groupContext';
 	import groupDetailsButton from '../../../stores/groupDetailsButton';
+	import GroupDetails from '../GroupDetails.svelte';
+	import headerTitle from '../../../stores/headerTitle';
+	import detailView from '../../../stores/detailView';
 
 	$: if ($groupDetailsButton == null) {
 		groupDetailsButton.set('Users');
@@ -29,7 +32,15 @@
 </style>
 
 {#if $groupContext && $groupContext.name}
-	<h1>Group: {$groupContext.name}</h1>
+		<div style="margin-block-start: 0.67em;margin-block-end: 1.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
+			<GroupDetails
+				group={$groupContext}
+				on:groupList={() => {
+					headerTitle.set(messages['group']['title']);
+					detailView.set();
+				}}
+			/>
+		</div>
 
 	<div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
 		{#each $page.data.menuOptions as menuOption, i}

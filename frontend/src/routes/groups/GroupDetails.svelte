@@ -135,7 +135,6 @@
 			</tr>
 		</table>
 	</div>
-	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 {/if}
 
 <style>
