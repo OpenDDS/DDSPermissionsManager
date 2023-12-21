@@ -10,6 +10,8 @@
 	import groupContext from '../../../stores/groupContext';
 	import groupMembershipList from '../../../stores/groupMembershipList';
 	import { httpAdapter } from '../../../appconfig';
+	import Modal from '../../../lib/Modal.svelte';
+	import errorMessages from '$lib/errorMessages.json';
 	import groupMembershipsTotalPages from '../../../stores/groupMembershipsTotalPages';
 	import groupMembershipsTotalSize from '../../../stores/groupMembershipsTotalSize';
 	import { afterUpdate, onMount } from 'svelte';
@@ -20,18 +22,18 @@
 	// Promises
 	let promise;
 
+	// Error Handling
+	let errorMsg, errorObject;
+
+	// Modals
+	let errorMessageVisible = false;
+
 	// Pagination
 	let groupMembershipsPerPage = 10;
 	let groupMembershipsCurrentPage = 0;
 
 	// Group Membership List
 	let groupMembershipListArray = [];
-
-	const errorMessage = (errMsg, errObj) => {
-		errorMsg = errMsg;
-		errorObject = errObj;
-		errorMessageVisible = true;
-	};
 
 	const reloadGroupMemberships = async (page = 0) => {
 		try {
@@ -96,7 +98,32 @@
 		if ($groupContext && $groupContext.id)
 			promise = await reloadGroupMemberships();
 	});
+
+	const errorMessage = (errMsg, errObj) => {
+		errorMsg = errMsg;
+		errorObject = errObj;
+		errorMessageVisible = true;
+	};
+
+	const errorMessageClear = () => {
+		errorMessageVisible = false;
+		errorMsg = '';
+		errorObject = '';
+	};
 </script>
+
+{#if errorMessageVisible}
+	<Modal
+		title={errorMsg}
+		errorMsg={true}
+		errorDescription={errorObject}
+		closeModalText={errorMessages['modal']['button.close']}
+		on:cancel={() => {
+			errorMessageVisible = false;
+			errorMessageClear();
+		}}
+	/>
+{/if}
 
 {#await promise then _}
 	<div class="content">
@@ -286,10 +313,6 @@
 	tr {
 		line-height: 2.2rem;
 	}
-
-	p {
-		font-size: large;
-	} 
 
 	.header-column {
 		font-weight: 600;
