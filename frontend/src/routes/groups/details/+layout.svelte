@@ -1,11 +1,24 @@
 <script>
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 	import messages from '$lib/messages.json';
+	import { isAuthenticated } from '../../../stores/authentication';
+	import refreshPage from '../../../stores/refreshPage';
 	import groupContext from '../../../stores/groupContext';
 	import groupDetailsButton from '../../../stores/groupDetailsButton';
 	import GroupDetails from '../GroupDetails.svelte';
 	import headerTitle from '../../../stores/headerTitle';
 	import detailView from '../../../stores/detailView';
+
+	// Constants
+	const waitTime = 1000;
+
+	// Redirects the User to the Login screen if not authenticated
+	$: if (browser) {
+		setTimeout(() => {
+			if (!$isAuthenticated) goto(`/`, true);
+		}, waitTime);
+	}
 
 	$: if ($groupDetailsButton == null) {
 		groupDetailsButton.set('Users');
@@ -20,7 +33,7 @@
 	button {
 		color: buttontext;
 		background-color: buttonface;
-		padding: 6px 6px 6px 6px;
+		padding: 14px 10px 14px 10px;
 		border: none;
 	}
 	button:hover {
@@ -28,6 +41,9 @@
 	}
 	.active {
 		background-color: #e8def8;
+	}
+	p {
+		font-size: large;
 	}
 </style>
 
@@ -53,7 +69,11 @@
 		{/each}
 	</div>
 
-	<slot></slot>
+	{#key $refreshPage}
+		{#if $isAuthenticated}
+			<slot></slot>
+		{/if}
+	{/key}
 
 	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 {/if}
