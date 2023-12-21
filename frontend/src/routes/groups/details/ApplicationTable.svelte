@@ -124,7 +124,7 @@
 							{#each $applications as app, i}
 								<tr>
 									<td>{app.name}</td>
-									<td>{app.id}</td>
+									<td style="padding-left: 0.5rem">{app.id}</td>
 								</tr>
 							{/each}
 						</tbody>
