@@ -106,7 +106,7 @@
 				<thead>
 					<tr style="border-top: 1px solid black; border-bottom: 2px solid">
 						<td class="header-column" style="min-width: 7rem">{messages['topic']['table.column.one']}</td>
-						<td class="header-column">{messages['topic']['table.column.two']}</td>
+						<td class="header-column">{messages['topic']['table.column.three']}</td>
 					</tr>
 				</thead>
 				<tbody>
@@ -114,7 +114,7 @@
 					<tr>
 						<td>{topic.name}</td>
 
-						<td style="padding-left: 0.5rem">{topic.groupName}</td>
+						<td style="padding-left: 0.5rem">{topic.id}</td>
 					</tr>
 				{/each}
 				</tbody>
