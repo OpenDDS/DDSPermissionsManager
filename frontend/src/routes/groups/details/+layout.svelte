@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/stores';
+	import messages from '$lib/messages.json';
 	import groupContext from '../../../stores/groupContext';
 	import groupDetailsButton from '../../../stores/groupDetailsButton';
 
@@ -30,14 +31,18 @@
 {#if $groupContext && $groupContext.name}
 	<h1>Group: {$groupContext.name}</h1>
 
-	{#each $page.data.menuOptions as menuOption, i}
-		<button
-			class:active={$groupDetailsButton == menuOption.label ? true : false}
-			on:click={() => selectButton(menuOption.label)}
-			>
-			{menuOption.label}
-		</button>
-	{/each}
+	<div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
+		{#each $page.data.menuOptions as menuOption, i}
+			<button
+				class:active={$groupDetailsButton == menuOption.label ? true : false}
+				on:click={() => selectButton(menuOption.label)}
+				>
+				{menuOption.label}
+			</button>
+		{/each}
+	</div>
 
 	<slot></slot>
+
+	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 {/if}
