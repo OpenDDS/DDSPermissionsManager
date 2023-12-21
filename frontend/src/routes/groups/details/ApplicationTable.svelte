@@ -233,4 +233,8 @@
 	td {
 		height: 2.2rem;
 	}
+
+	.header-column {
+		font-weight: 600;
+	}
 </style>
