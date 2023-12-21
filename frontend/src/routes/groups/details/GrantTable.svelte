@@ -122,7 +122,6 @@
 								>
 								<td class="header-column">{messages['grants']['table.column.three']}</td>
 								<td class="header-column">{messages['grants']['table.column.four']}</td>
-								<td class="header-column">{messages['grants']['table.column.five']}</td>
 							</tr>
 						</thead>
 						<tbody>
@@ -131,7 +130,6 @@
 									<td data-cy="duration-name">{grant.name}</td>
 									<td data-cy="grant-duration">{getDuration(grant)}</td>
 									<td>{grant.applicationName}</td>
-									<td>{grant.applicationGroupName}</td>
 								</tr>
 							{/each}
 						</tbody>
