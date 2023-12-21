@@ -113,7 +113,6 @@
 				{#each $topicsA as topic}
 					<tr>
 						<td>{topic.name}</td>
-
 						<td style="padding-left: 0.5rem">{topic.id}</td>
 					</tr>
 				{/each}
