@@ -6,7 +6,6 @@
 	import Modal from '../../../lib/Modal.svelte';
 	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
 	import userValidityCheck from '../../../stores/userValidityCheck';
-	import headerTitle from '../../../stores/headerTitle';
 	import pageforwardSVG from '../../../icons/pageforward.svg';
 	import pagebackwardsSVG from '../../../icons/pagebackwards.svg';
 	import pagefirstSVG from '../../../icons/pagefirst.svg';
@@ -66,7 +65,6 @@
 	onMount(async () => {
 		detailView.set('first run');
 
-		headerTitle.set(messages['grants']['title']);
 		await reloadAllGrants();
 
 		if ($permissionsByGroup) {
