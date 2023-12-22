@@ -98,18 +98,19 @@
 </script>
 
 {#await promise then _}
-	{#if errorMessageVisible}
-		<Modal
-			title={errorMsg}
-			errorMsg={true}
-			errorDescription={errorObject}
-			closeModalText={errorMessages['modal']['button.close']}
-			on:cancel={() => {
-				errorMessageVisible = false;
-				errorMessageClear();
-			}}
-		/>
-	{/if}
+	<div class="content">
+		{#if errorMessageVisible}
+			<Modal
+				title={errorMsg}
+				errorMsg={true}
+				errorDescription={errorObject}
+				closeModalText={errorMessages['modal']['button.close']}
+				on:cancel={() => {
+					errorMessageVisible = false;
+					errorMessageClear();
+				}}
+			/>
+		{/if}
 
 		{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
 			<div class="content">
@@ -219,9 +220,10 @@
 					}}
 				/>
 			</div>
-			<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
 		{/if}
 
+		<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
+	</div>
 {/await}
 
 <style>

@@ -118,90 +118,91 @@
 				{/each}
 				</tbody>
 			</table>
+
+			<div class="pagination">
+				<span>{messages['pagination']['rows.per.page']}</span>
+				<select
+					tabindex="-1"
+					on:change={(e) => {
+						topicsPerPage = e.target.value;
+						reloadAllTopics();
+					}}
+					name="RowsPerPage"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="75">75</option>
+					<option value="100">100&nbsp;</option>
+				</select>
+
+				<span style="margin: 0 2rem 0 2rem">
+					{#if $topicsTotalSize > 0}
+						{1 + topicsCurrentPage * topicsPerPage}
+					{:else}
+						0
+					{/if}
+					- {Math.min(topicsPerPage * (topicsCurrentPage + 1), $topicsTotalSize)} of
+					{$topicsTotalSize}
+				</span>
+
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagefirstSVG}
+					alt="first page"
+					class="pagination-image"
+					class:disabled-img={topicsCurrentPage === 0}
+					on:click={() => {
+						if (topicsCurrentPage > 0) {
+							topicsCurrentPage = 0;
+							reloadAllTopics();
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagebackwardsSVG}
+					alt="previous page"
+					class="pagination-image"
+					class:disabled-img={topicsCurrentPage === 0}
+					on:click={() => {
+						if (topicsCurrentPage > 0) {
+							topicsCurrentPage--;
+							reloadAllTopics(topicsCurrentPage);
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pageforwardSVG}
+					alt="next page"
+					class="pagination-image"
+					class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
+						$topicsA?.length === undefined}
+					on:click={() => {
+						if (topicsCurrentPage + 1 < $topicsTotalPages) {
+							topicsCurrentPage++;
+							reloadAllTopics(topicsCurrentPage);
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagelastSVG}
+					alt="last page"
+					class="pagination-image"
+					class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
+						$topicsA?.length === undefined}
+					on:click={() => {
+						if (topicsCurrentPage < $topicsTotalPages) {
+							topicsCurrentPage = $topicsTotalPages - 1;
+							reloadAllTopics(topicsCurrentPage);
+						}
+					}}
+				/>
+			</div>
 		{/if}
 
-		<div class="pagination">
-			<span>{messages['pagination']['rows.per.page']}</span>
-			<select
-				tabindex="-1"
-				on:change={(e) => {
-					topicsPerPage = e.target.value;
-					reloadAllTopics();
-				}}
-				name="RowsPerPage"
-			>
-				<option value="10">10</option>
-				<option value="25">25</option>
-				<option value="50">50</option>
-				<option value="75">75</option>
-				<option value="100">100&nbsp;</option>
-			</select>
-
-			<span style="margin: 0 2rem 0 2rem">
-				{#if $topicsTotalSize > 0}
-					{1 + topicsCurrentPage * topicsPerPage}
-				{:else}
-					0
-				{/if}
-				- {Math.min(topicsPerPage * (topicsCurrentPage + 1), $topicsTotalSize)} of
-				{$topicsTotalSize}
-			</span>
-
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pagefirstSVG}
-				alt="first page"
-				class="pagination-image"
-				class:disabled-img={topicsCurrentPage === 0}
-				on:click={() => {
-					if (topicsCurrentPage > 0) {
-						topicsCurrentPage = 0;
-						reloadAllTopics();
-					}
-				}}
-			/>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pagebackwardsSVG}
-				alt="previous page"
-				class="pagination-image"
-				class:disabled-img={topicsCurrentPage === 0}
-				on:click={() => {
-					if (topicsCurrentPage > 0) {
-						topicsCurrentPage--;
-						reloadAllTopics(topicsCurrentPage);
-					}
-				}}
-			/>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pageforwardSVG}
-				alt="next page"
-				class="pagination-image"
-				class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
-					$topicsA?.length === undefined}
-				on:click={() => {
-					if (topicsCurrentPage + 1 < $topicsTotalPages) {
-						topicsCurrentPage++;
-						reloadAllTopics(topicsCurrentPage);
-					}
-				}}
-			/>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pagelastSVG}
-				alt="last page"
-				class="pagination-image"
-				class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
-					$topicsA?.length === undefined}
-				on:click={() => {
-					if (topicsCurrentPage < $topicsTotalPages) {
-						topicsCurrentPage = $topicsTotalPages - 1;
-						reloadAllTopics(topicsCurrentPage);
-					}
-				}}
-			/>
-		</div>
 		<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['topics']} />
 	</div>
 {/await}

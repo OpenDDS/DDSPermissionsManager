@@ -127,7 +127,7 @@
 
 {#await promise then _}
 	<div class="content">
-		{#if $groupMembershipList?.length > 0}
+		{#if $groupMembershipsTotalSize !== undefined && $groupMembershipsTotalSize != NaN && $groupMembershipList?.length > 0}
 			<table
 				data-cy="users-table"
 				id="group-memberships-table"
@@ -203,99 +203,97 @@
 				</tbody>
 			</table>
 
-			{#if $groupMembershipsTotalSize !== undefined && $groupMembershipsTotalSize != NaN}
-				<div class="pagination">
-					<span>{messages['pagination']['rows.per.page']}</span>
-					<select
-						tabindex="-1"
-						on:change={(e) => {
-							groupMembershipsPerPage = e.target.value;
+			<div class="pagination">
+				<span>{messages['pagination']['rows.per.page']}</span>
+				<select
+					tabindex="-1"
+					on:change={(e) => {
+						groupMembershipsPerPage = e.target.value;
+
+						reloadGroupMemberships();
+					}}
+					name="RowsPerPage"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="75">75</option>
+					<option value="100">100&nbsp;</option>
+				</select>
+				<span style="margin: 0 2rem 0 2rem">
+					{#if $groupMembershipsTotalSize > 0}
+						{1 + groupMembershipsCurrentPage * groupMembershipsPerPage}
+					{:else}
+						0
+					{/if}
+					- {Math.min(
+						groupMembershipsPerPage * (groupMembershipsCurrentPage + 1),
+						$groupMembershipsTotalSize
+					)} of {$groupMembershipsTotalSize}
+				</span>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagefirstSVG}
+					alt="first page"
+					class="pagination-image"
+					class:disabled-img={groupMembershipsCurrentPage === 0}
+					on:click={() => {
+						deselectAllGroupMembershipCheckboxes();
+						if (groupMembershipsCurrentPage > 0) {
+							groupMembershipsCurrentPage = 0;
 
 							reloadGroupMemberships();
-						}}
-						name="RowsPerPage"
-					>
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-						<option value="75">75</option>
-						<option value="100">100&nbsp;</option>
-					</select>
-					<span style="margin: 0 2rem 0 2rem">
-						{#if $groupMembershipsTotalSize > 0}
-							{1 + groupMembershipsCurrentPage * groupMembershipsPerPage}
-						{:else}
-							0
-						{/if}
-						- {Math.min(
-							groupMembershipsPerPage * (groupMembershipsCurrentPage + 1),
-							$groupMembershipsTotalSize
-						)} of {$groupMembershipsTotalSize}
-					</span>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage === 0}
-						on:click={() => {
-							deselectAllGroupMembershipCheckboxes();
-							if (groupMembershipsCurrentPage > 0) {
-								groupMembershipsCurrentPage = 0;
-
-								reloadGroupMemberships();
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage === 0}
-						on:click={() => {
-							deselectAllGroupMembershipCheckboxes();
-							if (groupMembershipsCurrentPage > 0) {
-								groupMembershipsCurrentPage--;
-								reloadGroupMemberships(groupMembershipsCurrentPage);
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
-							$groupMembershipList?.length === undefined}
-						on:click={() => {
-							deselectAllGroupMembershipCheckboxes();
-							if (groupMembershipsCurrentPage + 1 < $groupMembershipsTotalPages) {
-								groupMembershipsCurrentPage++;
-								reloadGroupMemberships(groupMembershipsCurrentPage);
-							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
-							$groupMembershipList?.length === undefined}
-						on:click={() => {
-							deselectAllGroupMembershipCheckboxes();
-							if (groupMembershipsCurrentPage < $groupMembershipsTotalPages) {
-								groupMembershipsCurrentPage = $groupMembershipsTotalPages - 1;
-								reloadGroupMemberships(groupMembershipsCurrentPage);
-							}
-						}}
-					/>
-				</div>
-
-				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['users']} />
-			{/if}
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagebackwardsSVG}
+					alt="previous page"
+					class="pagination-image"
+					class:disabled-img={groupMembershipsCurrentPage === 0}
+					on:click={() => {
+						deselectAllGroupMembershipCheckboxes();
+						if (groupMembershipsCurrentPage > 0) {
+							groupMembershipsCurrentPage--;
+							reloadGroupMemberships(groupMembershipsCurrentPage);
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pageforwardSVG}
+					alt="next page"
+					class="pagination-image"
+					class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
+						$groupMembershipList?.length === undefined}
+					on:click={() => {
+						deselectAllGroupMembershipCheckboxes();
+						if (groupMembershipsCurrentPage + 1 < $groupMembershipsTotalPages) {
+							groupMembershipsCurrentPage++;
+							reloadGroupMemberships(groupMembershipsCurrentPage);
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagelastSVG}
+					alt="last page"
+					class="pagination-image"
+					class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
+						$groupMembershipList?.length === undefined}
+					on:click={() => {
+						deselectAllGroupMembershipCheckboxes();
+						if (groupMembershipsCurrentPage < $groupMembershipsTotalPages) {
+							groupMembershipsCurrentPage = $groupMembershipsTotalPages - 1;
+							reloadGroupMemberships(groupMembershipsCurrentPage);
+						}
+					}}
+				/>
+			</div>
 		{/if}
+
+		<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['users']} />
 	</div>
 {/await}
 

@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, afterUpdate } from 'svelte';
 	import { isAdmin } from '../stores/authentication';
 	import { httpAdapter } from '../appconfig';
 	import permissionsByGroup from '../stores/permissionsByGroup';
@@ -74,6 +74,10 @@
 		}
 	});
 
+	afterUpdate(async () => {
+		promise = await reloadAllApps();
+	});
+
 	const errorMessage = (errMsg, errObj) => {
 		errorMsg = errMsg;
 		errorObject = errObj;
@@ -101,127 +105,127 @@
 {/if}
 
 {#await promise then _}
-	{#if $applicationsTotalSize !== undefined && $applicationsTotalSize != NaN}
-		<div class="content">
-			{#if $applications?.length > 0}
-				<table
-					data-cy="applications-table"
-					class="main-table"
-					style="margin-top:0.5rem; min-width: 50rem; width:max-content"
-					class:application-table-admin={isApplicationAdmin || $isAdmin}
-				>
-					<thead>
-						<tr style="border-top: 1px solid black; border-bottom: 2px solid">
-							<td class="header-column" style="line-height: 2.2rem; min-width: 7rem"
-								>{messages['application']['table.column.one']}</td
-							>
-							<td class="header-column">{messages['application']['table.column.two']}</td>
-						</tr>
-					</thead>
+	<div class="content">
+		{#if $applicationsTotalSize !== undefined && $applicationsTotalSize != NaN}
+				{#if $applications?.length > 0}
+					<table
+						data-cy="applications-table"
+						class="main-table"
+						style="margin-top:0.5rem; min-width: 50rem; width:max-content"
+						class:application-table-admin={isApplicationAdmin || $isAdmin}
+					>
+						<thead>
+							<tr style="border-top: 1px solid black; border-bottom: 2px solid">
+								<td class="header-column" style="line-height: 2.2rem; min-width: 7rem"
+									>{messages['application']['table.column.one']}</td
+								>
+								<td class="header-column">{messages['application']['table.column.two']}</td>
+							</tr>
+						</thead>
 
-					{#if $applications.length > 0}
-						<tbody>
-							{#each $applications as app, i}
-								<tr>
-									<td>{app.name}</td>
-									<td style="padding-left: 0.5rem">{app.id}</td>
-								</tr>
-							{/each}
-						</tbody>
-					{/if}
-				</table>
-			{/if}
-		</div>
-
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div class="pagination">
-			<span>{messages['pagination']['rows.per.page']}</span>
-			<select
-				tabindex="-1"
-				on:change={(e) => {
-					applicationsPerPage = e.target.value;
-					reloadAllApps();
-				}}
-				name="RowsPerPage"
-			>
-				<option value="10">10</option>
-				<option value="25">25</option>
-				<option value="50">50</option>
-				<option value="75">75</option>
-				<option value="100">100&nbsp;</option>
-			</select>
-
-			<span style="margin: 0 2rem 0 2rem">
-				{#if $applicationsTotalSize > 0}
-					{1 + applicationsCurrentPage * applicationsPerPage}
-				{:else}
-					0
+						{#if $applications.length > 0}
+							<tbody>
+								{#each $applications as app, i}
+									<tr>
+										<td>{app.name}</td>
+										<td style="padding-left: 0.5rem">{app.id}</td>
+									</tr>
+								{/each}
+							</tbody>
+						{/if}
+					</table>
 				{/if}
-				- {Math.min(
-					applicationsPerPage * (applicationsCurrentPage + 1),
-					$applicationsTotalSize
-				)}
-				of
-				{$applicationsTotalSize}
-			</span>
 
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pagefirstSVG}
-				alt="first page"
-				class="pagination-image"
-				class:disabled-img={applicationsCurrentPage === 0}
-				on:click={() => {
-					if (applicationsCurrentPage > 0) {
-						applicationsCurrentPage = 0;
+			<div class="pagination">
+				<span>{messages['pagination']['rows.per.page']}</span>
+				<select
+					tabindex="-1"
+					on:change={(e) => {
+						applicationsPerPage = e.target.value;
 						reloadAllApps();
-					}
-				}}
-			/>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pagebackwardsSVG}
-				alt="previous page"
-				class="pagination-image"
-				class:disabled-img={applicationsCurrentPage === 0}
-				on:click={() => {
-					if (applicationsCurrentPage > 0) {
-						applicationsCurrentPage--;
-						reloadAllApps(applicationsCurrentPage);
-					}
-				}}
-			/>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<img
-				src={pageforwardSVG}
-				alt="next page"
-				class="pagination-image"
-				class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
-					$applications?.length === undefined}
-				on:click={() => {
-					if (applicationsCurrentPage + 1 < $applicationsTotalPages) {
-						applicationsCurrentPage++;
-						reloadAllApps(applicationsCurrentPage);
-					}
-				}}
-			/>
-			<img
-				src={pagelastSVG}
-				alt="last page"
-				class="pagination-image"
-				class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
-					$applications?.length === undefined}
-				on:click={() => {
-					if (applicationsCurrentPage < $applicationsTotalPages) {
-						applicationsCurrentPage = $applicationsTotalPages - 1;
-						reloadAllApps(applicationsCurrentPage);
-					}
-				}}
-			/>
-		</div>
+					}}
+					name="RowsPerPage"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="75">75</option>
+					<option value="100">100&nbsp;</option>
+				</select>
+
+				<span style="margin: 0 2rem 0 2rem">
+					{#if $applicationsTotalSize > 0}
+						{1 + applicationsCurrentPage * applicationsPerPage}
+					{:else}
+						0
+					{/if}
+					- {Math.min(
+						applicationsPerPage * (applicationsCurrentPage + 1),
+						$applicationsTotalSize
+					)}
+					of
+					{$applicationsTotalSize}
+				</span>
+
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagefirstSVG}
+					alt="first page"
+					class="pagination-image"
+					class:disabled-img={applicationsCurrentPage === 0}
+					on:click={() => {
+						if (applicationsCurrentPage > 0) {
+							applicationsCurrentPage = 0;
+							reloadAllApps();
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pagebackwardsSVG}
+					alt="previous page"
+					class="pagination-image"
+					class:disabled-img={applicationsCurrentPage === 0}
+					on:click={() => {
+						if (applicationsCurrentPage > 0) {
+							applicationsCurrentPage--;
+							reloadAllApps(applicationsCurrentPage);
+						}
+					}}
+				/>
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<img
+					src={pageforwardSVG}
+					alt="next page"
+					class="pagination-image"
+					class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
+						$applications?.length === undefined}
+					on:click={() => {
+						if (applicationsCurrentPage + 1 < $applicationsTotalPages) {
+							applicationsCurrentPage++;
+							reloadAllApps(applicationsCurrentPage);
+						}
+					}}
+				/>
+				<img
+					src={pagelastSVG}
+					alt="last page"
+					class="pagination-image"
+					class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
+						$applications?.length === undefined}
+					on:click={() => {
+						if (applicationsCurrentPage < $applicationsTotalPages) {
+							applicationsCurrentPage = $applicationsTotalPages - 1;
+							reloadAllApps(applicationsCurrentPage);
+						}
+					}}
+				/>
+			</div>	
+		{/if}
 
 		<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['applications']} />
-	{/if}
+	</div>
 {/await}
 
 <style>
