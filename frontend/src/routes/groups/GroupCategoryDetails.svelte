@@ -6,6 +6,10 @@
 	import ApplicationTable from '../../lib/ApplicationsTable.svelte';
 	import GrantTable from '../../lib/GrantsTable.svelte';
 
+	$: if ($groupDetailsButton == null) {
+		groupDetailsButton.set('Users');
+	}
+
 	const selectButton = (label) => {
 		groupDetailsButton.set(label);
 	}

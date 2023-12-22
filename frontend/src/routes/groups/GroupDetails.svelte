@@ -12,7 +12,6 @@
 	import editSVG from '../../icons/edit.svg';
 	import { httpAdapter } from '../../appconfig';
 	import messages from '$lib/messages.json';
-	import groupDetailsButton from '../../stores/groupDetailsButton';
 	import GroupCategoryDetails from './GroupCategoryDetails.svelte';
 
 	const dispatch = createEventDispatcher();
@@ -31,10 +30,6 @@
 	detailView.set(true);
 
 	$: if ($detailView === 'backToList') dispatch('groupList');
-
-	$: if ($groupDetailsButton == null) {
-		groupDetailsButton.set('Users');
-	}
 
 	const reloadAllGroups = async (page = 0) => {
 		try {
