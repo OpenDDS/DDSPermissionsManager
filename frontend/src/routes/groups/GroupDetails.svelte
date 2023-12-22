@@ -151,28 +151,25 @@
 		</table>
 	</div>
 
-	{#if $groupContext && $groupContext.name}
-		<div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
-			{#each $page.data.menuOptions as menuOption, i}
-				<button
-					class:active={$groupDetailsButton == menuOption.label ? true : false}
-					on:click={() => selectButton(menuOption.label)}
-					>
-					{menuOption.label}
-				</button>
-			{/each}
-		</div>
+	<div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
+		{#each $page.data.menuOptions as menuOption, i}
+			<button
+				class:active={$groupDetailsButton == menuOption.label ? true : false}
+				on:click={() => selectButton(menuOption.label)}
+				>
+				{menuOption.label}
+			</button>
+		{/each}
+	</div>
 
-		{#if $groupDetailsButton == 'Users'}
-			<UserTable />
-		{:else if $groupDetailsButton == 'Topics'}
-			<TopicTable/>
-		{:else if $groupDetailsButton == 'Applications'}
-			<ApplicationTable/>
-		{:else if $groupDetailsButton == 'Grants'}
-			<GrantTable/>
-		{/if}
-
+	{#if $groupDetailsButton == 'Users'}
+		<UserTable />
+	{:else if $groupDetailsButton == 'Topics'}
+		<TopicTable/>
+	{:else if $groupDetailsButton == 'Applications'}
+		<ApplicationTable/>
+	{:else if $groupDetailsButton == 'Grants'}
+		<GrantTable/>
 	{/if}
 
 	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
