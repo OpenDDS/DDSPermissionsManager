@@ -1,23 +1,23 @@
 <script>
 	import messages from '$lib/messages.json';
-	import groupsSVG from '../../../icons/groups.svg';
-	import topicsSVG from '../../../icons/topics.svg';
-	import appsSVG from '../../../icons/apps.svg';
-	import pageforwardSVG from '../../../icons/pageforward.svg';
-	import pagebackwardsSVG from '../../../icons/pagebackwards.svg';
-	import pagefirstSVG from '../../../icons/pagefirst.svg';
-	import pagelastSVG from '../../../icons/pagelast.svg';
-	import groupContext from '../../../stores/groupContext';
-	import groupMembershipList from '../../../stores/groupMembershipList';
-	import { httpAdapter } from '../../../appconfig';
-	import Modal from '../../../lib/Modal.svelte';
+	import groupsSVG from '../icons/groups.svg';
+	import topicsSVG from '../icons/topics.svg';
+	import appsSVG from '../icons/apps.svg';
+	import pageforwardSVG from '../icons/pageforward.svg';
+	import pagebackwardsSVG from '../icons/pagebackwards.svg';
+	import pagefirstSVG from '../icons/pagefirst.svg';
+	import pagelastSVG from '../icons/pagelast.svg';
+	import groupContext from '../stores/groupContext';
+	import groupMembershipList from '../stores/groupMembershipList';
+	import { httpAdapter } from '../appconfig';
+	import Modal from './Modal.svelte';
 	import errorMessages from '$lib/errorMessages.json';
-	import groupMembershipsTotalPages from '../../../stores/groupMembershipsTotalPages';
-	import groupMembershipsTotalSize from '../../../stores/groupMembershipsTotalSize';
+	import groupMembershipsTotalPages from '../stores/groupMembershipsTotalPages';
+	import groupMembershipsTotalSize from '../stores/groupMembershipsTotalSize';
 	import { afterUpdate, onMount } from 'svelte';
-	import retrievedTimestamps from '../../../stores/retrievedTimestamps.js';
-	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
-	import { updateRetrievalTimestamp } from '../../../utils.js';
+	import retrievedTimestamps from '../stores/retrievedTimestamps.js';
+	import RetrievedTimestamp from './RetrievedTimestamp.svelte';
+	import { updateRetrievalTimestamp } from '../utils.js';
 
 	// Promises
 	let promise;

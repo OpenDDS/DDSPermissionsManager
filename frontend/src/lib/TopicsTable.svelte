@@ -2,22 +2,22 @@
 	import { onMount } from 'svelte';
 	import messages from '$lib/messages.json';
 	import errorMessages from '$lib/errorMessages.json';
-	import { httpAdapter } from '../../../appconfig';
-	import retrievedTimestamps from '../../../stores/retrievedTimestamps.js';
-	import { updateRetrievalTimestamp } from '../../../utils.js';
-	import groupContext from '../../../stores/groupContext';
-	import permissionsByGroup from '../../../stores/permissionsByGroup';
-	import userValidityCheck from '../../../stores/userValidityCheck';
-	import detailView from '../../../stores/detailView';
-	import topicsTotalSize from '../../../stores/topicsTotalSize';
-	import topicsTotalPages from '../../../stores/topicsTotalPages';
-	import topicsA from '../../../stores/topicsA';
-	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
-	import Modal from '../../../lib/Modal.svelte';
-	import pageforwardSVG from '../../../icons/pageforward.svg';
-	import pagebackwardsSVG from '../../../icons/pagebackwards.svg';
-	import pagefirstSVG from '../../../icons/pagefirst.svg';
-	import pagelastSVG from '../../../icons/pagelast.svg';
+	import { httpAdapter } from '../appconfig';
+	import retrievedTimestamps from '../stores/retrievedTimestamps.js';
+	import { updateRetrievalTimestamp } from '../utils.js';
+	import groupContext from '../stores/groupContext';
+	import permissionsByGroup from '../stores/permissionsByGroup';
+	import userValidityCheck from '../stores/userValidityCheck';
+	import detailView from '../stores/detailView';
+	import topicsTotalSize from '../stores/topicsTotalSize';
+	import topicsTotalPages from '../stores/topicsTotalPages';
+	import topicsA from '../stores/topicsA';
+	import RetrievedTimestamp from './RetrievedTimestamp.svelte';
+	import Modal from './Modal.svelte';
+	import pageforwardSVG from '../icons/pageforward.svg';
+	import pagebackwardsSVG from '../icons/pagebackwards.svg';
+	import pagefirstSVG from '../icons/pagefirst.svg';
+	import pagelastSVG from '../icons/pagelast.svg';
 
 	// Group Context
 	$: if ($groupContext?.id) reloadAllTopics();

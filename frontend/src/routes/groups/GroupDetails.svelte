@@ -1,5 +1,6 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
+	import { page } from '$app/stores';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { isAdmin, isAuthenticated } from '../../stores/authentication';
 	import permissionsByGroup from '../../stores/permissionsByGroup';
@@ -12,6 +13,12 @@
 	import editSVG from '../../icons/edit.svg';
 	import { httpAdapter } from '../../appconfig';
 	import messages from '$lib/messages.json';
+	import groupContext from '../../stores/groupContext';
+	import groupDetailsButton from '../../stores/groupDetailsButton';
+	import UserTable from '../../lib/UsersTable.svelte';
+	import TopicTable from '../../lib/TopicsTable.svelte';
+	import ApplicationTable from '../../lib/ApplicationsTable.svelte';
+	import GrantTable from '../../lib/GrantsTable.svelte';
 
 	const dispatch = createEventDispatcher();
 	let groupsPerPage = 10;
@@ -29,6 +36,14 @@
 	detailView.set(true);
 
 	$: if ($detailView === 'backToList') dispatch('groupList');
+
+	$: if ($groupDetailsButton == null) {
+		groupDetailsButton.set('Users');
+	}
+
+	const selectButton = (label) => {
+		groupDetailsButton.set(label);
+	}
 
 	const reloadAllGroups = async (page = 0) => {
 		try {
@@ -135,10 +150,51 @@
 			</tr>
 		</table>
 	</div>
+
+	{#if $groupContext && $groupContext.name}
+		<div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
+			{#each $page.data.menuOptions as menuOption, i}
+				<button
+					class:active={$groupDetailsButton == menuOption.label ? true : false}
+					on:click={() => selectButton(menuOption.label)}
+					>
+					{menuOption.label}
+				</button>
+			{/each}
+		</div>
+
+		{#if $groupDetailsButton == 'Users'}
+			<UserTable />
+		{:else if $groupDetailsButton == 'Topics'}
+			<TopicTable/>
+		{:else if $groupDetailsButton == 'Applications'}
+			<ApplicationTable/>
+		{:else if $groupDetailsButton == 'Grants'}
+			<GrantTable/>
+		{/if}
+
+	{/if}
+
+	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 {/if}
 
 <style>
 	td {
 		height: 2.2rem;
+	}
+	button {
+		color: buttontext;
+		background-color: buttonface;
+		padding: 14px 10px 14px 10px;
+		border: none;
+	}
+	button:hover {
+		background-color: #e8def8;
+	}
+	.active {
+		background-color: #e8def8;
+	}
+	p {
+		font-size: large;
 	}
 </style>

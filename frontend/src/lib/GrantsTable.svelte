@@ -1,25 +1,25 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { onMount } from 'svelte';
-	import { httpAdapter } from '../../../appconfig';
-	import permissionsByGroup from '../../../stores/permissionsByGroup';
-	import Modal from '../../../lib/Modal.svelte';
-	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
-	import userValidityCheck from '../../../stores/userValidityCheck';
-	import pageforwardSVG from '../../../icons/pageforward.svg';
-	import pagebackwardsSVG from '../../../icons/pagebackwards.svg';
-	import pagefirstSVG from '../../../icons/pagefirst.svg';
-	import pagelastSVG from '../../../icons/pagelast.svg';
+	import { httpAdapter } from '../appconfig';
+	import permissionsByGroup from '../stores/permissionsByGroup';
+	import Modal from './Modal.svelte';
+	import RetrievedTimestamp from './RetrievedTimestamp.svelte';
+	import userValidityCheck from '../stores/userValidityCheck';
+	import pageforwardSVG from '../icons/pageforward.svg';
+	import pagebackwardsSVG from '../icons/pagebackwards.svg';
+	import pagefirstSVG from '../icons/pagefirst.svg';
+	import pagelastSVG from '../icons/pagelast.svg';
 	import errorMessages from '$lib/errorMessages.json';
 	import messages from '$lib/messages.json';
-	import groupContext from '../../../stores/groupContext';
-	import topicsTotalSize from '../../../stores/topicsTotalSize';
-	import topicsTotalPages from '../../../stores/topicsTotalPages';
-	import grants from '../../../stores/grants';
-	import retrievedTimestamps from '../../../stores/retrievedTimestamps';
-	import { updateRetrievalTimestamp } from '../../../utils.js';
-	import { convertFromMilliseconds } from '../../../utils';
-	import detailView from '../../../stores/detailView';
+	import groupContext from '../stores/groupContext';
+	import topicsTotalSize from '../stores/topicsTotalSize';
+	import topicsTotalPages from '../stores/topicsTotalPages';
+	import grants from '../stores/grants';
+	import retrievedTimestamps from '../stores/retrievedTimestamps';
+	import { updateRetrievalTimestamp } from '../utils.js';
+	import { convertFromMilliseconds } from '../utils';
+	import detailView from '../stores/detailView';
 
 	// Group Context
 	$: if ($groupContext?.id) reloadAllGrants();
