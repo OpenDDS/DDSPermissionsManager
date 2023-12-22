@@ -1,10 +1,10 @@
 <script>
 	import groupContext from '../../../stores/groupContext';
 	import groupDetailsButton from '../../../stores/groupDetailsButton';
-	import UserTable from './UserTable.svelte';
-	import TopicTable from './TopicTable.svelte';
-	import ApplicationTable from './ApplicationTable.svelte';
-	import GrantTable from './GrantTable.svelte';
+	import UserTable from './UsersTable.svelte';
+	import TopicTable from './TopicsTable.svelte';
+	import ApplicationTable from './ApplicationsTable.svelte';
+	import GrantTable from './GrantsTable.svelte';
 </script>
 
 {#if $groupContext && $groupContext.name}

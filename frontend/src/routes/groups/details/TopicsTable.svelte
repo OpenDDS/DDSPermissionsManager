@@ -12,7 +12,7 @@
 	import topicsTotalSize from '../../../stores/topicsTotalSize';
 	import topicsTotalPages from '../../../stores/topicsTotalPages';
 	import topicsA from '../../../stores/topicsA';
-	import RetrievedTimestamp from './../../../lib/RetrievedTimestamp.svelte';
+	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
 	import Modal from '../../../lib/Modal.svelte';
 	import pageforwardSVG from '../../../icons/pageforward.svg';
 	import pagebackwardsSVG from '../../../icons/pagebackwards.svg';

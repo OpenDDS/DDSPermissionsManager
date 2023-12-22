@@ -16,7 +16,7 @@
 	import groupMembershipsTotalSize from '../../../stores/groupMembershipsTotalSize';
 	import { afterUpdate, onMount } from 'svelte';
 	import retrievedTimestamps from '../../../stores/retrievedTimestamps.js';
-	import RetrievedTimestamp from './../../../lib/RetrievedTimestamp.svelte';
+	import RetrievedTimestamp from '../../../lib/RetrievedTimestamp.svelte';
 	import { updateRetrievalTimestamp } from '../../../utils.js';
 
 	// Promises
