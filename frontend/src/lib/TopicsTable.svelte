@@ -86,21 +86,21 @@
 	};
 </script>
 
+{#if errorMessageVisible}
+	<Modal
+		title={errorMsg}
+		errorMsg={true}
+		errorDescription={errorObject}
+		closeModalText={errorMessages['modal']['button.close']}
+		on:cancel={() => {
+			errorMessageVisible = false;
+			errorMessageClear();
+		}}
+	/>
+{/if}
+
 {#await promise then _}
 	<div class="content">
-		{#if errorMessageVisible}
-			<Modal
-				title={errorMsg}
-				errorMsg={true}
-				errorDescription={errorObject}
-				closeModalText={errorMessages['modal']['button.close']}
-				on:cancel={() => {
-					errorMessageVisible = false;
-					errorMessageClear();
-				}}
-			/>
-		{/if}
-
 		{#if $topicsA?.length > 0}
 			<table data-cy="topics-table" class="main" style="margin-top: 0.5rem;min-width: 50rem; width:max-content">
 				<thead>
