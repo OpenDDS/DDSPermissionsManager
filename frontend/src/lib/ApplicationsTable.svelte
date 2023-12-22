@@ -1,3 +1,4 @@
+<!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { onMount, afterUpdate } from 'svelte';
 	import { isAdmin } from '../stores/authentication';

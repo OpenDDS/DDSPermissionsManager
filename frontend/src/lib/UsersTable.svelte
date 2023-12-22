@@ -1,3 +1,4 @@
+<!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import messages from '$lib/messages.json';
 	import groupsSVG from '../icons/groups.svg';

@@ -1,3 +1,4 @@
+<!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { page } from '$app/stores';
 	import groupDetailsButton from '../../stores/groupDetailsButton';
