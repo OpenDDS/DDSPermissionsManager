@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
 
 import java.text.Collator;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -864,10 +865,7 @@ public class ApplicationApiTest {
             assertEquals("This is a description", updatedApplication.getDescription());
             assertNotEquals(date, updatedApplication.getDateCreated());
             assertNotEquals(date, updatedApplication.getDateUpdated());
-            assertEquals(createdDate, updatedApplication.getDateCreated());
-            System.out.println("created.updateDate " + updatedDate);
-            System.out.println("updatedApplication.getDateUpdated() " + updatedApplication.getDateUpdated());
-
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MICROS), updatedApplication.getDateCreated());
             assertNotEquals(updatedDate, updatedApplication.getDateUpdated());
         }
 

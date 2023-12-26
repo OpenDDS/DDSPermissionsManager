@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -186,7 +187,7 @@ public class TopicSetApiTest {
             assertNotEquals(date, updatedTopicSet.getDateCreated());
             assertNotEquals(date, updatedTopicSet.getDateUpdated());
             assertEquals("Xyz789", updatedTopicSet.getName());
-            assertEquals(createdDate, updatedTopicSet.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MICROS), updatedTopicSet.getDateCreated());
             assertNotEquals(updatedDate, updatedTopicSet.getDateUpdated());
         }
 
