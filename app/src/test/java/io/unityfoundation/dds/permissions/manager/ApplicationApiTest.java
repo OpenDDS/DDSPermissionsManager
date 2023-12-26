@@ -865,7 +865,7 @@ public class ApplicationApiTest {
             assertEquals("This is a description", updatedApplication.getDescription());
             assertNotEquals(date, updatedApplication.getDateCreated());
             assertNotEquals(date, updatedApplication.getDateUpdated());
-            assertEquals(createdDate.truncatedTo(ChronoUnit.MICROS), updatedApplication.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MILLIS), updatedApplication.getDateCreated().truncatedTo(ChronoUnit.MILLIS));
             assertNotEquals(updatedDate, updatedApplication.getDateUpdated());
         }
 

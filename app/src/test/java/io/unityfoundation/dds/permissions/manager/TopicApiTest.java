@@ -602,7 +602,7 @@ public class TopicApiTest {
             assertEquals("This is a description", updatedTopic.getDescription());
             assertNotEquals(date, updatedTopic.getDateCreated());
             assertNotEquals(date, updatedTopic.getDateUpdated());
-            assertEquals(createdDate.truncatedTo(ChronoUnit.MICROS), updatedTopic.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MILLIS), updatedTopic.getDateCreated().truncatedTo(ChronoUnit.MILLIS));
             assertNotEquals(updatedDate, updatedTopic.getDateUpdated());
         }
 

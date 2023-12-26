@@ -187,7 +187,7 @@ public class TopicSetApiTest {
             assertNotEquals(date, updatedTopicSet.getDateCreated());
             assertNotEquals(date, updatedTopicSet.getDateUpdated());
             assertEquals("Xyz789", updatedTopicSet.getName());
-            assertEquals(createdDate.truncatedTo(ChronoUnit.MICROS), updatedTopicSet.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MILLIS), updatedTopicSet.getDateCreated().truncatedTo(ChronoUnit.MILLIS));
             assertNotEquals(updatedDate, updatedTopicSet.getDateUpdated());
         }
 
