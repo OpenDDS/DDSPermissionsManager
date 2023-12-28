@@ -42,6 +42,7 @@ dependencies {
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     annotationProcessor("io.micronaut:micronaut-graal")
+    annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
     compileOnly("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
@@ -55,6 +56,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations")
     implementation("io.micronaut:micronaut-websocket")
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    implementation("io.micronaut.validation:micronaut-validation")
     runtimeOnly("ch.qos.logback:logback-classic")
 
 
