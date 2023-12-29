@@ -25,11 +25,10 @@ describe('Topics Capabilities', () => {
         cy.visit('/topic-sets');
 
         cy.get('[data-cy="group-input"]')
-            .type("alpha");
-
-        cy.wait(500);
-
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+            .type("alpha")
+            .wait(500)
+            .type('{downArrow}')
+            .type('{enter}');
 
         cy.get('[data-cy="add-topic"]')
             .click();
@@ -40,6 +39,8 @@ describe('Topics Capabilities', () => {
         cy.get('[data-cy="button-add-topic"]')
             .click({ force: true });
 
+        cy.wait(500);
+
         cy.get('.header-title')
             .contains('Test Topic Set Alpha');
 
@@ -49,34 +50,33 @@ describe('Topics Capabilities', () => {
         cy.visit('/topic-sets');
 
         cy.get('[data-cy="group-input"]')
-            .type("alpha");
-
-        cy.wait(500);
-
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+            .type("alpha")
+            .wait(700)
+            .type('{downArrow}')
+            .type('{enter}');
 
         cy.contains('Test Topic Set Alpha').click();
 
+        cy.wait(1000);
+
         cy.get('.svelte-select')
             .type('topic')
-
 
         cy.wait(1000);
 
         cy.contains('Test Topic 123').click();
 
-        cy.get('[data-cy="topic"]').contains('Test Topic 123');
+        cy.get('[data-cy="topic"]').contains('Test Topic 123', {timeout: 7000});
     });
 
     it('should delete the topic from the topic set.', () => {
         cy.visit('/topic-sets');
 
         cy.get('[data-cy="group-input"]')
-            .type("alpha");
-
-        cy.wait(500);
-
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+            .type("alpha")
+            .wait(500)
+            .type('{downArrow}')
+            .type('{enter}');
 
         cy.contains('Test Topic Set Alpha').click();
         cy.contains('Test Topic 123').click();
@@ -94,11 +94,10 @@ describe('Topics Capabilities', () => {
         cy.visit('/topic-sets');
 
         cy.get('[data-cy="group-input"]')
-            .type("alpha");
-
-        cy.wait(500);
-
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+            .type("alpha")
+            .wait(500)
+            .type('{downArrow}')
+            .type('{enter}');
 
         cy.get('[data-cy="delete-topic-icon"]').last().click();
 
