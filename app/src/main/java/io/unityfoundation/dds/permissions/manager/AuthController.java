@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.unityfoundation.dds.permissions.manager.security.AuthConfigService;
 
 @Controller("/auth")
-@Secured(SecurityRule.IS_AUTHENTICATED)
+@Secured(SecurityRule.IS_ANONYMOUS)
 @Tag(name = "Auth")
 public class AuthController {
 
