@@ -92,6 +92,7 @@
 		"delete.tooltip.topic.admin.required": "Topic Admin permissions required",
 		"table.column.one": "Topic",
 		"table.column.two": "Group",
+		"table.column.three": "ID",
 		"empty.topics": "No Topics Found.",
 		"empty.topics.action": "Select a group to get started.",
 		"empty.topics.action.two": "Click here",
