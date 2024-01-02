@@ -72,7 +72,7 @@
 
 	onMount(async () => {
 		groupContext.subscribe((value) => {
-			if(value?.name) searchGroups = value.name;
+			if (value?.name) searchGroups = value.name;
 		});
 
 		// Changes the text in the Modal's group field placeholder
@@ -213,6 +213,12 @@
 		rootMargin: '20px',
 		unobserveOnEnter: true
 	};
+
+	function clearSelection() {
+		selectedGroup = '';
+		searchGroups = '';
+		groupContext.set('clear');
+	}
 </script>
 
 <div class="container">
@@ -254,7 +260,9 @@
 				}}
 				on:blur={() => {
 					status = 'blur';
-					if (!selectedGroup.name) groupContext.set();
+					if (!selectedGroup) {
+						clearSelection();
+					}
 				}}
 			/>
 
@@ -262,11 +270,7 @@
 				<button
 					class="button-blue"
 					style="cursor: pointer; width: 3.6rem; height: 1.7rem; margin-top: 1.75rem; margin-left: 1rem "
-					on:click={() => {
-						selectedGroup = '';
-						searchGroups = '';
-						groupContext.set('clear');
-					}}
+					on:click={clearSelection}
 				>
 					{messages['group.context']['search.clear.button']}
 				</button>
