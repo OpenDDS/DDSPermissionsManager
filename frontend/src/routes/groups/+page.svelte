@@ -681,6 +681,7 @@
 												selectedGroup = group;
 												groupDetailView = true;
 												history.pushState({ path: '/groups' }, 'My Groups', '/groups');
+												groupContext.set(group);
 											}}
 										>
 											{group.name}
