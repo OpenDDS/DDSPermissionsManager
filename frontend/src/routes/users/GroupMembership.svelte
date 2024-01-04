@@ -251,8 +251,7 @@
 	};
 
 	onMount(async () => {
-		if (document.querySelector('#group-memberships-table') == null)
-			promise = await reloadGroupMemberships();
+		promise = reloadGroupMemberships();
 	});
 
 	const addGroupMembership = async (
@@ -954,7 +953,7 @@
 
 	p {
 		font-size: large;
-	} 
+	}
 
 	.header-column {
 		font-weight: 600;
