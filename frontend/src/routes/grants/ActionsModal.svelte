@@ -13,6 +13,7 @@
 	import SearchIcon from './SearchIcon.svelte';
 	import deleteSVG from '../../icons/delete.svg';
 	import addSVG from '../../icons/add.svg';
+	import groupContext from '../../stores/groupContext';
 
 	export let title;
 
@@ -76,7 +77,7 @@
 		try {
 			let res;
 
-			res = await httpAdapter.get(`/action_intervals`);
+			res = await httpAdapter.get(`/action_intervals?group=${$groupContext.id}`);
 
 			actionIntervalsStore.set(res.data.content);
 
