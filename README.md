@@ -665,6 +665,21 @@ The following environment variables should be set to configure the application:
 * MICRONAUT_SECURITY_REDIRECT_LOGOUT - Typically the URL of the Web Application UI, e.g., https://dpm.my.domain.com
 * DPM_WEBSOCKETS_BROADCAST_CHANGES - Whether the application should broadcast a message if a Topic or Application is updated or deleted. Default value is `false`.
 
+The following environment variables should be set to configure JWT signatures:
+
+* JWT_PUBLIC_KEY - The absolute path to the file containing the PEM encoded RSA256 public key.
+* JWT_PRIVATE_KEY - The absolute path to the file containing the PEM encoded RSA256 private key.
+
+As an example, one can generate both the public and private keys with OpenSSL by executing:
+
+`openssl genrsa -out keypair.pem 2048`
+
+followed by the following to get a pksc8 formatted key
+`openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key`
+
+then executing the below to extract the public key
+`openssl rsa -in keypair.pem -pubout -out publickey.crt`
+
 The following environment variables can be used to set the validity of DDS Security Documents produced by the API:
 
 * PERMISSIONS_MANAGER_APPLICATION_CLIENT_CERTIFICATES_TIME_EXPIRY - Days that certificates are valid.

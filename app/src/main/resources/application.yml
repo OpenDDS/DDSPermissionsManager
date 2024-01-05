@@ -81,6 +81,10 @@ micronaut:
         http-method: GET
         access:
           - isAnonymous()
+      - pattern: /auth/**
+        http-method: GET
+        access:
+          - isAnonymous()
       - pattern: /topics/**
         http-method: GET
         access:
@@ -173,6 +177,10 @@ gcp:
 ---
 permissions-manager:
   application:
+    jwt:
+      signature:
+        public: ${JWT_PUBLIC_KEY}
+        private: ${JWT_PRIVATE_KEY}
     grant-token:
       time-expiry: 48 # in hours
     client-certificate:

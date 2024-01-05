@@ -24,11 +24,6 @@ micronaut:
   security:
     token:
       jwt:
-        signatures:
-          secret:
-            generator:
-              secret: pleaseChangeThisSecretForANewOne
-              jws-algorithm: HS256
         generator:
           refresh-token:
             secret: pleaseChangeThisSecretForANewOneRefresh
@@ -39,6 +34,10 @@ micronaut:
 ---
 permissions-manager:
   application:
+    jwt:
+      signature:
+        public: "publickey.crt"
+        private: "pkcs8.key"
     passphrase:
       salt: "changeme"
   test:

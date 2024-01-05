@@ -12,6 +12,7 @@
 	import editSVG from '../../icons/edit.svg';
 	import { httpAdapter } from '../../appconfig';
 	import messages from '$lib/messages.json';
+	import GroupCategoryDetails from './GroupCategoryDetails.svelte';
 
 	const dispatch = createEventDispatcher();
 	let groupsPerPage = 10;
@@ -135,6 +136,9 @@
 			</tr>
 		</table>
 	</div>
+
+	<GroupCategoryDetails/>
+
 	<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 {/if}
 

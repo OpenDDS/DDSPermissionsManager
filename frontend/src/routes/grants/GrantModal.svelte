@@ -94,7 +94,7 @@
 		try {
 			let res;
 
-			res = await httpAdapter.get(`/grant_durations`);
+			res = await httpAdapter.get(`/grant_durations?group=${$groupContext.id}`);
 
 			grantDurations.set(res.data.content || []);
 
