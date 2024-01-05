@@ -13,13 +13,12 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.groupuser;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-
-@Introspected
+@Serdeable
 public class GroupUserDTO {
 
     private Long id;

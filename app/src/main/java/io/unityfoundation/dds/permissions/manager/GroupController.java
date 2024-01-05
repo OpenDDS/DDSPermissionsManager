@@ -32,8 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.group.*;
 import io.unityfoundation.dds.permissions.manager.security.UserIsAdmin;
-
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @Controller("/api/groups")
 @Secured(SecurityRule.IS_AUTHENTICATED)

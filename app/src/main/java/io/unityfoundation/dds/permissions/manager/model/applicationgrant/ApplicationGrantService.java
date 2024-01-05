@@ -20,7 +20,7 @@ import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
-import io.micronaut.security.token.jwt.generator.claims.JwtClaims;
+import io.micronaut.security.token.Claims;
 import io.micronaut.security.token.jwt.generator.claims.JwtClaimsSetAdapter;
 import io.micronaut.security.token.jwt.validator.JwtTokenValidator;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
@@ -30,9 +30,9 @@ import io.unityfoundation.dds.permissions.manager.model.action.ActionService;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.DetailedGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
-import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.CreateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.UpdateGrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDurationRepository;
@@ -175,12 +175,12 @@ public class ApplicationGrantService {
     public Publisher<HttpResponse<GrantDTO>> create(String grantToken, CreateGrantDTO createGrantDTO) {
         return Publishers.map(jwtTokenValidator.validateToken(grantToken, null), authentication -> {
             JWT jwt;
-            JwtClaims claims;
+            Claims claims;
             try {
                 jwt = JWTParser.parse(grantToken);
                 claims = new JwtClaimsSetAdapter(jwt.getJWTClaimsSet());
-                if (claims.get(JwtClaims.SUBJECT) != null) {
-                    Long applicationId = Long.valueOf((String) claims.get(JwtClaims.SUBJECT));
+                if (claims.get(Claims.SUBJECT) != null) {
+                    Long applicationId = Long.valueOf((String) claims.get(Claims.SUBJECT));
                     return create(applicationId, createGrantDTO);
                 } else {
                     throw new DPMException(ResponseStatusCodes.APPLICATION_GRANT_TOKEN_PARSE_EXCEPTION, HttpStatus.BAD_REQUEST);

@@ -17,8 +17,7 @@ package io.unityfoundation.dds.permissions.manager.model.actiontopic;
 import io.micronaut.core.annotation.NonNull;
 import io.unityfoundation.dds.permissions.manager.model.action.Action;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
-
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "permissions_action_topic")

@@ -13,8 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.action.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 import java.time.Instant;
@@ -22,7 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Introspected
+@Serdeable
 public class ActionDTO implements EntityDTO {
 
     private Long id;
@@ -34,10 +33,8 @@ public class ActionDTO implements EntityDTO {
     Set<String> partitions = new HashSet<>();
     private Boolean isPublishAction;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateCreated;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateUpdated;
 
     public ActionDTO() {

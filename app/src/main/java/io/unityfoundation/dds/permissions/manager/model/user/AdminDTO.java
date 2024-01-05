@@ -13,12 +13,11 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.user;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-
-@Introspected
+@Serdeable
 public class AdminDTO {
     private Long id;
     @NotBlank
@@ -38,7 +37,15 @@ public class AdminDTO {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

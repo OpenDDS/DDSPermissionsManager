@@ -13,12 +13,12 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.applicationpermission;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 import java.util.Set;
 
-@Introspected
+@Serdeable
 public class AccessPermissionBodyDTO implements EntityDTO {
 
     private boolean read;

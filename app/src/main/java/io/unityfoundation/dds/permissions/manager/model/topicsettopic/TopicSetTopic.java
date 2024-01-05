@@ -17,8 +17,7 @@ package io.unityfoundation.dds.permissions.manager.model.topicsettopic;
 import io.micronaut.core.annotation.NonNull;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
 import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
-
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "permissions_topic_set_topic")

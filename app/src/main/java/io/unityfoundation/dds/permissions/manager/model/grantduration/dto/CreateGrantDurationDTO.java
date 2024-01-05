@@ -13,13 +13,15 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.grantduration.dto;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.*;
-
-@Introspected
+@Serdeable
 public class CreateGrantDurationDTO implements EntityDTO {
 
     @NotBlank
