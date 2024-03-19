@@ -27,9 +27,8 @@ import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSetService
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.CreateTopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.TopicSetDTO;
 import io.unityfoundation.dds.permissions.manager.model.topicset.dto.UpdateTopicSetDTO;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 
 @Controller("/api/topic-sets")

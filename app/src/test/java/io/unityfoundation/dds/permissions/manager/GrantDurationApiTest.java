@@ -26,6 +26,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto.GrantDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
@@ -118,10 +119,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(request, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -219,10 +221,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             grantDurationDTO.setName("     ");
             request = HttpRequest.POST("/grant_durations", grantDurationDTO);
@@ -231,10 +234,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest1, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -261,10 +265,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             // negative case
             grantDurationDTO.setDurationInMilliseconds(-2000L);
@@ -274,10 +279,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest1, GrantDurationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            Optional<List> negativeOptional = exception1.getResponse().getBody(List.class);
-            assertTrue(negativeOptional.isPresent());
-            List<Map> negativeList = negativeOptional.get();
-            assertTrue(negativeList.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE.equals(map.get("code"))));
+            listOptional = exception1.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_DURATION_CANNOT_BE_A_NEGATIVE_VALUE.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -294,10 +300,11 @@ public class GrantDurationApiTest {
                 entityUtil.createGrantDuration("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -344,14 +351,15 @@ public class GrantDurationApiTest {
             abcGrantDuration.setGroupId(zeta.getId());
             request = HttpRequest.PUT("/grant_durations/"+abcGrantDuration.getId(), abcGrantDuration);
             HttpRequest<?> finalRequest = request;
-            HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
+            HttpClientResponseException exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -428,10 +436,11 @@ public class GrantDurationApiTest {
                 entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.GRANT_DURATION_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         //show
@@ -858,10 +867,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GRANT_DURATION_HAS_ONE_OR_MORE_GRANT_ASSOCIATIONS.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -910,10 +920,11 @@ public class GrantDurationApiTest {
                 entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -950,10 +961,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(request2);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1058,10 +1070,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // list
@@ -1303,10 +1316,11 @@ public class GrantDurationApiTest {
                 entityUtil.createGrantDuration("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1341,10 +1355,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1387,10 +1402,11 @@ public class GrantDurationApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 

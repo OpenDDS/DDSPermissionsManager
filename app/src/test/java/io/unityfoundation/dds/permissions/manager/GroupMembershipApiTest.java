@@ -28,8 +28,9 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.group.Group;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
+import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
@@ -102,11 +103,12 @@ public class GroupMembershipApiTest {
         // create
         @Test
         public void canCreate() {
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -119,17 +121,19 @@ public class GroupMembershipApiTest {
         @Test
         public void canCreateWithSameEmailDifferentGroup() {
             // group creation
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             // perform test
             GroupUserDTO dto = new GroupUserDTO();
@@ -143,17 +147,17 @@ public class GroupMembershipApiTest {
             request = HttpRequest.POST("/group_membership", dto);
             response = blockingClient.exchange(request);
             assertEquals(OK, response.getStatus());
-
         }
 
         @Test
         public void cannotCreateWithInvalidEmailFormat() {
             // group creation
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             // perform test
             GroupUserDTO dto = new GroupUserDTO();
@@ -161,24 +165,26 @@ public class GroupMembershipApiTest {
             dto.setEmail("pparker@.test.test");
             request = HttpRequest.POST("/group_membership", dto);
             HttpRequest<?> finalRequest = request;
-            HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
+            HttpClientResponseException exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         public void cannotCreateWithSameEmailAndGroupAsExisting() {
             // group creation
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -193,10 +199,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_MEMBERSHIP_ALREADY_EXISTS.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_MEMBERSHIP_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -210,10 +217,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(request);
             });
             assertEquals(NOT_FOUND, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_NOT_FOUND.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_NOT_FOUND.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -228,21 +236,23 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(request);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_MEMBERSHIP_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_MEMBERSHIP_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         // list
         @Test
         public void canSeeAllMemberships() {
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -252,11 +262,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -309,7 +320,7 @@ public class GroupMembershipApiTest {
             assertExpectedEmailAndGroupName(content, 7, zack, firstGroupCreatedName);
         }
 
-        private void createMemberships(Group group, String... emails) {
+        private void createMemberships(SimpleGroupDTO group, String... emails) {
             for(String email: emails) {
                 GroupUserDTO dto = new GroupUserDTO();
                 dto.setPermissionsGroup(group.getId());
@@ -320,16 +331,17 @@ public class GroupMembershipApiTest {
             }
         }
 
-        private Group createGroup(String groupName) {
-            Group group = new Group(groupName);
+        private SimpleGroupDTO createGroup(String groupName) {
+            SimpleGroupDTO group = new SimpleGroupDTO();
+            group.setName(groupName);
             HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            return response.getBody(Group.class).get();
+            return response.getBody(SimpleGroupDTO.class).get();
         }
 
         private void createGroupAndMemberships(String groupName, String... emails) {
-            Group group = createGroup(groupName);
+            SimpleGroupDTO group = createGroup(groupName);
             createMemberships(group, emails);
         }
 
@@ -346,11 +358,12 @@ public class GroupMembershipApiTest {
         @Test
         public void canSeeAllMembershipsFilteredByGroupNameCaseInsensitive() {
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -360,11 +373,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -382,11 +396,12 @@ public class GroupMembershipApiTest {
         @Test
         public void canSeeAllMembershipsFilteredByUserEmailCaseInsensitive() {
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -396,11 +411,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -418,11 +434,12 @@ public class GroupMembershipApiTest {
         @Test
         public void canSeeAllMembershipsFilteredByGroup() {
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -434,11 +451,12 @@ public class GroupMembershipApiTest {
             assertTrue(bobOptional.isPresent());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -482,11 +500,12 @@ public class GroupMembershipApiTest {
         // update
         @Test
         public void canUpdate() {
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -509,11 +528,12 @@ public class GroupMembershipApiTest {
 
         @Test
         public void cannotAttemptToSaveNewWithUpdateEndpoint() {
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -527,21 +547,23 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_MEMBERSHIP_CANNOT_CREATE_WITH_UPDATE.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_MEMBERSHIP_CANNOT_CREATE_WITH_UPDATE.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
         @Test
         public void canDelete() {
             // group creation
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -592,11 +614,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -626,11 +649,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // save group without members
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             loginAsNonAdmin();
 
@@ -643,10 +667,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -654,11 +679,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -683,10 +709,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -694,7 +721,8 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
             HttpResponse<?> response = blockingClient.exchange(request, GroupUserResponseDTO.class);
             assertEquals(OK, response.getStatus());
@@ -729,11 +757,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -757,21 +786,23 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         public void canDeleteFromGroup() {
             mockSecurityService.postConstruct();
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -806,11 +837,12 @@ public class GroupMembershipApiTest {
         public void deleteUserIfNonAdminAndNoGroupMemberships() {
             mockSecurityService.postConstruct();
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -850,10 +882,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(NOT_FOUND, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.USER_NOT_FOUND.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.USER_NOT_FOUND.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -861,11 +894,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -888,10 +922,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -899,11 +934,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
 
@@ -935,10 +971,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -966,11 +1003,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -980,11 +1018,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1013,11 +1052,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1027,11 +1067,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1060,11 +1101,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1074,11 +1116,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1106,11 +1149,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1120,11 +1164,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1152,11 +1197,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1166,11 +1212,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1217,11 +1264,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1231,11 +1279,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1263,11 +1312,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // first group and member
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1277,11 +1327,12 @@ public class GroupMembershipApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = response.getBody(Group.class).get();
+            secondaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1313,11 +1364,12 @@ public class GroupMembershipApiTest {
             HttpResponse response;
 
             // other group and member
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = (Group) response.getBody(Group.class).get();
+            secondaryGroup = (SimpleGroupDTO) response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto1 = new GroupUserDTO();
             dto1.setPermissionsGroup(secondaryGroup.getId());
@@ -1348,11 +1400,12 @@ public class GroupMembershipApiTest {
             HttpResponse response;
 
             // group
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = (Group) response.getBody(Group.class).get();
+            secondaryGroup = (SimpleGroupDTO) response.getBody(SimpleGroupDTO.class).get();
 
             // memberships
             GroupUserDTO dto1 = new GroupUserDTO();
@@ -1447,17 +1500,19 @@ public class GroupMembershipApiTest {
             HttpResponse response;
 
             // group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             request = HttpRequest.POST("/groups/save", primaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = (Group) response.getBody(Group.class).get();
+            primaryGroup = (SimpleGroupDTO) response.getBody(SimpleGroupDTO.class).get();
 
-            Group secondaryGroup = new Group("SecondaryGroup");
+            SimpleGroupDTO secondaryGroup = new SimpleGroupDTO();
+            secondaryGroup.setName("SecondaryGroup");
             request = HttpRequest.POST("/groups/save", secondaryGroup);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            secondaryGroup = (Group) response.getBody(Group.class).get();
+            secondaryGroup = (SimpleGroupDTO) response.getBody(SimpleGroupDTO.class).get();
 
             // memberships
             GroupUserDTO dto1 = new GroupUserDTO();
@@ -1539,11 +1594,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // save group without members
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             loginAsNonAdmin();
 
@@ -1556,10 +1612,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1567,11 +1624,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // save group without members
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             GroupUserDTO dto = new GroupUserDTO();
             dto.setPermissionsGroup(primaryGroup.getId());
@@ -1592,10 +1650,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1603,11 +1662,12 @@ public class GroupMembershipApiTest {
             mockSecurityService.postConstruct();
 
             // create group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             // create member with above group
             GroupUserDTO dtoNewUser = new GroupUserDTO();
@@ -1628,10 +1688,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1643,10 +1704,11 @@ public class GroupMembershipApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(NOT_FOUND, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.USER_IS_NOT_VALID.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.USER_IS_NOT_VALID.equals(dpmErrorResponse.getCode())));
         }
     }
 }

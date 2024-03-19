@@ -28,9 +28,8 @@ import io.unityfoundation.dds.permissions.manager.model.action.PubSubEnum;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.CreateActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.UpdateActionDTO;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 
 @Controller("/api/actions")

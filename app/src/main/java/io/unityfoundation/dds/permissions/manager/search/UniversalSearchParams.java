@@ -13,16 +13,15 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.search;
 
-import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 
-
-@Introspected
+@Serdeable
 public class UniversalSearchParams {
 
     private HttpRequest<?> httpRequest;

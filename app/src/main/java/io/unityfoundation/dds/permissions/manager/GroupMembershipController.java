@@ -32,8 +32,8 @@ import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserResponseDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.Map;
 
 @Controller("/api/group_membership")

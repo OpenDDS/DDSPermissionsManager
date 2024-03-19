@@ -13,12 +13,12 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.search;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.DPMEntity;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 
-@Introspected
+@Serdeable
 public class SearchResponseDTO {
 
     private DPMEntity type;

@@ -19,17 +19,17 @@ import io.micronaut.core.convert.format.MapFormat;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.runtime.server.event.ServerStartupEvent;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
+import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
+import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
-import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionInterval;
-import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
-import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
+import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSet;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import org.slf4j.Logger;
@@ -37,11 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Requires(property = "dpm.bootstrap.data.enabled", value = StringUtils.TRUE)
 @ConfigurationProperties("dpm.bootstrap")

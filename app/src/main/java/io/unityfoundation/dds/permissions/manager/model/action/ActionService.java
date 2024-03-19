@@ -38,10 +38,13 @@ import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSetReposit
 import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
+import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotNull;
 
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

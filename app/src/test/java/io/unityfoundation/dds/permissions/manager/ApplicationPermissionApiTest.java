@@ -29,12 +29,14 @@ import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import io.micronaut.security.token.jwt.generator.claims.JWTClaimsSetGenerator;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.*;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
+import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
@@ -161,9 +163,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -225,9 +227,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -299,7 +301,7 @@ public class ApplicationPermissionApiTest {
             responseMap = blockingClient.retrieve(request, HashMap.class);
             assertNotNull(responseMap);
             content = (List<Map>) responseMap.get("content");
-            assertNull(content);
+            assertTrue(content.isEmpty());
         }
 
         @Test
@@ -455,9 +457,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -495,9 +497,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -540,9 +542,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -590,9 +592,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = createApplication("Application123", primaryGroup.getId());
@@ -627,10 +629,11 @@ public class ApplicationPermissionApiTest {
                 createApplicationPermission(applicationGrantToken, topicOptional.get().getId(), false, true);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            List<Map> list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_PERMISSION_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_PERMISSION_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -883,9 +886,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -1020,9 +1023,9 @@ public class ApplicationPermissionApiTest {
             // create groups
             response = createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -1208,10 +1211,10 @@ public class ApplicationPermissionApiTest {
     }
 
     private HttpResponse<?> createGroup(String groupName) {
-        Group group = new Group(groupName);
+        SimpleGroupDTO group = new SimpleGroupDTO();
+        group.setName(groupName);
         HttpRequest<?> request = HttpRequest.POST("/groups/save", group);
-        HttpResponse<?> response;
-        return blockingClient.exchange(request, Group.class);
+        return blockingClient.exchange(request, SimpleGroupDTO.class);
     }
 
     private HttpResponse<?> createApplication(String applicationName, Long groupId) {

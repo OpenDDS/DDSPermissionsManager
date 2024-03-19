@@ -36,7 +36,6 @@ import io.micronaut.security.endpoints.introspection.IntrospectionResponse;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.security.token.validator.RefreshTokenValidator;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
-import jakarta.inject.Singleton;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +44,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 
 @Replaces(IntrospectionController.class)
@@ -95,7 +95,7 @@ public class DPMIntrospectionController {
     }
 
     private Publisher<MutableHttpResponse<?>> getIntrospectionAndValidResponse(Authentication authentication, HttpRequest<?> request) {
-        return Publishers.map(Publishers.map(processor.introspect(authentication, request), response -> {
+        return Publishers.map(Publishers.map(processor.introspect(authentication, request), (Function<IntrospectionResponse, String>) response -> {
             groupUserService.checkUserValidity().forEach(response::addExtension);
             return introspectionResponseAsJsonString(response);
         }), HttpResponse::ok);

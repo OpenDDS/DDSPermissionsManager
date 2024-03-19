@@ -13,9 +13,9 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.groupuser;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 
-@Introspected
+@Serdeable
 public class GroupUserResponseDTO {
 
     private Long id;

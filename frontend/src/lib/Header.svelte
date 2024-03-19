@@ -79,24 +79,21 @@
 		if (permissionsForGroupContext?.data?.content || $isAdmin) {
 			permissionsForGroupContext = permissionsForGroupContext.data.content;
 
-			if ((permissionsForGroupContext && permissionsForGroupContext[0].groupAdmin) || $isAdmin) {
+			if ((permissionsForGroupContext?.length > 0 && permissionsForGroupContext[0].groupAdmin) || $isAdmin) {
 				isGroupAdminInContext = true;
 				isGroupAdminToolip = tooltips['isGroupAdmin'];
 			} else {
 				isGroupAdminInContext = false;
 				isGroupAdminToolip = tooltips['isNotGroupAdmin'];
 			}
-			if ((permissionsForGroupContext && permissionsForGroupContext[0].topicAdmin) || $isAdmin) {
+			if ((permissionsForGroupContext?.length > 0 && permissionsForGroupContext[0].topicAdmin) || $isAdmin) {
 				isTopicAdminInContext = true;
 				isTopicAdminTooltip = tooltips['isTopicAdmin'];
 			} else {
 				isTopicAdminInContext = false;
 				isTopicAdminTooltip = tooltips['isNotTopicAdmin'];
 			}
-			if (
-				(permissionsForGroupContext && permissionsForGroupContext[0].applicationAdmin) ||
-				$isAdmin
-			) {
+			if ((permissionsForGroupContext?.length > 0 && permissionsForGroupContext[0].applicationAdmin) || $isAdmin) {
 				isApplicationAdminInContext = true;
 				isApplicationAdminTooltip = tooltips['isApplicationAdmin'];
 			} else {

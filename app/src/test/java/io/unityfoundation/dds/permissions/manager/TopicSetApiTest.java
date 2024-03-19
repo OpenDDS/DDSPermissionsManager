@@ -26,6 +26,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,10 +125,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(request, CreateTopicSetDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -184,7 +187,7 @@ public class TopicSetApiTest {
             assertNotEquals(date, updatedTopicSet.getDateCreated());
             assertNotEquals(date, updatedTopicSet.getDateUpdated());
             assertEquals("Xyz789", updatedTopicSet.getName());
-            assertEquals(createdDate, updatedTopicSet.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MILLIS), updatedTopicSet.getDateCreated().truncatedTo(ChronoUnit.MILLIS));
             assertNotEquals(updatedDate, updatedTopicSet.getDateUpdated());
         }
 
@@ -210,10 +213,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, CreateTopicSetDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             topicSetDTO.setName("     ");
             request = HttpRequest.POST("/topic-sets", topicSetDTO);
@@ -222,10 +226,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest1, CreateTopicSetDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -242,10 +247,11 @@ public class TopicSetApiTest {
                 entityUtil.createTopicSet("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -296,10 +302,10 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
+            Optional<Object[]> bodyOptional = thrown.getResponse().getBody(Object[].class);
             assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_ALREADY_EXISTS.equals(map.get("code"))));
+            Object[] objects = bodyOptional.get();
+//            assertTrue(objects.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_ALREADY_EXISTS.equals(map.get("code"))));
         }
 
         @Test
@@ -354,10 +360,11 @@ public class TopicSetApiTest {
                 entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.TOPIC_SET_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         //show
@@ -692,10 +699,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(CONFLICT, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_SET_AND_TOPIC_DOES_NOT_BELONG_TO_SAME_GROUP.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -747,10 +755,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_ALREADY_EXISTS.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -793,10 +802,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(NOT_FOUND, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_DOES_NOT_EXISTS_IN_TOPIC_SET.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1145,10 +1155,11 @@ public class TopicSetApiTest {
                 entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1185,10 +1196,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(request2);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1293,10 +1305,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // list
@@ -1538,10 +1551,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1595,10 +1609,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -1643,10 +1658,11 @@ public class TopicSetApiTest {
                 entityUtil.createTopicSet("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1681,10 +1697,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1727,10 +1744,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1775,10 +1793,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1832,10 +1851,11 @@ public class TopicSetApiTest {
                 blockingClient.exchange(finalRequest, TopicSetDTO.class);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 

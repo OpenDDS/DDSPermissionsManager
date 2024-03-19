@@ -13,7 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.applicationpermission;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "permissions_partition")

@@ -22,15 +22,11 @@ import io.micronaut.security.authentication.AuthenticationProvider;
 import io.micronaut.security.authentication.AuthenticationRequest;
 import io.micronaut.security.authentication.AuthenticationResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationService;
-import io.unityfoundation.dds.permissions.manager.model.user.UserRole;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Publisher;
 
-import java.util.Collections;
-import java.util.List;
-
 @Singleton
-public class AuthenticationProviderUserPassword implements AuthenticationProvider {
+public class AuthenticationProviderUserPassword implements AuthenticationProvider<HttpRequest> {
 
     @Nullable
     @Property(name = "permissions-manager.test.username")
@@ -56,8 +52,8 @@ public class AuthenticationProviderUserPassword implements AuthenticationProvide
     }
 
     @Override
-    public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest<?> httpRequest,
-                                                          AuthenticationRequest<?, ?> authenticationRequest) {
+    public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest httpRequest,
+                                                          AuthenticationRequest authenticationRequest) {
 
         String identity = (String) authenticationRequest.getIdentity();
         String password = (String) authenticationRequest.getSecret();

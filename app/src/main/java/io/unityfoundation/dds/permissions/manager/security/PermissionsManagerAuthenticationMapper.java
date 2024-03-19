@@ -14,6 +14,7 @@
 package io.unityfoundation.dds.permissions.manager.security;
 
 import io.micronaut.context.annotation.Replaces;
+import io.micronaut.core.async.publisher.Publishers;
 import io.micronaut.security.authentication.AuthenticationFailureReason;
 import io.micronaut.security.authentication.AuthenticationResponse;
 import io.micronaut.security.oauth2.endpoint.authorization.state.State;
@@ -23,10 +24,10 @@ import io.micronaut.security.oauth2.endpoint.token.response.OpenIdClaims;
 import io.micronaut.security.oauth2.endpoint.token.response.OpenIdTokenResponse;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserService;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
-import io.unityfoundation.dds.permissions.manager.model.user.UserRole;
 import io.unityfoundation.dds.permissions.manager.model.user.UserService;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.reactivestreams.Publisher;
 
 import java.util.*;
 
@@ -44,15 +45,16 @@ public class PermissionsManagerAuthenticationMapper implements OpenIdAuthenticat
     }
 
     @Override
-    public AuthenticationResponse createAuthenticationResponse(String providerName,
-                                                               OpenIdTokenResponse tokenResponse,
-                                                               OpenIdClaims openIdClaims,
-                                                               State state) {
+    public Publisher<AuthenticationResponse> createAuthenticationResponse(String providerName,
+                                                                                   OpenIdTokenResponse tokenResponse,
+                                                                                   OpenIdClaims openIdClaims,
+                                                                                   State state) {
         return getAuthenticationResponse(openIdClaims.getEmail());
     }
 
-    public AuthenticationResponse getAuthenticationResponse(String userEmail) {
-        return Optional.ofNullable(userEmail)
+    public Publisher<AuthenticationResponse> getAuthenticationResponse(String userEmail) {
+        return Publishers.just(
+                Optional.ofNullable(userEmail)
                 .flatMap(userService::getUserByEmail)
                 .map(user -> isNonAdminAndNotAMemberOfAnyGroups(user) ?
                         AuthenticationResponse.failure(AuthenticationFailureReason.USER_DISABLED) :
@@ -61,7 +63,8 @@ public class PermissionsManagerAuthenticationMapper implements OpenIdAuthenticat
                                 Collections.emptyList(),
                                 userAttributes(userEmail, user)
                         ))
-                .orElseGet(() -> AuthenticationResponse.failure(AuthenticationFailureReason.USER_NOT_FOUND));
+                .orElseGet(() -> AuthenticationResponse.failure(AuthenticationFailureReason.USER_NOT_FOUND))
+        );
     }
 
     private boolean isNonAdminAndNotAMemberOfAnyGroups(User user) {
