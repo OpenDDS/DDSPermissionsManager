@@ -39,7 +39,7 @@
 	"dependencies": {
 		"@fontsource/fira-mono": "^4.5.0",
 		"axios": "^1.8.2",
-		"cookie": "^0.4.1",
+		"cookie": "^0.7.0",
 		"moment": "^2.29.4",
 		"svelte-inview": "^3.0.1",
 		"svelte-select": "^5.7.0"
