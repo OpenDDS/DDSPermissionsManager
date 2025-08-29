@@ -13,11 +13,6 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager;
 
-import io.micronaut.context.ApplicationContextBuilder;
-import io.micronaut.context.ApplicationContextConfigurer;
-import io.micronaut.context.annotation.ContextConfigurer;
-import io.micronaut.context.env.Environment;
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.TypeHint;
 import io.micronaut.runtime.Micronaut;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;

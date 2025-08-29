@@ -25,15 +25,13 @@ describe('Action Interval Capabilities', () => {
         cy.visit('/action-intervals');
 
         cy.get('[data-cy="group-input"]')
-            .type("alpha");
-
-        cy.wait(500);
-
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+            .type("alpha")
+            .wait(700)
+            .type('{downArrow}')
+            .type('{enter}');
 
         cy.get('[data-cy="add-action-interval"]')
             .click();
-
 
         cy.get('[data-cy="action-interval-name-input"]').type('First Action Interval');
 

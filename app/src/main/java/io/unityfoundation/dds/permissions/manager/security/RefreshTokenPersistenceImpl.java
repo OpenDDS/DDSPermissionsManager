@@ -27,11 +27,9 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.micronaut.security.errors.IssuingAnAccessTokenErrorCode.INVALID_CLIENT;
 import static io.micronaut.security.errors.IssuingAnAccessTokenErrorCode.INVALID_GRANT;
 
 @Singleton
@@ -87,12 +85,9 @@ public class RefreshTokenPersistenceImpl implements RefreshTokenPersistence {
                 }
 
                 // oauth user login
-                Optional<Authentication> authentication =
-                        authenticationMapper.getAuthenticationResponse(username).getAuthentication();
-                if (authentication.isEmpty()) {
-                    throw new OauthErrorResponseException(INVALID_CLIENT);
-                }
-                return Publishers.just(authentication.get());
+                Publisher<Authentication> authentication =
+                        Publishers.map(authenticationMapper.getAuthenticationResponse(username), authenticationResponse -> authenticationResponse.getAuthentication().get());
+                return authentication;
             }
         } else {
             throw new OauthErrorResponseException(INVALID_GRANT, "refresh token not found", null);

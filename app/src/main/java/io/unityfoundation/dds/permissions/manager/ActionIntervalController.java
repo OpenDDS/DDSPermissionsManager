@@ -23,12 +23,11 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalService;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 
 @Controller("/api/action_intervals")

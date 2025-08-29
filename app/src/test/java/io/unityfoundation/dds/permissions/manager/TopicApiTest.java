@@ -26,8 +26,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
-import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
@@ -41,9 +41,12 @@ import io.unityfoundation.dds.permissions.manager.testing.util.DbCleanup;
 import io.unityfoundation.dds.permissions.manager.testing.util.EntityLifecycleUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -122,19 +125,21 @@ public class TopicApiTest {
                 blockingClient.exchange(request);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         void canCreateWithGroupAssociation(){
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -157,11 +162,12 @@ public class TopicApiTest {
         @Test
         public void cannotCreateGroupWithNullNorWhitespace() {
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -177,10 +183,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             topicDTO.setName("     ");
             request = HttpRequest.POST("/topics/save", topicDTO);
@@ -189,20 +196,22 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest1);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         public void cannotCreateWithNameLessThanThreeCharacters() {
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -219,10 +228,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -230,11 +240,12 @@ public class TopicApiTest {
             HttpResponse<?> response;
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -261,10 +272,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest, ApplicationDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -272,11 +284,12 @@ public class TopicApiTest {
             HttpResponse<?> response;
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -397,11 +410,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest, TopicDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(itm -> ResponseStatusCodes.TOPIC_CANNOT_CREATE_NOR_UPDATE_UNDER_PRIVATE_GROUP.equals(itm.get("code"))));
-
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_CANNOT_CREATE_NOR_UPDATE_UNDER_PRIVATE_GROUP.equals(dpmErrorResponse.getCode())));
 
             // create public topic (not allowed)
             TopicDTO publicTopicDTO = new TopicDTO();
@@ -415,19 +428,21 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest1, TopicDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(itm -> ResponseStatusCodes.TOPIC_CANNOT_CREATE_NOR_UPDATE_UNDER_PRIVATE_GROUP.equals(itm.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_CANNOT_CREATE_NOR_UPDATE_UNDER_PRIVATE_GROUP.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         public void createShouldTrimNameWhitespaces() {
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -447,11 +462,12 @@ public class TopicApiTest {
 
         @Test
         public void cannotUpdateTopicNameNorKind() {
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -474,28 +490,29 @@ public class TopicApiTest {
             topicDTO.setName("UpdatedTestTopic2");
             request = HttpRequest.POST("/topics/save", topicDTO);
             HttpRequest<?> finalRequest = request;
-            HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
+            HttpClientResponseException exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_NAME_UPDATE_NOT_ALLOWED.equals(map.get("code"))));
-
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_NAME_UPDATE_NOT_ALLOWED.equals(dpmErrorResponse.getCode())));
 
             topicDTO.setName(originalName);
             topicDTO.setKind(TopicKind.C);
             request = HttpRequest.POST("/topics/save", topicDTO);
             HttpRequest<?> finalRequest1 = request;
-            thrown = assertThrows(HttpClientResponseException.class, () -> {
+            exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest1);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.TOPIC_KIND_UPDATE_NOT_ALLOWED.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_KIND_UPDATE_NOT_ALLOWED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -503,11 +520,12 @@ public class TopicApiTest {
             HttpRequest<?> request;
             HttpResponse<?> response;
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             request = HttpRequest.POST("/groups/save", theta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -584,17 +602,18 @@ public class TopicApiTest {
             assertEquals("This is a description", updatedTopic.getDescription());
             assertNotEquals(date, updatedTopic.getDateCreated());
             assertNotEquals(date, updatedTopic.getDateUpdated());
-            assertEquals(createdDate, updatedTopic.getDateCreated());
+            assertEquals(createdDate.truncatedTo(ChronoUnit.MILLIS), updatedTopic.getDateCreated().truncatedTo(ChronoUnit.MILLIS));
             assertNotEquals(updatedDate, updatedTopic.getDateUpdated());
         }
 
         @Test
         public void cannotCreateTopicWithSameNameInGroup() {
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -619,21 +638,23 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest, TopicDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.TOPIC_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.TOPIC_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         //show
         @Test
         void canShowTopicAssociatedToAGroup(){
             // create group
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -708,19 +729,21 @@ public class TopicApiTest {
             // Yellow - Abc123 & Xyz789
 
             // create groups
-            Group green = new Group("Green");
+            SimpleGroupDTO green = new SimpleGroupDTO();
+            green.setName("Green");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", green);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> greenOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> greenOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(greenOptional.isPresent());
             green = greenOptional.get();
 
-            Group yellow = new Group("Yellow");
+            SimpleGroupDTO yellow = new SimpleGroupDTO();
+            yellow.setName("Yellow");
             request = HttpRequest.POST("/groups/save", yellow);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> yellowOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> yellowOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(yellowOptional.isPresent());
             yellow = yellowOptional.get();
 
@@ -765,19 +788,21 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -834,19 +859,21 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -911,19 +938,21 @@ public class TopicApiTest {
             // Zeta - Abc123 & Def456
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -989,19 +1018,21 @@ public class TopicApiTest {
             // Zeta - Abc123 & Def456
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1077,11 +1108,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1113,11 +1145,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1156,11 +1189,12 @@ public class TopicApiTest {
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1188,10 +1222,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -1220,11 +1255,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1250,10 +1286,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1262,11 +1299,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1298,10 +1336,11 @@ public class TopicApiTest {
                 blockingClient.exchange(request2);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1316,19 +1355,21 @@ public class TopicApiTest {
             // Zeta - Abc123 - None
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1384,19 +1425,21 @@ public class TopicApiTest {
             // Omega - Abc123 - None
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group omega = new Group("Omega");
+            SimpleGroupDTO omega = new SimpleGroupDTO();
+            omega.setName("Omega");
             request = HttpRequest.POST("/groups/save", omega);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> omegaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> omegaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(omegaOptional.isPresent());
             omega = omegaOptional.get();
 
@@ -1441,10 +1484,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -1503,19 +1547,21 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1572,11 +1618,12 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1589,11 +1636,12 @@ public class TopicApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1672,11 +1720,12 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1689,11 +1738,12 @@ public class TopicApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1827,11 +1877,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1849,10 +1900,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1861,11 +1913,12 @@ public class TopicApiTest {
             mockSecurityService.postConstruct();
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -1890,10 +1943,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1908,19 +1962,21 @@ public class TopicApiTest {
             // Zeta - Abc123 - None
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -1954,10 +2010,11 @@ public class TopicApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -2030,11 +2087,12 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -2047,11 +2105,12 @@ public class TopicApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 
@@ -2098,11 +2157,12 @@ public class TopicApiTest {
             // Zeta - Abc123
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 
@@ -2115,11 +2175,12 @@ public class TopicApiTest {
             assertEquals(OK, response.getStatus());
 
             // other group
-            Group zeta = new Group("Zeta");
+            SimpleGroupDTO zeta = new SimpleGroupDTO();
+            zeta.setName("Zeta");
             request = HttpRequest.POST("/groups/save", zeta);
-            response = blockingClient.exchange(request, Group.class);
+            response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> zetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> zetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(zetaOptional.isPresent());
             zeta = zetaOptional.get();
 

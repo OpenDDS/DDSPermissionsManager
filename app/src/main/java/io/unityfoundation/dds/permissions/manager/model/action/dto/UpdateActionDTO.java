@@ -13,13 +13,13 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.action.dto;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-@Introspected
+@Serdeable
 public class UpdateActionDTO {
 
     @NotNull

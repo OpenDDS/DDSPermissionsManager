@@ -18,15 +18,11 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.data.annotation.DateCreated;
 import io.micronaut.data.annotation.DateUpdated;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
-import io.unityfoundation.dds.permissions.manager.model.topic.Topic;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "permissions_topic_set")

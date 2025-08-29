@@ -32,8 +32,7 @@ import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicService;
-
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @Controller("/api/topics")
 @Secured(SecurityRule.IS_AUTHENTICATED)

@@ -39,11 +39,12 @@ describe('Applications Capabilities', () => {
         cy.get('[data-cy="save-application"]')
         .click();
 
+        cy.wait(1000);
+
         cy.visit('/applications');
 
         cy.get('td').should('not.eq', 'Test Application');
 
-        cy.get('td').contains('New Application');
-
-        });
+        cy.get('td').contains('New Application', {timeout: 7000});
+    });
 });

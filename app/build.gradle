@@ -20,11 +20,11 @@ buildscript {
     }
 }
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("jacoco")
-    id("com.gorylenko.gradle-git-properties") version "2.3.2"
-    id("io.micronaut.application") version "3.7.10"
-    id("io.micronaut.test-resources") version "3.7.10"
+    id("com.gorylenko.gradle-git-properties") version "2.4.1"
+    id("io.micronaut.application") version "4.2.1"
+    id("io.micronaut.test-resources") version "4.2.1"
 }
 
 version = "0.1"
@@ -40,9 +40,13 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.openapi:micronaut-openapi")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     annotationProcessor("io.micronaut:micronaut-graal")
-    implementation("io.micronaut:micronaut-http-client")
+    annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
+    compileOnly("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut:micronaut-jackson-databind")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-management")
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut.problem:micronaut-problem-json")
@@ -50,19 +54,24 @@ dependencies {
     implementation("io.micronaut.security:micronaut-security-oauth2")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.swagger.core.v3:swagger-annotations")
-    implementation("jakarta.annotation:jakarta.annotation-api")
+    implementation("io.micronaut:micronaut-websocket")
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    implementation("io.micronaut.validation:micronaut-validation")
     runtimeOnly("ch.qos.logback:logback-classic")
-    implementation("io.micronaut:micronaut-validation")
+
 
     implementation("org.bouncycastle:bcprov-jdk18on:1.74")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.74")
-    implementation("org.bouncycastle:bcmail-jdk18on:1.74")
+//    implementation("org.bouncycastle:bcmail-jdk18on:1.74")
+    implementation("org.bouncycastle:bcjmail-jdk18on:1.72")
     implementation("io.micronaut.email:micronaut-email-javamail")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
 
     implementation("io.micronaut.views:micronaut-views-freemarker")
 
     implementation("io.micronaut.gcp:micronaut-gcp-secret-manager")
     implementation("com.google.cloud:google-cloud-secretmanager:2.12.0")
+    runtimeOnly("org.yaml:snakeyaml")
 //    nativeImageCompileOnly("com.google.cloud:native-image-support")
 
     String databaseSelection = System.getenv("DPM_DATABASE_DEPENDENCY")
@@ -85,8 +94,8 @@ application {
     mainClass.set("io.unityfoundation.dds.permissions.manager.RunApplication")
 }
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
-    targetCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
 }
 
 graalvmNative.toolchainDetection = false

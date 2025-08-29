@@ -13,13 +13,12 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.applicationgrant.dto;
 
-import io.micronaut.core.annotation.Introspected;
-import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 
 import java.util.List;
 
-@Introspected
+@Serdeable
 public class DetailedGrantDTO extends GrantDTO {
 
     List<ActionDTO> actions;

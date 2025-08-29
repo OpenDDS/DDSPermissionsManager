@@ -22,13 +22,12 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.AccessPermissionBodyDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.AccessPermissionDTO;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.AccessPermissionBodyDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.reactivestreams.Publisher;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 import static io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionService.APPLICATION_GRANT_TOKEN;
 
