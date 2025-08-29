@@ -41,7 +41,7 @@ jobs:
         #   DEBUG: 'cypress:*'
         with:
           working-directory: ./frontend
-          wait-on: 'http://localhost:8080'
+          wait-on: 'http://127.0.0.1:8080'
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
