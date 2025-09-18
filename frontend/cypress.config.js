@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // Copyright 2023 DDS Permissions Manager Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,14 +12,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { defineConfig } from "cypress";
+import { defineConfig } from 'cypress';
 
 export default defineConfig({
-  e2e: {
-    setupNodeEvents(on, config) {
-      // implement node event listeners here
-    },
-    baseUrl: 'http://localhost:8080'
-
-  },
+	e2e: {
+		setupNodeEvents(on, config) {
+			// implement node event listeners here
+		},
+		baseUrl: 'http://localhost:8080'
+	}
 });

@@ -11,98 +11,87 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global cy, describe, beforeEach, it */
 /// <reference types="Cypress" />
 
 describe('Topics Capabilities', () => {
-    beforeEach(() => {
-        cy.login('unity-admin', 'password');
-        cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
-        cy.visit('http://localhost:8080/');
-        cy.wait('@tokenInfo');
-    });
+	beforeEach(() => {
+		cy.login('unity-admin', 'password');
+		cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
+		cy.visit('http://localhost:8080/');
+		cy.wait('@tokenInfo');
+	});
 
-    it('should add a new topic set to group Alpha.', () => {
-        cy.visit('/topic-sets');
+	it('should add a new topic set to group Alpha.', () => {
+		cy.visit('/topic-sets');
 
-        cy.get('[data-cy="group-input"]')
-            .type("alpha");
+		cy.get('[data-cy="group-input"]').type('alpha');
 
-        cy.wait(500);
+		cy.wait(500);
 
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+		cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
 
-        cy.get('[data-cy="add-topic"]')
-            .click();
+		cy.get('[data-cy="add-topic"]').click();
 
-        cy.get('[data-cy="topic-name"]')
-            .type("Test Topic Set Alpha");
+		cy.get('[data-cy="topic-name"]').type('Test Topic Set Alpha');
 
-        cy.get('[data-cy="button-add-topic"]')
-            .click({ force: true });
+		cy.get('[data-cy="button-add-topic"]').click({ force: true });
 
-        cy.get('.header-title')
-            .contains('Test Topic Set Alpha');
+		cy.get('.header-title').contains('Test Topic Set Alpha');
+	});
 
-    });
+	it('should search and add a topic to the topic set.', () => {
+		cy.visit('/topic-sets');
 
-    it('should search and add a topic to the topic set.', () => {
-        cy.visit('/topic-sets');
+		cy.get('[data-cy="group-input"]').type('alpha');
 
-        cy.get('[data-cy="group-input"]')
-            .type("alpha");
+		cy.wait(500);
 
-        cy.wait(500);
+		cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
 
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+		cy.contains('Test Topic Set Alpha').click();
 
-        cy.contains('Test Topic Set Alpha').click();
+		cy.get('.svelte-select').type('topic');
 
-        cy.get('.svelte-select')
-            .type('topic')
+		cy.wait(1000);
 
+		cy.contains('Test Topic 123').click();
 
-        cy.wait(1000);
+		cy.get('[data-cy="topic"]').contains('Test Topic 123');
+	});
 
-        cy.contains('Test Topic 123').click();
+	it('should delete the topic from the topic set.', () => {
+		cy.visit('/topic-sets');
 
-        cy.get('[data-cy="topic"]').contains('Test Topic 123');
-    });
+		cy.get('[data-cy="group-input"]').type('alpha');
 
-    it('should delete the topic from the topic set.', () => {
-        cy.visit('/topic-sets');
+		cy.wait(500);
 
-        cy.get('[data-cy="group-input"]')
-            .type("alpha");
+		cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
 
-        cy.wait(500);
+		cy.contains('Test Topic Set Alpha').click();
+		cy.contains('Test Topic 123').click();
 
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+		cy.get('[data-cy="topic"]').contains('Test Topic 123');
 
-        cy.contains('Test Topic Set Alpha').click();
-        cy.contains('Test Topic 123').click();
+		cy.get('[data-cy="delete-topic-icon"]').click();
 
-        cy.get('[data-cy="topic"]').contains('Test Topic 123');
+		cy.get('[data-cy="delete-topic"]').click();
 
-        cy.get('[data-cy="delete-topic-icon"]').click();
+		cy.get('[data-cy="topic"]').should('not.exist');
+	});
 
-        cy.get('[data-cy="delete-topic"]').click();
+	it('should delete the topic set.', () => {
+		cy.visit('/topic-sets');
 
-        cy.get('[data-cy="topic"]').should('not.exist');
-    });
+		cy.get('[data-cy="group-input"]').type('alpha');
 
-    it('should delete the topic set.', () => {
-        cy.visit('/topic-sets');
+		cy.wait(500);
 
-        cy.get('[data-cy="group-input"]')
-            .type("alpha");
+		cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
 
-        cy.wait(500);
+		cy.get('[data-cy="delete-topic-icon"]').last().click();
 
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
-
-        cy.get('[data-cy="delete-topic-icon"]').last().click();
-
-        cy.get('[data-cy="delete-topic"]').click();
-    }
-    );
+		cy.get('[data-cy="delete-topic"]').click();
+	});
 });

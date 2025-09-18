@@ -11,29 +11,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global cy, describe, beforeEach, it */
 /// <reference types="Cypress" />
 
 describe('Bind Token Functionality', () => {
-    beforeEach(() => {
-        cy.login('unity-admin', 'password');
-        cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
-        cy.visit('http://localhost:8080/');
-        cy.wait('@tokenInfo');
-    });
+	beforeEach(() => {
+		cy.login('unity-admin', 'password');
+		cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
+		cy.visit('http://localhost:8080/');
+		cy.wait('@tokenInfo');
+	});
 
-    it('should go into application details and generate a bind token', () => {
-        cy.visit('/applications');
+	it('should go into application details and generate a bind token', () => {
+		cy.visit('/applications');
 
-        cy.get('td').contains('Application One')
-        .click();
+		cy.get('td').contains('Application One').click();
 
-        cy.get('[data-cy="generate-bind-token-button"]')
-        .click();
+		cy.get('[data-cy="generate-bind-token-button"]').click();
 
-        cy.wait(500);
+		cy.wait(500);
 
-        cy.get('textarea').invoke('val').should('contains', 'eyJh');
-        });
+		cy.get('textarea').invoke('val').should('contains', 'eyJh');
+	});
 });
- 
-

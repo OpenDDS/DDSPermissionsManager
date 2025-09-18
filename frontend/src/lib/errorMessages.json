@@ -1,189 +1,171 @@
 {
-    "generic": 
-    {
-        "unauthorized":"Not authorized"
-    },
-    
-    "email": 
-    {
-        "is_not_format": "Invalid Email", 
-        "cannot_be_blank_or_null":"Email cannot be blank"
-    },
-    
-    "user":
-    {
-        "exists": "User already exists",
-        "not_found": "User not found",
-        "is_not_valid": "User is not valid"
-    },
+	"generic": {
+		"unauthorized": "Not authorized"
+	},
 
-    "nonce":
-    {
-        "is_not_valid": "Nonce is not valid"
-    },
+	"email": {
+		"is_not_format": "Invalid Email",
+		"cannot_be_blank_or_null": "Email cannot be blank"
+	},
 
-    "group":
-    {
-        "not_found": "Group not found",
-        "exists": "Group already exists",
-        "name.cannot_be_blank_or_null": "Group name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Group name cannot be less than 3 characters",
-        "loading.error.title": "Error Loading Groups",
-        "adding.error.title": "Error Adding Group",
-        "editing.error.title": "Error Editing Group Name",
-        "deleting.error.title": "Error Deleting Group",
-        "error.loading.visibility": "Error Retrieving Topic's Visibility",
-        "error.unauthorized": "Unauthorized Action - Your request cannot be completed because you lack the necessary permissions to perform this operation."
-    },
+	"user": {
+		"exists": "User already exists",
+		"not_found": "User not found",
+		"is_not_valid": "User is not valid"
+	},
 
-    "application":
-    {
-        "not_found": "Application not found",
-        "requires_group_association": "Application requires group association",
-        "cannot_update_group_association": "Application cannot update group association",
-        "exists": "Application already exists",
-        "permission.exists": "Application already exists",
-        "name.cannot_be_blank_or_null": "Application name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Application name cannot be less than 3 characters",
-        "identity_ca_cert.not_found": "Application certificate not found",
-        "permissions_ca_cert.not_found": "Application permissions certificate not found",
-        "governance_file.not_found": "Application governance file not found",
-        "loading.error.title": "Error Loading Applications",
-        "adding.error.title": "Error Adding Application",
-        "deleting.error.title": "Error Deleting Application",
-        "saving.error.title": "Error Saving Application",
-        "generating.passphrase.error.title": "Error Generating Passphrase",
-        "generating.token.error.title": "Error Generating Token"
-    },
+	"nonce": {
+		"is_not_valid": "Nonce is not valid"
+	},
 
-    "topic":
-    {
-        "not_found": "Topic not found",
-        "update_not_allowed": "Topic update not allowed",
-        "requires_group_association": "Topic requires group association",
-        "name.cannot_be_blank_or_null": "Topic name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Topic name cannot be less than 3 characters",
-        "exists": "Topic already exists",
-        "loading.error.title": "Error Loading Topics",
-        "loading.detail.error.title": "Error Loading Topic Details",
-        "deleting.error.title": "Error Deleting Topic",
-        "adding.error.title": "Error Adding Topic",
-        "updating.access.type.error.title": "Error Updating Application Access Type"
-    },
+	"group": {
+		"not_found": "Group not found",
+		"exists": "Group already exists",
+		"name.cannot_be_blank_or_null": "Group name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Group name cannot be less than 3 characters",
+		"loading.error.title": "Error Loading Groups",
+		"adding.error.title": "Error Adding Group",
+		"editing.error.title": "Error Editing Group Name",
+		"deleting.error.title": "Error Deleting Group",
+		"error.loading.visibility": "Error Retrieving Topic's Visibility",
+		"error.unauthorized": "Unauthorized Action - Your request cannot be completed because you lack the necessary permissions to perform this operation."
+	},
 
-    "durations":
-    {
-        "not_found": "Grant Duration not found",
-        "update_not_allowed": "Grant Duration update not allowed",
-        "requires_group_association": "Grant Duration requires group association",
-        "name.cannot_be_blank_or_null": "Grant Duration name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Grant Duration cannot be less than 3 characters",
-        "exists": "Grant Duration already exists",
-        "loading.error.title": "Error Loading Grant Durations",
-        "loading.detail.error.title": "Error Loading Grant Duration Details",
-        "deleting.error.title": "Error Deleting Grant Duration",
-        "adding.error.title": "Error Adding Grant Duration",
-        "updating.access.type.error.title": "Error Updating Application Access Type"
-    },
+	"application": {
+		"not_found": "Application not found",
+		"requires_group_association": "Application requires group association",
+		"cannot_update_group_association": "Application cannot update group association",
+		"exists": "Application already exists",
+		"permission.exists": "Application already exists",
+		"name.cannot_be_blank_or_null": "Application name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Application name cannot be less than 3 characters",
+		"identity_ca_cert.not_found": "Application certificate not found",
+		"permissions_ca_cert.not_found": "Application permissions certificate not found",
+		"governance_file.not_found": "Application governance file not found",
+		"loading.error.title": "Error Loading Applications",
+		"adding.error.title": "Error Adding Application",
+		"deleting.error.title": "Error Deleting Application",
+		"saving.error.title": "Error Saving Application",
+		"generating.passphrase.error.title": "Error Generating Passphrase",
+		"generating.token.error.title": "Error Generating Token"
+	},
 
-    "action-intervals":
-    {
-        "not_found": "Action Interval not found",
-        "update_not_allowed": "Action Interval update not allowed",
-        "requires_group_association": "Action Interval requires group association",
-        "name.cannot_be_blank_or_null": "Action Interval name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Action Interval cannot be less than 3 characters",
-        "exists": "Action Interval already exists",
-        "loading.error.title": "Error Loading Action Intervals",
-        "loading.detail.error.title": "Error Loading Action Interval Details",
-        "deleting.error.title": "Error Deleting Action Interval",
-        "adding.error.title": "Error Adding Action Interval"
-    },
+	"topic": {
+		"not_found": "Topic not found",
+		"update_not_allowed": "Topic update not allowed",
+		"requires_group_association": "Topic requires group association",
+		"name.cannot_be_blank_or_null": "Topic name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Topic name cannot be less than 3 characters",
+		"exists": "Topic already exists",
+		"loading.error.title": "Error Loading Topics",
+		"loading.detail.error.title": "Error Loading Topic Details",
+		"deleting.error.title": "Error Deleting Topic",
+		"adding.error.title": "Error Adding Topic",
+		"updating.access.type.error.title": "Error Updating Application Access Type"
+	},
 
-    "grants":
-    {
-        "not_found": "Grant not found",
-        "update_not_allowed": "Grant update not allowed",
-        "requires_group_association": "Grant requires group association",
-        "name.cannot_be_blank_or_null": "Grant name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Grant cannot be less than 3 characters",
-        "exists": "Grant already exists",
-        "loading.error.title": "Error Loading Grants",
-        "loading.detail.error.title": "Error Loading Grant Details",
-        "deleting.error.title": "Error Deleting Grant",
-        "adding.error.title": "Error Adding Grant"
-    },
+	"durations": {
+		"not_found": "Grant Duration not found",
+		"update_not_allowed": "Grant Duration update not allowed",
+		"requires_group_association": "Grant Duration requires group association",
+		"name.cannot_be_blank_or_null": "Grant Duration name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Grant Duration cannot be less than 3 characters",
+		"exists": "Grant Duration already exists",
+		"loading.error.title": "Error Loading Grant Durations",
+		"loading.detail.error.title": "Error Loading Grant Duration Details",
+		"deleting.error.title": "Error Deleting Grant Duration",
+		"adding.error.title": "Error Adding Grant Duration",
+		"updating.access.type.error.title": "Error Updating Application Access Type"
+	},
 
-    "grant-details":
-    {
-        "not_found": "Grant not found",
-        "update_not_allowed": "Grant update not allowed",
-        "requires_group_association": "Grant requires group association",
-        "name.cannot_be_blank_or_null": "Grant name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Grant cannot be less than 3 characters",
-        "exists": "Grant already exists",
-        "loading.error.title": "Error Loading Grants",
-        "loading.detail.error.title": "Error Loading Grant Details",
-        "deleting.error.title": "Error Deleting Grant",
-        "deleting.actions.error.title": "Error Deleting Action",
-        "adding.error.title": "Error Adding Grant",
-        "updating.error.title": "Error Updating Grant"
-    },
+	"action-intervals": {
+		"not_found": "Action Interval not found",
+		"update_not_allowed": "Action Interval update not allowed",
+		"requires_group_association": "Action Interval requires group association",
+		"name.cannot_be_blank_or_null": "Action Interval name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Action Interval cannot be less than 3 characters",
+		"exists": "Action Interval already exists",
+		"loading.error.title": "Error Loading Action Intervals",
+		"loading.detail.error.title": "Error Loading Action Interval Details",
+		"deleting.error.title": "Error Deleting Action Interval",
+		"adding.error.title": "Error Adding Action Interval"
+	},
 
-    "topic-sets":
-    {
-        "not_found": "Topic Set not found",
-        "update_not_allowed": "Topic Set update not allowed",
-        "requires_group_association": "Topic Set requires group association",
-        "name.cannot_be_blank_or_null": "Topic Set name cannot be blank or invalid",
-        "name.cannot_be_less_than_three_characters": "Topic Set name cannot be less than 3 characters",
-        "exists": "Topic Set  already exists",
-        "loading.error.title": "Error Loading Topic Sets",
-        "loading.detail.error.title": "Error Loading Topic Set Details",
-        "deleting.error.title": "Error Deleting Topic Set",
-        "adding.error.title": "Error Adding Topic Set",
-        "updating.access.type.error.title": "Error Updating Application Access Type"
-    },
-    
-    "group_membership":
-    {
-        "not_found": "User not found",
-        "exists": "User already exists",
-        "cannot_create_with_update": "Failed updating user",
-        "requires_group_association": "User requires a groups association",
-        "loading.error.title": "Error Loading Group Memberships",
-        "saving.error.title": "Error Saving Group Membership",
-        "adding.error.title": "Error Adding Group Membership",
-        "updating.error.title": "Error Updating Group Membership",
-        "deleting.error.title": "Error Deleting Users"
-    },
-    
-    "super_user":
-    {
-        "loading.error.title": "Error Loading Super User",
-        "unauthorized.error": "Unauthorized Action - Your request cannot be completed because you lack the necessary permissions to perform this operation.",
-        "deleting.error.title": "Error Deleting Super User",
-        "saving.error.title": "Error Saving Super User"
-    },
+	"grants": {
+		"not_found": "Grant not found",
+		"update_not_allowed": "Grant update not allowed",
+		"requires_group_association": "Grant requires group association",
+		"name.cannot_be_blank_or_null": "Grant name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Grant cannot be less than 3 characters",
+		"exists": "Grant already exists",
+		"loading.error.title": "Error Loading Grants",
+		"loading.detail.error.title": "Error Loading Grant Details",
+		"deleting.error.title": "Error Deleting Grant",
+		"adding.error.title": "Error Adding Grant"
+	},
 
-    "application_permission":
-    {
-        "not_found": "Application permission not found"
-    },
+	"grant-details": {
+		"not_found": "Grant not found",
+		"update_not_allowed": "Grant update not allowed",
+		"requires_group_association": "Grant requires group association",
+		"name.cannot_be_blank_or_null": "Grant name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Grant cannot be less than 3 characters",
+		"exists": "Grant already exists",
+		"loading.error.title": "Error Loading Grants",
+		"loading.detail.error.title": "Error Loading Grant Details",
+		"deleting.error.title": "Error Deleting Grant",
+		"deleting.actions.error.title": "Error Deleting Action",
+		"adding.error.title": "Error Adding Grant",
+		"updating.error.title": "Error Updating Grant"
+	},
 
-    "bind_token":
-    {
-        "forbidden": "Invalid or Expired Bind Token",
-        "invalid": "Invalid Bind Token"
-    },
-    
-    "modal":
-    {
-        "button.close": "Close"
-    },
+	"topic-sets": {
+		"not_found": "Topic Set not found",
+		"update_not_allowed": "Topic Set update not allowed",
+		"requires_group_association": "Topic Set requires group association",
+		"name.cannot_be_blank_or_null": "Topic Set name cannot be blank or invalid",
+		"name.cannot_be_less_than_three_characters": "Topic Set name cannot be less than 3 characters",
+		"exists": "Topic Set  already exists",
+		"loading.error.title": "Error Loading Topic Sets",
+		"loading.detail.error.title": "Error Loading Topic Set Details",
+		"deleting.error.title": "Error Deleting Topic Set",
+		"adding.error.title": "Error Adding Topic Set",
+		"updating.access.type.error.title": "Error Updating Application Access Type"
+	},
 
-    "universal_search":
-    {
-        "loading.error.title": "Error Loading Search Items"
-    }
+	"group_membership": {
+		"not_found": "User not found",
+		"exists": "User already exists",
+		"cannot_create_with_update": "Failed updating user",
+		"requires_group_association": "User requires a groups association",
+		"loading.error.title": "Error Loading Group Memberships",
+		"saving.error.title": "Error Saving Group Membership",
+		"adding.error.title": "Error Adding Group Membership",
+		"updating.error.title": "Error Updating Group Membership",
+		"deleting.error.title": "Error Deleting Users"
+	},
+
+	"super_user": {
+		"loading.error.title": "Error Loading Super User",
+		"unauthorized.error": "Unauthorized Action - Your request cannot be completed because you lack the necessary permissions to perform this operation.",
+		"deleting.error.title": "Error Deleting Super User",
+		"saving.error.title": "Error Saving Super User"
+	},
+
+	"application_permission": {
+		"not_found": "Application permission not found"
+	},
+
+	"bind_token": {
+		"forbidden": "Invalid or Expired Bind Token",
+		"invalid": "Invalid Bind Token"
+	},
+
+	"modal": {
+		"button.close": "Close"
+	},
+
+	"universal_search": {
+		"loading.error.title": "Error Loading Search Items"
+	}
 }

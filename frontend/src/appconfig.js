@@ -13,16 +13,16 @@
 // limitations under the License.
 import axios from 'axios';
 
-const baseURL = '/api'
+const baseURL = '/api';
 
 axios.defaults.baseURL = baseURL;
 const httpAdapter = axios.create({ withCredentials: true });
 
-
-function createWebSocket(url, path) { // url = $page.url from SvelteKit store
-    const protocolPrefix = (url.protocol === 'https:') ? 'wss:' : 'ws:';
-    const wsURL = `${protocolPrefix}//${url.host}${baseURL}/${path}`
-    return new WebSocket(wsURL);
+function createWebSocket(url, path) {
+	// url = $page.url from SvelteKit store
+	const protocolPrefix = url.protocol === 'https:' ? 'wss:' : 'ws:';
+	const wsURL = `${protocolPrefix}//${url.host}${baseURL}/${path}`;
+	return new WebSocket(wsURL);
 }
 
-export { httpAdapter, createWebSocket, baseURL }
+export { httpAdapter, createWebSocket, baseURL };

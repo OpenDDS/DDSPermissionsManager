@@ -11,35 +11,32 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global cy, describe, beforeEach, it */
 /// <reference types="Cypress" />
 
 describe('Applications Capabilities', () => {
-    beforeEach(() => {
-        cy.login('unity-admin', 'password');
-        cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
-        cy.visit('http://localhost:8080/');
-        cy.wait('@tokenInfo');
-    });
-   
-    it('should add a new application', () => {
-        cy.visit('/applications');
+	beforeEach(() => {
+		cy.login('unity-admin', 'password');
+		cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
+		cy.visit('http://localhost:8080/');
+		cy.wait('@tokenInfo');
+	});
 
-        cy.get('[data-cy="group-input"]')
-        .type("alpha");
-        
-        cy.wait(500);
-        
-        cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
-        
-        cy.get('[data-cy="add-application"]')
-        .click();
+	it('should add a new application', () => {
+		cy.visit('/applications');
 
-        cy.get('[data-cy="application-name"]')
-        .type("Test Application");
+		cy.get('[data-cy="group-input"]').type('alpha');
 
-        cy.get('[data-cy="button-add-application"]')
-        .click();
+		cy.wait(500);
 
-        cy.get('td').should('contain.text', 'Test Application');	
-    });
+		cy.get('[data-cy="group-input"]').type('{downArrow}').type('{enter}');
+
+		cy.get('[data-cy="add-application"]').click();
+
+		cy.get('[data-cy="application-name"]').type('Test Application');
+
+		cy.get('[data-cy="button-add-application"]').click();
+
+		cy.get('td').should('contain.text', 'Test Application');
+	});
 });

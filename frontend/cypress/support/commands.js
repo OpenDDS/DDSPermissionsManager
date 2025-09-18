@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global Cypress, cy */
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -38,19 +39,17 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 Cypress.Commands.add('login', (username, password) => {
-    cy.request('POST', 'http://localhost:8080/api/login', {
-        username: username,
-        password: password,
-    });
-})
+	cy.request('POST', 'http://localhost:8080/api/login', {
+		username: username,
+		password: password
+	});
+});
 
 Cypress.Commands.add('assertClipboard', (expectedText) => {
-    cy.window().then((win) => {
-      if (!win.navigator.clipboard.writeText.__cypress_stub__) {
-        cy.stub(win.navigator.clipboard, 'writeText').as('clipboardWriteText');
-      }
-    });
-    cy.get('@clipboardWriteText').should('be.calledWith', expectedText);
-  });
-  
-  
+	cy.window().then((win) => {
+		if (!win.navigator.clipboard.writeText.__cypress_stub__) {
+			cy.stub(win.navigator.clipboard, 'writeText').as('clipboardWriteText');
+		}
+	});
+	cy.get('@clipboardWriteText').should('be.calledWith', expectedText);
+});

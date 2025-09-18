@@ -11,28 +11,26 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global cy, describe, beforeEach, it */
 /// <reference types="Cypress" />
 
 describe('Super users capabilities', () => {
-    beforeEach(() => {
-        cy.login('unity-admin', 'password');
-        cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
-        cy.visit('http://localhost:8080/');
-        cy.wait('@tokenInfo');
-    });
-   
-    it('should add a new super user', () => {
-        cy.visit('/users');
+	beforeEach(() => {
+		cy.login('unity-admin', 'password');
+		cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
+		cy.visit('http://localhost:8080/');
+		cy.wait('@tokenInfo');
+	});
 
-        cy.get('[data-cy="add-super-user"]')
-        .click();
+	it('should add a new super user', () => {
+		cy.visit('/users');
 
-        cy.get('[data-cy="email-input"]')
-        .type("superuser@email.com");
+		cy.get('[data-cy="add-super-user"]').click();
 
-        cy.get('[data-cy="button-add-super-user"]')
-        .click();
+		cy.get('[data-cy="email-input"]').type('superuser@email.com');
 
-        cy.get('td').should('contain.text', 'superuser@email.com');	
-    });
+		cy.get('[data-cy="button-add-super-user"]').click();
+
+		cy.get('td').should('contain.text', 'superuser@email.com');
+	});
 });
