@@ -23,7 +23,7 @@
 	import searchResultsTotalSize from '../../stores/searchResultsTotalSize';
 	import universalSearchList from '../../stores/universalSearchList';
 
-	export let data, errors;
+	
 
 	$: if ($universalSearchList) {
 		groupDetails = false;
@@ -173,7 +173,7 @@
 			case 'EVERYTHING':
 				selectedUniversalSearchButton = [UniversalSearchOption.EVERYTHING];
 				break;
-			case 'GROUPS':
+			case 'GROUPS': {
 				const alreadySelectedGroup = selectedUniversalSearchButton.find(
 					(selection) => selection === UniversalSearchOption.GROUPS
 				);
@@ -185,7 +185,8 @@
 					selectedUniversalSearchButton.push(UniversalSearchOption.GROUPS);
 				}
 				break;
-			case 'TOPICS':
+			}
+			case 'TOPICS': {
 				const alreadySelectedTopic = selectedUniversalSearchButton.find(
 					(selection) => selection === UniversalSearchOption.TOPICS
 				);
@@ -197,7 +198,8 @@
 					selectedUniversalSearchButton.push(UniversalSearchOption.TOPICS);
 				}
 				break;
-			case 'APPLICATIONS':
+			}
+			case 'APPLICATIONS': {
 				const alreadySelectedApplications = selectedUniversalSearchButton.find(
 					(selection) => selection === UniversalSearchOption.APPLICATIONS
 				);
@@ -209,6 +211,7 @@
 					selectedUniversalSearchButton.push(UniversalSearchOption.APPLICATIONS);
 				}
 				break;
+			}
 		}
 		if (selectedUniversalSearchButton.length === 0)
 			selectedUniversalSearchButton.push(UniversalSearchOption.EVERYTHING);
@@ -266,7 +269,7 @@
 </svelte:head>
 
 {#if $isAuthenticated}
-	{#await promise then _}
+	{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 		{#if errorMessageVisible}
 			<Modal
 				title={errorMsg}
@@ -420,7 +423,7 @@
 
 					<tbody>
 						{#if $searchResults}
-							{#each $searchResults as result}
+							{#each $searchResults as result (result.entity.id)}
 								<tr on:click={handleItemSelection(result)} style="cursor: pointer">
 									<td style="white-space: nowrap">
 										{#if result.type === 'GROUP'}
@@ -512,58 +515,58 @@
 					{$searchResultsTotalSize}
 				</span>
 
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagefirstSVG}
-					alt="first page"
-					class="pagination-image"
-					class:disabled-img={searchResultsCurrentPage === 0}
-					on:click={() => {
+				
+				<button aria-label="first page"  on:click={() => {
 						if (searchResultsCurrentPage > 0) {
 							searchResultsCurrentPage = 0;
 							getSearchResults();
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagebackwardsSVG}
-					alt="previous page"
-					class="pagination-image"
+					}}><img
+					src={pagefirstSVG}
+					alt=""
+					class="pagination-image icon-button"
 					class:disabled-img={searchResultsCurrentPage === 0}
-					on:click={() => {
+					
+				/></button>
+				
+				<button aria-label="previous page"  on:click={() => {
 						if (searchResultsCurrentPage > 0) {
 							searchResultsCurrentPage--;
 							getSearchResults(searchResultsCurrentPage);
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pageforwardSVG}
-					alt="next page"
-					class="pagination-image"
-					class:disabled-img={searchResultsCurrentPage + 1 === $searchResultsTotalPages}
-					on:click={() => {
+					}}><img
+					src={pagebackwardsSVG}
+					alt=""
+					class="pagination-image icon-button"
+					class:disabled-img={searchResultsCurrentPage === 0}
+					
+				/></button>
+				
+				<button aria-label="next page"  on:click={() => {
 						if (searchResultsCurrentPage + 1 < $searchResultsTotalPages) {
 							searchResultsCurrentPage++;
 							getSearchResults(searchResultsCurrentPage);
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagelastSVG}
-					alt="last page"
-					class="pagination-image"
+					}}><img
+					src={pageforwardSVG}
+					alt=""
+					class="pagination-image icon-button"
 					class:disabled-img={searchResultsCurrentPage + 1 === $searchResultsTotalPages}
-					on:click={() => {
+					
+				/></button>
+				
+				<button aria-label="last page"  on:click={() => {
 						if (searchResultsCurrentPage < $searchResultsTotalPages) {
 							searchResultsCurrentPage = $searchResultsTotalPages - 1;
 							getSearchResults(searchResultsCurrentPage);
 						}
-					}}
-				/>
+					}}><img
+					src={pagelastSVG}
+					alt=""
+					class="pagination-image icon-button"
+					class:disabled-img={searchResultsCurrentPage + 1 === $searchResultsTotalPages}
+					
+				/></button>
 			</div>
 			<p style="margin-top: 8rem">{messages['footer']['message']}</p>
 		{/if}
@@ -571,6 +574,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.content {
 		width: 100%;
 		min-width: 43.5rem;

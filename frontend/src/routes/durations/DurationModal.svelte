@@ -8,7 +8,6 @@
 	import closeSVG from '../../icons/close.svg';
 	import errorMessages from '$lib/errorMessages.json';
 	import messages from '$lib/messages.json';
-	import errorMessageAssociation from '../../stores/errorMessageAssociation';
 	import groupContext from '../../stores/groupContext';
 	import modalOpen from '../../stores/modalOpen';
 	import { convertFromMilliseconds, getDurationInMilliseconds } from '../../utils';
@@ -33,12 +32,6 @@
 	const returnKey = 13;
 	const minNameLength = 3;
 
-
-	// Bind Token
-	let bindToken;
-	let tokenApplicationName, tokenApplicationGroup, tokenApplicationEmail;
-	let invalidToken = false;
-
 	// Error Handling
 	let invalidDuration = false;
 	let errorMessageDuration = '';
@@ -47,14 +40,6 @@
 	// SearchBox
 	let selectedGroup;
 
-
-	// Bind Token Decode
-	$: if (bindToken?.length > 0) {
-		const tokenBody = bindToken.substring(bindToken.indexOf('.') + 1, bindToken.lastIndexOf('.'));
-		decodeToken(tokenBody);
-	} else {
-		errorMessageAssociation.set([]);
-	}
 
 	onMount(() => {
 		modalOpen.set(true);
@@ -130,31 +115,15 @@
 		closeModal();
 	};
 
-	const decodeToken = async (token) => {
-		let res = atob(token);
-
-		try {
-			res = JSON.parse(res);
-			invalidToken = false;
-		} catch (err) {
-			errorMessageAssociation.set(errorMessages['bind_token']['invalid']);
-			invalidToken = true;
-		}
-
-		tokenApplicationName = res.appName;
-		tokenApplicationGroup = res.groupName;
-		tokenApplicationEmail = res.email;
-	};
-
 	let choices = ['Minute', 'Day', 'Month', 'Year'];
 	let selectedSegment = 'Minute';
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal-backdrop" on:click={closeModal} transition:fade />
+
+<button aria-label="interactive element"  on:click={closeModal}><div class="modal-backdrop icon-button"  transition:fade /></button>
 <div class="modal" transition:fly={{ y: 300 }}>
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={closeSVG} alt="close" class="close-button" on:click={closeModal} />
+	
+	<button aria-label="close"  on:click={closeModal}><img src={closeSVG} alt="" class="close-button icon-button"  /></button>
 	<h2 class:condensed={title?.length > 25}>{title}</h2>
 	<hr />
 	<div class="content">
@@ -391,6 +360,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.action-button {
 		float: right;
 		margin: 0.8rem 1.5rem 1rem 0;

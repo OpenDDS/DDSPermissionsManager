@@ -4,9 +4,9 @@
 </script>
 
 {#if admins}
-	{#each admins as admin, i}
-		<div>
-			{admin}{#if i < admins.length - 1},{/if}
-		</div>
-	{/each}
+   {#each admins as admin, i (admin)}
+	   <div>
+		   {admin}{#if i < admins.length - 1},{/if}
+	   </div>
+   {/each}
 {/if}

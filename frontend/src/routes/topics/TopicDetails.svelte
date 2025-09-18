@@ -52,19 +52,16 @@
 		grantsAllRowsSelectedTrue = false;
 
 	// checkboxes selection
-	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
-		grantsRowsSelectedTrue = false;
-		grantsAllRowsSelectedTrue = true;
-	} else if (grantsRowsSelected?.length > 0) {
-		grantsRowsSelectedTrue = true;
-	} else {
-		grantsAllRowsSelectedTrue = false;
-	}
+	$: grantsAllRowsSelectedTrue = selectedTopicApplications?.length > 0 && selectedTopicApplications?.length === grantsRowsSelected?.length;
+	$: grantsRowsSelectedTrue = grantsRowsSelected?.length > 0 && grantsRowsSelected?.length < selectedTopicApplications?.length;
 
 	// Success Message
 	let notifyApplicationAccessTypeSuccess = false;
-	$: if (notifyApplicationAccessTypeSuccess) {
-		setTimeout(() => (notifyApplicationAccessTypeSuccess = false), waitTime);
+	function showNotifyApplicationAccessTypeSuccess() {
+		notifyApplicationAccessTypeSuccess = true;
+		setTimeout(() => {
+			notifyApplicationAccessTypeSuccess = false;
+		}, waitTime);
 	}
 
 	// Promises
@@ -209,7 +206,7 @@
 				);
 			}
 			if (reload) {
-				const res = await httpAdapter
+				await httpAdapter
 					.post(
 						`/application_permissions/${topicId}`,
 						{
@@ -265,11 +262,11 @@
 				writePartitions: partitionListWrite
 			});
 			if (res.status === 200) {
-				notifyApplicationAccessTypeSuccess = true;
+				showNotifyApplicationAccessTypeSuccess();
 				editGrantVisible = false;
 				editGrant = false;
 			}
-		} catch {
+		} catch (err) {
 			editGrantVisible = false;
 			errorMessage(errorMessages['topic']['updating.access.type.error.title'], err.message);
 			editGrant = false;
@@ -467,7 +464,7 @@
 		/>
 	{/if}
 
-	{#await promise then _}
+	{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 		<div style="display: inline-flex; align-items: baseline">
 			<table class="topics-details">
 				<tr>
@@ -524,16 +521,16 @@
 			</table>
 
 			{#if $isAdmin || $permissionsByGroup.find((permission) => permission.groupId === selectedTopicGroupId && permission.isTopicAdmin)}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<img
+				<button aria-label="edit topic"  on:click={() => (editTopicVisible = true)}><img class="icon-button"
 					src={editSVG}
 					tabindex="0"
-					alt="edit topic"
+					alt=""
 					height="20rem"
 					style="margin-left: 2rem; cursor:pointer"
-					on:click={() => (editTopicVisible = true)}
-				/>
+					
+				/></button>
 			{/if}
 		</div>
 		{#if $topicDetails.dateUpdated}
@@ -549,22 +546,13 @@
 						{messages['topic.detail']['table.grants.label']}
 					</div>
 					<div style="margin-bottom: 0.5rem; margin-right: -1rem">
-						<img
-							src={deleteSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-								grantsRowsSelected?.length === 0}
-							style="margin-left: 0.5rem; margin-right: 1rem"
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if ($isAdmin || isTopicAdmin) {
 									if (grantsRowsSelected.length === 0) {
@@ -588,8 +576,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								deleteMouseEnter = false;
 								if (grantsRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-topics');
@@ -600,38 +587,48 @@
 										}
 									}, 1000);
 								}
-							}}
-						/>
+							}}><img
+							src={deleteSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
+								grantsRowsSelected?.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							
+							
+							
+							
+						/></button>
 						<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
 							>{deleteToolip}
 						</span>
 
 						<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-						<img
-							data-cy="add-grant"
-							src={addSVG}
-							tabindex="0"
-							alt="options"
-							class="dot"
-							class:button-disabled={!$isAdmin &&
-								!$permissionsByGroup?.find(
-									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-								)}
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if ($isAdmin || isTopicAdmin) {
 									nonEmptyInputField.set(false);
 									associateApplicationVisible = true;
 								}
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if ($isAdmin || isTopicAdmin) {
 										nonEmptyInputField.set(false);
 										associateApplicationVisible = true;
 									}
 								}
-							}}
-						/>
+							}}><img
+							data-cy="add-grant"
+							src={addSVG}
+							tabindex="0"
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+								)}
+							
+							
+						/></button>
 					</div>
 				</div>
 
@@ -670,7 +667,7 @@
 					</thead>
 
 					{#if selectedTopicApplications?.length > 0}
-						{#each selectedTopicApplications as appPermission}
+						{#each selectedTopicApplications as appPermission (appPermission.id)}
 							<tbody>
 								<tr>
 									<td style="line-height: 1rem;">
@@ -713,7 +710,7 @@
 									</td>
 									<td style="min-width: 10rem; max-width: 10rem">
 										{#if appPermission.readPartitions?.length > 0}
-											{#each appPermission.readPartitions as partition}
+											{#each appPermission.readPartitions as partition (partition)}
 												<div
 													style="display:inline; align-items: center; background-color: #bad5ff; border-radius: 25px; font-size: 0.8rem; width: fit-content; padding: 0 0.3rem 0 0.3rem; margin: 0 0.1rem 0 0.1rem"
 												>
@@ -724,7 +721,7 @@
 									</td>
 									<td style="min-width: 10rem; max-width: 10rem; margin: 0 0.3rem 0 0.3rem">
 										{#if appPermission.writePartitions?.length > 0}
-											{#each appPermission.writePartitions as partition}
+											{#each appPermission.writePartitions as partition (partition)}
 												<div
 													style="display:inline; align-items: center; background-color: #bad5ff; border-radius: 25px; font-size: 0.8rem; width: fit-content; padding: 0 0.3rem 0 0.3rem; margin: 0 0.1rem 0 0.1rem"
 												>
@@ -735,48 +732,48 @@
 									</td>
 									<td
 										style="cursor: pointer; text-align: right"
-										on:keydown={(event) => {
+										
+									><button class="text-button"  on:keydown={(event) => {
 											if (event.which === returnKey) {
 												selectedGrant = appPermission;
 												editGrantVisible = true;
 											}
-										}}
-									>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
+										}}>
+										
 										<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-										<img
+										<button aria-label="edit user"  on:click={() => {
+												selectedGrant = appPermission;
+												editGrantVisible = true;
+											}}><img class="icon-button"
 											data-cy="edit-users-icon"
 											src={editSVG}
 											tabindex="0"
 											height="17rem"
 											width="17rem"
 											style="vertical-align: -0.225rem"
-											alt="edit user"
-											on:click={() => {
-												selectedGrant = appPermission;
-												editGrantVisible = true;
-											}}
-										/>
-									</td>
+											alt=""
+											
+										/></button>
+									</button></td>
 									<td
 										style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 									>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
+										
 										<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-										<img
+										<button aria-label="delete user"  on:click={() => {
+												if (!grantsRowsSelected.some((grant) => grant === appPermission))
+													grantsRowsSelected.push(appPermission);
+												deleteSelectedGrantsVisible = true;
+											}}><img class="icon-button"
 											data-cy="delete-users-icon"
 											src={deleteSVG}
 											tabindex="0"
 											height="27px"
 											width="27px"
 											style="vertical-align: -0.5rem"
-											alt="delete user"
-											on:click={() => {
-												if (!grantsRowsSelected.some((grant) => grant === appPermission))
-													grantsRowsSelected.push(appPermission);
-												deleteSelectedGrantsVisible = true;
-											}}
-										/>
+											alt=""
+											
+										/></button>
 									</td>
 								</tr>
 							</tbody>
@@ -811,6 +808,27 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	.topics-details {
 		font-size: 12pt;
 		width: 41rem;

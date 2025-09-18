@@ -3,6 +3,7 @@
 	import DDSLock from '../icons/logo.png';
 	import logoutSVG from '../icons/logout.svg';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { isAuthenticated, isAdmin } from '../stores/authentication';
 	import { httpAdapter } from '../appconfig';
@@ -29,7 +30,6 @@
 	// Headers Constants
 	let topicsHeader = messages['header']['topics.header.constant'];
 	let applicationsHeader = messages['header']['applications.header.constant'];
-	let groupsHeader = messages['header']['groups.header.constant'];
 	let searchHeader = messages['header']['search.header.constant'];
 
 	// Constants
@@ -37,7 +37,6 @@
 	const returnKey = 13;
 
 	// Tooltip
-	let isGroupAdminToolip, isTopicAdminTooltip, isApplicationAdminTooltip;
 	let isGroupAdminMouseEnter = false;
 	let isTopicAdminMouseEnter = false;
 	let isApplicationAdminMouseEnter = false;
@@ -47,21 +46,71 @@
 	let avatarDropdownVisible = false;
 
 	// Group Context Badges
-	let permissionsForGroupContext;
-	let isGroupAdminInContext, isTopicAdminInContext, isApplicationAdminInContext;
+	let permissionsForGroupContext = null;
+
+	$: isGroupAdminInContext =
+		!!(
+			permissionsForGroupContext &&
+			permissionsForGroupContext[0] &&
+			permissionsForGroupContext[0].groupAdmin
+		) || $isAdmin;
+	$: isTopicAdminInContext =
+		!!(
+			permissionsForGroupContext &&
+			permissionsForGroupContext[0] &&
+			permissionsForGroupContext[0].topicAdmin
+		) || $isAdmin;
+	$: isApplicationAdminInContext =
+		!!(
+			permissionsForGroupContext &&
+			permissionsForGroupContext[0] &&
+			permissionsForGroupContext[0].applicationAdmin
+		) || $isAdmin;
+
+	$: baseGroupAdminTooltip = isGroupAdminInContext
+		? tooltips['isGroupAdmin']
+		: tooltips['isNotGroupAdmin'];
+	$: baseTopicAdminTooltip = isTopicAdminInContext
+		? tooltips['isTopicAdmin']
+		: tooltips['isNotTopicAdmin'];
+	$: baseApplicationAdminTooltip = isApplicationAdminInContext
+		? tooltips['isApplicationAdmin']
+		: tooltips['isNotApplicationAdmin'];
+
+	$: isGroupAdminToolip = isGroupAdminMouseEnter
+		? isGroupAdminInContext || $isAdmin
+			? tooltips['createUserAllowed'] + ($groupContext?.name || '')
+			: tooltips['createUserNotAllowed']
+		: baseGroupAdminTooltip;
+
+	$: isTopicAdminTooltip = isTopicAdminMouseEnter
+		? isTopicAdminInContext || $isAdmin
+			? tooltips['createTopicAllowed'] + ($groupContext?.name || '')
+			: tooltips['createTopicNotAllowed']
+		: baseTopicAdminTooltip;
+
+	$: isApplicationAdminTooltip = isApplicationAdminMouseEnter
+		? isApplicationAdminInContext || $isAdmin
+			? tooltips['createApplicationAllowed'] + ($groupContext?.name || '')
+			: tooltips['createApplicationNotAllowed']
+		: baseApplicationAdminTooltip;
 
 	// Reactive statements
 	$: if ($groupContext?.id) getPermissionsForGroupContext();
-	else {
-		isGroupAdminInContext = false;
-		isTopicAdminInContext = false;
-		isApplicationAdminInContext = false;
-	}
 
 	$: if ($refreshPage !== $lastRefresh && $groupContext?.id) {
 		getPermissionsForGroupContext();
 		lastRefresh.set($refreshPage);
 	}
+
+	$: permissionBadges.set({
+		isGroupAdminInContext: isGroupAdminInContext,
+		isTopicAdminInContext: isTopicAdminInContext,
+		isApplicationAdminInContext: isApplicationAdminInContext,
+		isGroupAdminToolip: baseGroupAdminTooltip,
+		isTopicAdminTooltip: baseTopicAdminTooltip,
+		isApplicationAdminTooltip: baseApplicationAdminTooltip
+	});
 
 	// Shows the select group context prompt briefly and then removes the prompt
 	$: if ($showSelectGroupContext)
@@ -72,47 +121,13 @@
 	detailView.set();
 
 	const getPermissionsForGroupContext = async () => {
-		permissionsForGroupContext = await httpAdapter.get(
+		const permissions = await httpAdapter.get(
 			`/group_membership?page=0&size=1&filter=${userEmail}&group=${$groupContext.id}`
 		);
 
-		if (permissionsForGroupContext?.data?.content || $isAdmin) {
-			permissionsForGroupContext = permissionsForGroupContext.data.content;
-
-			if ((permissionsForGroupContext && permissionsForGroupContext[0].groupAdmin) || $isAdmin) {
-				isGroupAdminInContext = true;
-				isGroupAdminToolip = tooltips['isGroupAdmin'];
-			} else {
-				isGroupAdminInContext = false;
-				isGroupAdminToolip = tooltips['isNotGroupAdmin'];
-			}
-			if ((permissionsForGroupContext && permissionsForGroupContext[0].topicAdmin) || $isAdmin) {
-				isTopicAdminInContext = true;
-				isTopicAdminTooltip = tooltips['isTopicAdmin'];
-			} else {
-				isTopicAdminInContext = false;
-				isTopicAdminTooltip = tooltips['isNotTopicAdmin'];
-			}
-			if (
-				(permissionsForGroupContext && permissionsForGroupContext[0].applicationAdmin) ||
-				$isAdmin
-			) {
-				isApplicationAdminInContext = true;
-				isApplicationAdminTooltip = tooltips['isApplicationAdmin'];
-			} else {
-				isApplicationAdminInContext = false;
-				isApplicationAdminTooltip = tooltips['isNotApplicationAdmin'];
-			}
+		if (permissions?.data?.content) {
+			permissionsForGroupContext = permissions.data.content;
 		}
-
-		permissionBadges.set({
-			isGroupAdminInContext: isGroupAdminInContext,
-			isTopicAdminInContext: isTopicAdminInContext,
-			isApplicationAdminInContext: isApplicationAdminInContext,
-			isGroupAdminToolip: isGroupAdminToolip,
-			isTopicAdminTooltip: isTopicAdminTooltip,
-			isApplicationAdminTooltip: isApplicationAdminTooltip
-		});
 	};
 </script>
 
@@ -120,7 +135,7 @@
 	<div class="header-bar">
 		<div style="display:inline-flex">
 			{#if $isAuthenticated}
-				{#await permissionsForGroupContext then _}
+				{#await permissionsForGroupContext then _} <!-- eslint-disable-line no-unused-vars -->
 					<div style="display:inline-flex">
 						<img src={DDSLock} alt="logo" class="logo" />
 						<div class="logo-text">{messages['header']['title']}</div>
@@ -130,19 +145,9 @@
 							class:permission-badges={$groupContext?.id}
 							class:permission-badges-hidden={!$groupContext?.id}
 						>
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<img
-								src={groupsSVG}
-								alt="Group Admin"
-								width="23rem"
-								height="23rem"
-								class:permission-badges-blue={isGroupAdminInContext || $isAdmin}
-								class:permission-badges-grey={!isGroupAdminInContext && !$isAdmin}
-								on:mouseenter={() => {
+							
+							<button aria-label="Group Admin"  on:mouseenter={() => {
 									isGroupAdminMouseEnter = true;
-									if (isGroupAdminInContext || $isAdmin)
-										isGroupAdminToolip = tooltips['createUserAllowed'] + $groupContext.name;
-									else isGroupAdminToolip = tooltips['createUserNotAllowed'];
 									const tooltip = document.querySelector('#is-group-admin');
 									setTimeout(() => {
 										if (isGroupAdminMouseEnter) {
@@ -150,8 +155,7 @@
 											tooltip.classList.add('tooltip');
 										}
 									}, 1000);
-								}}
-								on:mouseleave={() => {
+								}} on:mouseleave={() => {
 									isGroupAdminMouseEnter = false;
 									const tooltip = document.querySelector('#is-group-admin');
 									setTimeout(() => {
@@ -160,17 +164,25 @@
 											tooltip.classList.remove('tooltip');
 										}
 									}, 1000);
-								}}
-								on:click={() => {
+								}} on:click={() => {
 									if (isGroupAdminInContext || $isAdmin) {
 										if ($page.url.pathname === '/users/') createItem.set('user');
 										else {
 											createItem.set('user');
-											goto(`/users`, true);
+											goto(resolve('/users'), true);
 										}
 									}
-								}}
-							/>
+								}}><img class="icon-button"
+								src={groupsSVG}
+								alt=""
+								width="23rem"
+								height="23rem"
+								class:permission-badges-blue={isGroupAdminInContext || $isAdmin}
+								class:permission-badges-grey={!isGroupAdminInContext && !$isAdmin}
+								
+								
+								
+							/></button>
 
 							<span
 								id="is-group-admin"
@@ -179,19 +191,9 @@
 								>{isGroupAdminToolip}
 							</span>
 
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<img
-								src={topicsSVG}
-								alt="Topic Admin"
-								width="23rem"
-								height="23rem"
-								class:permission-badges-blue={isTopicAdminInContext || $isAdmin}
-								class:permission-badges-grey={!isTopicAdminInContext && !$isAdmin}
-								on:mouseenter={() => {
+							
+							<button aria-label="Topic Admin"  on:mouseenter={() => {
 									isTopicAdminMouseEnter = true;
-									if (isTopicAdminInContext || $isAdmin)
-										isTopicAdminTooltip = tooltips['createTopicAllowed'] + $groupContext.name;
-									else isTopicAdminTooltip = tooltips['createTopicNotAllowed'];
 									const tooltip = document.querySelector('#is-topic-admin');
 									setTimeout(() => {
 										if (isTopicAdminMouseEnter) {
@@ -199,8 +201,7 @@
 											tooltip.classList.add('tooltip');
 										}
 									}, 1000);
-								}}
-								on:mouseleave={() => {
+								}} on:mouseleave={() => {
 									isTopicAdminMouseEnter = false;
 									const tooltip = document.querySelector('#is-topic-admin');
 									setTimeout(() => {
@@ -209,17 +210,25 @@
 											tooltip.classList.remove('tooltip');
 										}
 									}, 1000);
-								}}
-								on:click={() => {
+								}} on:click={() => {
 									if (isTopicAdminInContext || $isAdmin) {
 										if ($page.url.pathname === '/topics/') createItem.set('topic');
 										else {
 											createItem.set('topic');
-											goto(`/topics`, true);
+											goto(resolve('/topics'), true);
 										}
 									}
-								}}
-							/>
+								}}><img class="icon-button"
+								src={topicsSVG}
+								alt=""
+								width="23rem"
+								height="23rem"
+								class:permission-badges-blue={isTopicAdminInContext || $isAdmin}
+								class:permission-badges-grey={!isTopicAdminInContext && !$isAdmin}
+								
+								
+								
+							/></button>
 
 							<span
 								id="is-topic-admin"
@@ -228,20 +237,9 @@
 								>{isTopicAdminTooltip}
 							</span>
 
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<img
-								src={appsSVG}
-								alt="Application Admin"
-								width="23rem"
-								height="23rem"
-								class:permission-badges-blue={isApplicationAdminInContext || $isAdmin}
-								class:permission-badges-grey={!isApplicationAdminInContext && !$isAdmin}
-								on:mouseenter={() => {
+							
+							<button aria-label="Application Admin"  on:mouseenter={() => {
 									isApplicationAdminMouseEnter = true;
-									if (isApplicationAdminInContext || $isAdmin)
-										isApplicationAdminTooltip =
-											tooltips['createApplicationAllowed'] + $groupContext.name;
-									else isApplicationAdminTooltip = tooltips['createApplicationNotAllowed'];
 									const tooltip = document.querySelector('#is-application-admin');
 									setTimeout(() => {
 										if (isApplicationAdminMouseEnter) {
@@ -249,8 +247,7 @@
 											tooltip.classList.add('tooltip');
 										}
 									}, 1000);
-								}}
-								on:mouseleave={() => {
+								}} on:mouseleave={() => {
 									isApplicationAdminMouseEnter = false;
 									const tooltip = document.querySelector('#is-application-admin');
 									setTimeout(() => {
@@ -259,17 +256,25 @@
 											tooltip.classList.remove('tooltip');
 										}
 									}, 1000);
-								}}
-								on:click={() => {
+								}} on:click={() => {
 									if (isApplicationAdminInContext || $isAdmin) {
 										if ($page.url.pathname === '/applications/') createItem.set('application');
 										else {
 											createItem.set('application');
-											goto(`/applications`, true);
+											goto(resolve('/applications'), true);
 										}
 									}
-								}}
-							/>
+								}}><img class="icon-button"
+								src={appsSVG}
+								alt=""
+								width="23rem"
+								height="23rem"
+								class:permission-badges-blue={isApplicationAdminInContext || $isAdmin}
+								class:permission-badges-grey={!isApplicationAdminInContext && !$isAdmin}
+								
+								
+								
+							/></button>
 
 							<span
 								id="is-application-admin"
@@ -305,13 +310,13 @@
 		{#if $isAuthenticated}
 			<div class="header-title">
 				{#if $detailView && $headerTitle !== topicsHeader && $headerTitle !== applicationsHeader && $headerTitle !== searchHeader && $page.url.pathname !== '/search/'}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						class="go-back"
+					
+					<button aria-label="back to topics"  on:click={() => detailView.set('backToList')}><img
+						class="go-back icon-button"
 						src={pagebackwardsSVG}
-						alt="back to topics"
-						on:click={() => detailView.set('backToList')}
-					/>
+						alt=""
+						
+					/></button>
 				{/if}
 
 				<div id="header-label" style="vertical-align: middle; margin-left: 1rem">
@@ -320,26 +325,26 @@
 			</div>
 
 			<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-			<div
-				data-cy="avatar-dropdown"
-				tabindex="0"
-				class="dot"
-				on:mouseenter={() => (avatarDropdownMouseEnter = true)}
-				on:mouseleave={() => {
+			<button aria-label="interactive element"  on:mouseenter={() => (avatarDropdownMouseEnter = true)} on:mouseleave={() => {
 					setTimeout(() => {
 						if (!avatarDropdownMouseEnter) avatarDropdownVisible = false;
 					}, waitTime);
 					avatarDropdownMouseEnter = false;
-				}}
-				on:click={() => (avatarDropdownVisible = !avatarDropdownVisible)}
-				on:keydown={(event) => {
+				}} on:click={() => (avatarDropdownVisible = !avatarDropdownVisible)} on:keydown={(event) => {
 					if (event.which === returnKey) {
 						avatarDropdownVisible = !avatarDropdownVisible;
 					}
-				}}
+				}}><div
+				data-cy="avatar-dropdown"
+				tabindex="0"
+				class="dot icon-button"
+				
+				
+				
+				
 			>
 				{avatarName}
-			</div>
+			</div></button>
 		{/if}
 	</div>
 </header>
@@ -368,15 +373,15 @@
 			<tr>
 				<td
 					data-cy="logout-button"
-					on:click={() => goto('/api/logout', true)}
+					on:click={() => goto(resolve('/api/logout'), true)}
 					on:keydown={(event) => {
 						if (event.which === returnKey) {
-							goto('/api/logout', true);
+							goto(resolve('/api/logout'), true);
 						}
 					}}
 					on:focusout={() => (avatarDropdownVisible = false)}
 				>
-					<a href="/api/logout" style="float:right">
+					<a href={resolve('/api/logout')} style="float:right">
 						{messages['header']['avatar.logout.button']}
 						<img src={logoutSVG} alt="logout" class="icon-logout" />
 					</a>
@@ -387,6 +392,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.combobox {
 		margin: -1.5rem;
 	}

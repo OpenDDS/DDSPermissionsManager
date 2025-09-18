@@ -8,6 +8,7 @@
 	import Modal from '../../lib/Modal.svelte';
 	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import headerTitle from '../../stores/headerTitle';
@@ -42,7 +43,7 @@
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve('/'));
 		}, waitTime);
 	}
 
@@ -256,7 +257,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -314,7 +315,7 @@
 				/>
 			{/if}
 
-			{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
+			{#if $topicsTotalSize !== undefined && !isNaN($topicsTotalSize)}
 				<div class="content">
 					<h1 data-cy="action-interval">{messages['action-intervals']['title']}</h1>
 
@@ -346,22 +347,13 @@
 						>
 					{/if}
 
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-							actionIntervalRowsSelected.length === 0}
-						style="margin-left: 0.5rem; margin-right: 1rem"
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							if (actionIntervalRowsSelected.length > 0) deleteActionIntervalsVisible = true;
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								if (actionIntervalRowsSelected.length > 0) deleteActionIntervalsVisible = true;
 							}
-						}}
-						on:mouseenter={() => {
+						}} on:mouseenter={() => {
 							deleteMouseEnter = true;
 							if ($isAdmin || isTopicAdmin) {
 								if (actionIntervalRowsSelected.length === 0) {
@@ -386,8 +378,7 @@
 									}
 								}, 1000);
 							}
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							deleteMouseEnter = false;
 							if (actionIntervalRowsSelected.length === 0) {
 								const tooltip = document.querySelector('#delete-action-intervals');
@@ -398,8 +389,18 @@
 									}
 								}, 1000);
 							}
-						}}
-					/>
+						}}><img
+						src={deleteSVG}
+						alt=""
+						class="dot icon-button"
+						class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
+							actionIntervalRowsSelected.length === 0}
+						style="margin-left: 0.5rem; margin-right: 1rem"
+						
+						
+						
+						
+					/></button>
 					<span
 						id="delete-action-intervals"
 						class="tooltip-hidden"
@@ -407,17 +408,7 @@
 						>{deleteToolip}
 					</span>
 
-					<img
-						data-cy="add-action-interval"
-						src={addSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={(!$isAdmin &&
-							!$permissionsByGroup?.find(
-								(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-							)) ||
-							!$groupContext}
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							if (
 								$groupContext &&
 								($isAdmin ||
@@ -431,8 +422,7 @@
 								($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 							)
 								showSelectGroupContext.set(true);
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								if (
 									$groupContext &&
@@ -448,8 +438,7 @@
 								)
 									showSelectGroupContext.set(true);
 							}
-						}}
-						on:mouseenter={() => {
+						}} on:mouseenter={() => {
 							addMouseEnter = true;
 							if (
 								(!$isAdmin &&
@@ -484,8 +473,7 @@
 									}
 								}, 1000);
 							}
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							addMouseEnter = false;
 							const tooltip = document.querySelector('#add-action-intervals');
 							setTimeout(() => {
@@ -494,8 +482,21 @@
 									tooltip.classList.remove('tooltip');
 								}
 							}, waitTime);
-						}}
-					/>
+						}}><img
+						data-cy="add-action-interval"
+						src={addSVG}
+						alt=""
+						class="dot icon-button"
+						class:button-disabled={(!$isAdmin &&
+							!$permissionsByGroup?.find(
+								(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+							)) ||
+							!$groupContext}
+						
+						
+						
+						
+					/></button>
 					<span
 						id="add-action-intervals"
 						class="tooltip-hidden"
@@ -538,7 +539,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each $actionIntervals as actionInterval}
+								{#each $actionIntervals as actionInterval (actionInterval.id)}
 									<tr>
 										{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
 											<td style="line-height: 1rem; width: 2rem; ">
@@ -566,17 +567,17 @@
 											</td>
 										{/if}
 
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
+										
 										<td
 											style="cursor: pointer; width: max-content"
 											data-cy="action-interval-name"
-											on:click={() => {
+											
+											><button class="text-button"  on:click={() => {
 												if ($isAdmin || isTopicAdmin) {
 													editInterval(actionInterval);
 												}
-											}}
-											>{actionInterval.name}
-										</td>
+											}}>{actionInterval.name}
+										</button></td>
 
 										<td style="padding-left: 0.5rem">{actionInterval.groupName}</td>
 
@@ -590,40 +591,40 @@
 
 										{#if $isAdmin || isTopicAdmin}
 											<td style="cursor: pointer; width:1rem">
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
+												
+												<button aria-label="edit user"  on:click={() => {
+														if ($isAdmin || isTopicAdmin) {
+															editInterval(actionInterval);
+														}
+													}}><img class="icon-button"
 													data-cy="detail-application-icon"
 													src={detailSVG}
 													height="18rem"
 													width="18rem"
-													alt="edit user"
+													alt=""
 													style="vertical-align: -0.2rem"
-													on:click={() => {
-														if ($isAdmin || isTopicAdmin) {
-															editInterval(actionInterval);
-														}
-													}}
-												/>
+													
+												/></button>
 											</td>
 
 											<td
 												style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 											>
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
+												
+												<button aria-label="delete action-interval"  on:click={() => {
+														if (!actionIntervalRowsSelected.some((tpc) => tpc === actionInterval))
+															actionIntervalRowsSelected.push(actionInterval);
+														deleteActionIntervalsVisible = true;
+													}}><img class="icon-button"
 													data-cy="delete-action-interval-icon"
 													src={deleteSVG}
 													width="27px"
 													height="27px"
 													style="vertical-align: -0.45rem"
-													alt="delete action-interval"
+													alt=""
 													disabled={!$isAdmin || !isTopicAdmin}
-													on:click={() => {
-														if (!actionIntervalRowsSelected.some((tpc) => tpc === actionInterval))
-															actionIntervalRowsSelected.push(actionInterval);
-														deleteActionIntervalsVisible = true;
-													}}
-												/>
+													
+												/></button>
 											</td>
 										{/if}
 									</tr>
@@ -635,10 +636,8 @@
 							{messages['action-intervals']['empty.action-intervals']}
 							<br />
 							{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<span
-									class="link"
-									on:click={() => {
+								
+								<button aria-label="interactive element"  on:click={() => {
 										if (
 											$groupContext &&
 											($permissionsByGroup?.find(
@@ -652,10 +651,12 @@
 											($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 										)
 											showSelectGroupContext.set(true);
-									}}
+									}}><span
+									class="link icon-button"
+									
 								>
 									{messages['action-intervals']['empty.action-intervals.action.two']}
-								</span>
+								</span></button>
 								{messages['action-intervals']['empty.action-intervals.action.result']}
 							{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
 								{messages['action-intervals']['empty.action-intervals.action']}
@@ -694,64 +695,64 @@
 						{$topicsTotalSize}
 					</span>
 
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={actionIntervalsCurrentPage === 0}
-						on:click={() => {
+					
+					<button aria-label="first page"  on:click={() => {
 							deselectAllActionIntervalsCheckboxes();
 							if (actionIntervalsCurrentPage > 0) {
 								actionIntervalsCurrentPage = 0;
 								reloadAllActionIntervals();
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
+						}}><img
+						src={pagefirstSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={actionIntervalsCurrentPage === 0}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="previous page"  on:click={() => {
 							deselectAllActionIntervalsCheckboxes();
 							if (actionIntervalsCurrentPage > 0) {
 								actionIntervalsCurrentPage--;
 								reloadAllActionIntervals(actionIntervalsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={actionIntervalsCurrentPage + 1 === $topicsTotalPages ||
-							$actionIntervals?.length === undefined}
-						on:click={() => {
+						}}><img
+						src={pagebackwardsSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={actionIntervalsCurrentPage === 0}
+						
+					/></button>
+					
+					<button aria-label="next page"  on:click={() => {
 							deselectAllActionIntervalsCheckboxes();
 							if (actionIntervalsCurrentPage + 1 < $topicsTotalPages) {
 								actionIntervalsCurrentPage++;
 								reloadAllActionIntervals(actionIntervalsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
+						}}><img
+						src={pageforwardSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={actionIntervalsCurrentPage + 1 === $topicsTotalPages ||
 							$actionIntervals?.length === undefined}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="last page"  on:click={() => {
 							deselectAllActionIntervalsCheckboxes();
 							if (actionIntervalsCurrentPage < $topicsTotalPages) {
 								actionIntervalsCurrentPage = $topicsTotalPages - 1;
 								reloadAllActionIntervals(actionIntervalsCurrentPage);
 							}
-						}}
-					/>
+						}}><img
+						src={pagelastSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={actionIntervalsCurrentPage + 1 === $topicsTotalPages ||
+							$actionIntervals?.length === undefined}
+						
+					/></button>
 				</div>
 				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['action-intervals']} />
 				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
@@ -761,6 +762,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;

@@ -2,6 +2,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onLoggedIn, isAuthenticated } from '../stores/authentication';
 	import { httpAdapter } from '../appconfig';
 	import { browser } from '$app/environment';
@@ -26,7 +27,7 @@
 	import messages from '$lib/messages.json';
 	import '../app.css';
 
-	export let data;
+	
 
 	let reminderMessageVisible = false;
 	let timer, timeout;
@@ -53,7 +54,7 @@
 		lastActivity.set(Date.now());
 
 		clearTimeout(timer);
-		timer = setTimeout(() => goto('/api/logout', true), sixtyMin);
+	timer = setTimeout(() => goto(resolve('/api/logout'), true), sixtyMin);
 	};
 
 	const reminderMessage = (remMsg, remObj) => {
@@ -65,7 +66,7 @@
 	onMount(async () => {
 		document.body.addEventListener('click', userClicked);
 
-		window.addEventListener('popstate', (event) => {
+		window.addEventListener('popstate', (event) => { // eslint-disable-line no-unused-vars
 			// Search Button
 			if (
 				$page.url?.pathname === '/search/' &&
@@ -104,7 +105,7 @@
 
 			await refreshToken_Info();
 		} catch (err) {
-			goto('/api/logout', true);
+			goto(resolve('/api/logout'), true);
 		}
 	};
 
@@ -185,7 +186,7 @@
 			const res = await httpAdapter.get(`/token_info`);
 
 			// We don't have any of the two JWT tokens
-			if (res.status === 204 || res.status === 404) goto('/api/logout', true);
+			if (res.status === 204 || res.status === 404) goto(resolve('/api/logout'), true);
 
 			// IF- We only have a JWT_REFRESH_TOKEN; ELSE- We have both JWT tokens
 			if (res.status === 200 && Object.keys(res.data).length === 1) refreshToken();
@@ -194,7 +195,7 @@
 			const oneHour = 3600000;
 
 			// If: the user is not active for 1hr we log them out, Else: we refresh the session
-			if (Date.now() - $lastActivity > oneHour) goto('/api/logout', true);
+			if (Date.now() - $lastActivity > oneHour) goto(resolve('/api/logout'), true);
 			else {
 				refreshToken();
 			}
@@ -207,7 +208,7 @@
 		title={reminderMsg}
 		reminderMsg={true}
 		reminderDescription={reminderObject}
-		closeModalText={'No'}
+		closeModalText="No"
 		on:cancel={() => {
 			reminderMessageVisible = false;
 		}}

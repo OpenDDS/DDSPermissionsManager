@@ -11,6 +11,7 @@
 	import timerSVG from '../icons/timer.svg';
 	import searchSVG from '../icons/search.svg';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import groupContext from '../stores/groupContext';
 	import { httpAdapter } from '../appconfig';
 	import topicsA from '../stores/topicsA';
@@ -153,108 +154,93 @@
 </script>
 
 <nav>
-	<ul>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li
-			class:active={$page.url.pathname === '/groups/'}
-			on:mouseenter={() => {
-				if (!$groups) preloadGroups();
-			}}
-			on:click={() => detailView.set('backToList')}
-		>
-			<a sveltekit:prefetch href="/groups">
-				<img src={groupsSVG} alt="groups" class="menu-icon" />{messages['navigation']['item.one']}
-			</a>
-		</li>
+   <ul>
+       
+	   <li
+		   class:active={$page.url.pathname === '/groups/'}
+	   >
+		   <a on:mouseenter={() => {
+			   if (!$groups) preloadGroups();
+		   }} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/groups')}>
+			   <img src={groupsSVG} alt="groups" class="menu-icon" />{messages['navigation']['item.one']}
+		   </a>
+	   </li>
 
-		<li
-			class:active={$page.url.pathname === '/users/'}
-			on:mouseenter={() => {
-				if ($isAdmin && !$users) {
-					preloadSuperUsers();
-					preloadGroupMemberships();
-				} else if (!$isAdmin && !$groupMembershipList) preloadGroupMemberships();
-			}}
-		>
-			<a sveltekit:prefetch href="/users">
-				<img src={usersSVG} alt="users" class="menu-icon" />{messages['navigation']['item.two']}
-			</a>
-		</li>
+	   <li
+		   class:active={$page.url.pathname === '/users/'}
+	   >
+		   <a on:mouseenter={() => {
+			   if ($isAdmin && !$users) {
+				   preloadSuperUsers();
+				   preloadGroupMemberships();
+			   } else if (!$isAdmin && !$groupMembershipList) preloadGroupMemberships();
+		   }} data-sveltekit-prefetch href={resolve('/users')}>
+			   <img src={usersSVG} alt="users" class="menu-icon" />{messages['navigation']['item.two']}
+		   </a>
+	   </li>
 
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li
-			class:active={$page.url.pathname === '/topics/'}
-			on:mouseenter={() => {
-				if (!$topicsA) preloadTopics();
-			}}
-			on:click={() => detailView.set('backToList')}
-		>
-			<a sveltekit:prefetch href="/topics">
-				<img src={topicsSVG} alt="topics" class="menu-icon" />{messages['navigation']['item.three']}
-			</a>
-		</li>
+	   <li
+		   class:active={$page.url.pathname === '/topics/'}
+	   >
+		   <a on:mouseenter={() => {
+			   if (!$topicsA) preloadTopics();
+		   }} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/topics')}>
+			   <img src={topicsSVG} alt="topics" class="menu-icon" />{messages['navigation']['item.three']}
+		   </a>
+	   </li>
 
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li
-			class:active={$page.url.pathname === '/applications/'}
-			on:mouseenter={() => {
-				if (!$applications) preloadApps();
-			}}
-			on:click={() => detailView.set('backToList')}
-		>
-			<a sveltekit:prefetch href="/applications">
-				<img src={appsSVG} alt="applications" class="menu-icon" />{messages['navigation'][
-					'item.four'
-				]}
-			</a>
-		</li>
+	   <li
+		   class:active={$page.url.pathname === '/applications/'}
+	   >
+		   <a on:mouseenter={() => {
+			   if (!$applications) preloadApps();
+		   }} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/applications')}>
+			   <img src={appsSVG} alt="applications" class="menu-icon" />{messages['navigation'][
+				   'item.four'
+			   ]}
+		   </a>
+	   </li>
 
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li
-			class:active={$page.url.pathname === '/search/'}
-			on:click={() => universalSearchList.set(true)}
-		>
-			<a sveltekit:prefetch href="/search">
-				<img src={searchSVG} alt="search" class="menu-icon" />{messages['navigation']['item.five']}
-			</a>
-		</li>
+	   <li
+		   class:active={$page.url.pathname === '/search/'}
+	   >
+		   <a on:click={() => universalSearchList.set(true)} data-sveltekit-prefetch href={resolve('/search')}>
+			   <img src={searchSVG} alt="search" class="menu-icon" />{messages['navigation']['item.five']}
+		   </a>
+	   </li>
 
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<li class:active={$page.url.pathname === '/grants/'} on:mouseenter={() => {}} on:click={() => detailView.set('backToList')}>
-			<a sveltekit:prefetch href="/grants">
-				<img src={grantsSVG} alt="grants" class="menu-icon" />{messages['navigation']['item.six']}
-			</a>
-		</li>
+	   <li class:active={$page.url.pathname === '/grants/'}  >
+		   <a on:mouseenter={() => {}} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/grants')}>
+			   <img src={grantsSVG} alt="grants" class="menu-icon" />{messages['navigation']['item.six']}
+		   </a>
+	   </li>
 
-		<div class="nested-list">
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li class:active={$page.url.pathname === '/durations/'} on:mouseenter={() => {}}>
-				<a sveltekit:prefetch href="/durations">
-					<img src={timerSVG} alt="durations" class="menu-icon" />{messages['navigation'][
-						'item.seven'
-					]}
-				</a>
-			</li>
+	   <div class="nested-list">
+		   <li class:active={$page.url.pathname === '/durations/'} >
+			   <a on:mouseenter={() => {}} data-sveltekit-prefetch href={resolve('/durations')}>
+				   <img src={timerSVG} alt="durations" class="menu-icon" />{messages['navigation'][
+					   'item.seven'
+				   ]}
+			   </a>
+		   </li>
 
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li class:active={$page.url.pathname === '/action-intervals/'} on:mouseenter={() => {}} 			on:click={() => detailView.set('backToList')}>
-				<a sveltekit:prefetch href="/action-intervals">
-					<img src={expirationsSVG} alt="action-intervals" class="menu-icon" />{messages['navigation'][
-						'item.eight'
-					]}
-				</a>
-			</li>
+		   <li class:active={$page.url.pathname === '/action-intervals/'}  >
+			   <a on:mouseenter={() => {}} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/action-intervals')}>
+				   <img src={expirationsSVG} alt="action-intervals" class="menu-icon" />{messages['navigation'][
+					   'item.eight'
+				   ]}
+			   </a>
+		   </li>
 
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<li class:active={$page.url.pathname === '/topic-sets/'} on:mouseenter={() => {if (!$topicSets) preloadTopicSets();}} 			on:click={() => detailView.set('backToList')}>
-				<a sveltekit:prefetch href="/topic-sets">
-					<img src={topicSetsSVG} alt="topic-sets" class="menu-icon" />{messages['navigation'][
-						'item.nine'
-					]}
-				</a>
-			</li>
-		</div>
-	</ul>
+		   <li class:active={$page.url.pathname === '/topic-sets/'}  >
+			   <a on:mouseenter={() => {if (!$topicSets) preloadTopicSets();}} on:click={() => detailView.set('backToList')} data-sveltekit-prefetch href={resolve('/topic-sets')}>
+				   <img src={topicSetsSVG} alt="topic-sets" class="menu-icon" />{messages['navigation'][
+					   'item.nine'
+				   ]}
+			   </a>
+		   </li>
+	   </div>
+   </ul>
 </nav>
 
 <style>

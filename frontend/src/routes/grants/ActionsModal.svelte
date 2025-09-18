@@ -9,7 +9,6 @@
 	import messages from '$lib/messages.json';
 	import modalOpen from '../../stores/modalOpen';
 	import actionIntervalsStore from '../../stores/actionIntervals';
-	import topicSetsDetails from '../../stores/topicSetsDetails';
 	import SearchIcon from './SearchIcon.svelte';
 	import deleteSVG from '../../icons/delete.svg';
 	import addSVG from '../../icons/add.svg';
@@ -207,11 +206,11 @@
 	};
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal-backdrop" on:click={closeModal} transition:fade />
+
+<button aria-label="interactive element"  on:click={closeModal}><div class="modal-backdrop icon-button"  transition:fade /></button>
 <div class="modal" transition:fly={{ y: 300 }}>
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={closeSVG} alt="close" class="close-button" on:click={closeModal} />
+	
+	<button aria-label="close"  on:click={closeModal}><img src={closeSVG} alt="" class="close-button icon-button"  /></button>
 	<h2 class:condensed={title?.length > 25}>{title}</h2>
 	<hr style="width:80%" />
 	<div class="content">
@@ -222,7 +221,7 @@
 			>
 			<div class="dropdown">
 				<select bind:value={selectedActionInterval} class="dropdown-select">
-					{#each $actionIntervalsStore as value}<option {value}>{value.name}</option>{/each}
+					{#each $actionIntervalsStore as value (value.id)}<option {value}>{value.name}</option>{/each}
 				</select>
 			</div>
 		</div>
@@ -278,21 +277,14 @@
 									>{messages['topic-sets.detail']['table.column.one']}</td
 								>
 								<td>
-									<img
-										src={deleteSVG}
-										alt="options"
-										class="dot"
-										class:button-disabled={topicSetsRowsSelected.length === 0}
-										style="margin-left: 0.5rem;"
-										on:click={() => {
+									<button aria-label="options"  on:click={() => {
 											selectedTopicSets = selectedTopicSets.filter(
 												(ts) => !topicSetsRowsSelected.includes(ts)
 											);
 											topicSetsAllRowsSelectedTrue = false;
 											topicSetsRowsSelectedTrue = false;
 											topicSetsRowsSelected = [];
-										}}
-										on:keydown={(event) => {
+										}} on:keydown={(event) => {
 											if (event.which === returnKey) {
 												selectedTopicSets = selectedTopicSets.filter(
 													(ts) => !topicSetsRowsSelected.includes(ts)
@@ -301,13 +293,20 @@
 												topicSetsRowsSelectedTrue = false;
 												topicSetsRowsSelected = [];
 											}
-										}}
-									/>
+										}}><img
+										src={deleteSVG}
+										alt=""
+										class="dot icon-button"
+										class:button-disabled={topicSetsRowsSelected.length === 0}
+										style="margin-left: 0.5rem;"
+										
+										
+									/></button>
 								</td>
 							</tr>
 						</thead>
 						<tbody>
-							{#each selectedTopicSets as topicSet}
+							{#each selectedTopicSets as topicSet (topicSet.id)}
 								<tr>
 									<td style="line-height: 1rem; width: 2rem; ">
 										<input
@@ -339,18 +338,18 @@
 									<td
 										style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 									>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
-										<img
+										
+										<button aria-label="delete topic"  on:click={() => {
+												selectedTopicSets = selectedTopicSets.filter((ts) => ts !== topicSet);
+											}}><img class="icon-button"
 											data-cy="delete-topic-icon"
 											src={deleteSVG}
 											width="27px"
 											height="27px"
 											style="vertical-align: -0.45rem"
-											alt="delete topic"
-											on:click={() => {
-												selectedTopicSets = selectedTopicSets.filter((ts) => ts !== topicSet);
-											}}
-										/>
+											alt=""
+											
+										/></button>
 									</td>
 								</tr>
 							{/each}
@@ -413,21 +412,14 @@
 									>{messages['topic-sets.detail']['table.column.one']}</td
 								>
 								<td>
-									<img
-										src={deleteSVG}
-										alt="options"
-										class="dot"
-										class:button-disabled={topicsRowsSelected.length === 0}
-										style="margin-left: 0.5rem;"
-										on:click={() => {
+									<button aria-label="options"  on:click={() => {
 											selectedTopics = selectedTopics.filter(
 												(ts) => !topicsRowsSelected.includes(ts)
 											);
 											topicsAllRowsSelectedTrue = false;
 											topicsRowsSelectedTrue = false;
 											topicsRowsSelected = [];
-										}}
-										on:keydown={(event) => {
+										}} on:keydown={(event) => {
 											if (event.which === returnKey) {
 												selectedTopics = selectedTopics.filter(
 													(ts) => !topicsRowsSelected.includes(ts)
@@ -436,13 +428,20 @@
 												topicsRowsSelectedTrue = false;
 												topicsRowsSelected = [];
 											}
-										}}
-									/>
+										}}><img
+										src={deleteSVG}
+										alt=""
+										class="dot icon-button"
+										class:button-disabled={topicsRowsSelected.length === 0}
+										style="margin-left: 0.5rem;"
+										
+										
+									/></button>
 								</td>
 							</tr>
 						</thead>
 						<tbody>
-							{#each selectedTopics as topic}
+							{#each selectedTopics as topic (topic.id)}
 								<tr>
 									<td style="line-height: 1rem; width: 2rem; ">
 										<input
@@ -473,18 +472,18 @@
 									<td
 										style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 									>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
-										<img
+										
+										<button aria-label="delete topic"  on:click={() => {
+												selectedTopics = selectedTopics.filter((tpc) => tpc !== topic);
+											}}><img class="icon-button"
 											data-cy="delete-topic-icon"
 											src={deleteSVG}
 											width="27px"
 											height="27px"
 											style="vertical-align: -0.45rem"
-											alt="delete topic"
-											on:click={() => {
-												selectedTopics = selectedTopics.filter((tpc) => tpc !== topic);
-											}}
-										/>
+											alt=""
+											
+										/></button>
 									</td>
 								</tr>
 							{/each}
@@ -503,23 +502,24 @@
 					<div class="partition-input">
 						<input type="text" placeholder="Type and Add" bind:value={partition} />
 						<div>
-							<img
-								data-cy="add-duration"
-								class:button-disabled={partition.length === 0}
-								src={addSVG}
-								alt="options"
-								class="dot"
-								on:click={() => {
+							<button aria-label="options"  on:click={() => {
 									const newPartitions = [...selectedPartitions];
 									newPartitions.push(partition);
 									selectedPartitions = newPartitions;
 									partition = '';
-								}}
-								on:keydown={(event) => {
+								}} on:keydown={(event) => {
 									if (event.which === returnKey) {
+										// Empty block is intentional
 									}
-								}}
-							/>
+								}}><img
+								data-cy="add-duration"
+								class:button-disabled={partition.length === 0}
+								src={addSVG}
+								alt=""
+								class="dot icon-button"
+								
+								
+							/></button>
 						</div>
 					</div>
 				</div>
@@ -551,13 +551,7 @@
 
 								<td class="header-column" style="min-width: 7rem">Partition</td>
 								<td>
-									<img
-										src={deleteSVG}
-										alt="options"
-										class="dot"
-										class:button-disabled={partitionsRowSelected.length === 0}
-										style="margin-left: 0.5rem;"
-										on:click={() => {
+									<button aria-label="options"  on:click={() => {
 											if (partitionsRowSelected.length > 0) {
 												selectedPartitions = selectedPartitions.filter(
 													(p) => !partitionsRowSelected.includes(p)
@@ -566,17 +560,24 @@
 												partitionsRowsSelectedTrue = false;
 												partitionsRowSelected = [];
 											}
-										}}
-										on:keydown={(event) => {
+										}} on:keydown={(event) => {
 											if (event.which === returnKey) {
+												// Empty block is intentional
 											}
-										}}
-									/>
+										}}><img
+										src={deleteSVG}
+										alt=""
+										class="dot icon-button"
+										class:button-disabled={partitionsRowSelected.length === 0}
+										style="margin-left: 0.5rem;"
+										
+										
+									/></button>
 								</td>
 							</tr>
 						</thead>
 						<tbody>
-							{#each selectedPartitions as partition}
+							{#each selectedPartitions as partition (partition.id)}
 								<tr>
 									<td style="line-height: 1rem; width: 2rem; ">
 										<input
@@ -607,18 +608,18 @@
 									<td
 										style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 									>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
-										<img
+										
+										<button aria-label="delete topic"  on:click={() => {
+												selectedPartitions = selectedPartitions.filter((p) => p !== partition);
+											}}><img class="icon-button"
 											data-cy="delete-topic-icon"
 											src={deleteSVG}
 											width="27px"
 											height="27px"
 											style="vertical-align: -0.45rem"
-											alt="delete topic"
-											on:click={() => {
-												selectedPartitions = selectedPartitions.filter((p) => p !== partition);
-											}}
-										/>
+											alt=""
+											
+										/></button>
 									</td>
 								</tr>
 							{/each}
@@ -684,6 +685,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.topic-and-partition-wrapper {
 		display: flex;
 		flex-direction: row;

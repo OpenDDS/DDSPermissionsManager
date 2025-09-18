@@ -24,12 +24,15 @@
 
 	export let selectedGrant, isTopicAdmin;
 
-	let selectedTopicApplications = [],
-		selectedAction = {};
+	let selectedTopicApplications = [];
+	$: selectedTopicApplications;
+	let selectedAction = {};
 	// Selection
-	let grantsRowsSelected = [],
-		grantsRowsSelectedTrue = false,
-		grantsAllRowsSelectedTrue = false;
+	let grantsRowsSelected = [];
+	let grantsRowsSelectedTrue = false;
+	$: grantsRowsSelectedTrue;
+	let grantsAllRowsSelectedTrue = false;
+	$: grantsAllRowsSelectedTrue;
 
 	// checkboxes selection
 	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
@@ -41,18 +44,11 @@
 		grantsAllRowsSelectedTrue = false;
 	}
 
-	// Success Message
-	let notifyApplicationAccessTypeSuccess = false;
-	$: if (notifyApplicationAccessTypeSuccess) {
-		setTimeout(() => (notifyApplicationAccessTypeSuccess = false), waitTime);
-	}
-
 	// Modals
 	let errorMessageVisible = false;
 
 	// Constants
-	const returnKey = 13,
-		waitTime = 1000;
+	const returnKey = 13;
 
 	// Error Handling
 	let errorMsg, errorObject;
@@ -83,7 +79,7 @@
 
 			headerTitle.set(selectedGrant.name);
 			detailView.set(true);
-		} catch (error) {
+		} catch (err) {
 			errorMessage(errorMessages['grant-details']['loading.detail.error.title'], err.message);
 		}
 	};
@@ -92,7 +88,7 @@
 		try {
 			const response = await httpAdapter.get(`/actions?grantId=${selectedGrant.id}&pubsub=PUBLISH`);
 			grantPublishActionsStore.set(response.data.content || []);
-		} catch (error) {
+		} catch (err) {
 			errorMessage(errorMessages['grant-details']['loading.detail.error.title'], err.message);
 		}
 	};
@@ -103,7 +99,7 @@
 				`/actions?grantId=${selectedGrant.id}&pubsub=SUBSCRIBE`
 			);
 			grantSubscribeActionsStore.set(response.data.content || []);
-		} catch (error) {
+		} catch (err) {
 			errorMessage(errorMessages['grant-details']['loading.detail.error.title'], err.message);
 		}
 	};
@@ -131,13 +127,13 @@
 	};
 
 	const loadApplicationPermissions = async (topicId) => {
-		const resApps = await httpAdapter.get(`/application_permissions/topic/${topicId}`);
-		selectedTopicApplications = resApps.data.content;
+		// eslint-disable-next-line no-unused-vars
+		selectedTopicApplications = (await httpAdapter.get(`/application_permissions/topic/${topicId}`)).data.content;
 	};
 
 	const saveNewAction = async (newAction) => {
 		try {
-			const res = await httpAdapter.post(`/actions`, newAction);
+			await httpAdapter.post(`/actions`, newAction);
 			await fetchAndUpdatePublishAction();
 			await fetchAndUpdateSubscribeAction();
 		} catch (err) {
@@ -147,7 +143,7 @@
 
 	const updateAction = async (updatedAction) => {
 		try {
-			const res = await httpAdapter.put(`/actions/${updatedAction.id}`, updatedAction);
+			await httpAdapter.put(`/actions/${updatedAction.id}`, updatedAction);
 			await fetchAndUpdatePublishAction();
 			await fetchAndUpdateSubscribeAction();
 		} catch (err) {
@@ -156,7 +152,7 @@
 	};
 
 	const updateGrant = async (editedGrant) => {
-		const res = await httpAdapter
+		await httpAdapter
 			.put(`/application_grants/${selectedGrant.id}`, editedGrant)
 			.catch((err) => {
 				editGrantVisible = false;
@@ -164,12 +160,7 @@
 			});
 
 		editGrantVisible = false;
-
-		if (res === undefined) {
-			errorMessage(errorMessages['grant-details']['updating.error.title'], err.message);
-		} else {
-			fetchAndUpdateGrant();
-		}
+		fetchAndUpdateGrant();
 	};
 
 	const deselectAllPublishCheckboxes = () => {
@@ -316,16 +307,16 @@
 			</table>
 
 			{#if $isAdmin || isTopicAdmin}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<img
+				<button aria-label="edit topic"  on:click={() => (editGrantVisible = true)}><img class="icon-button"
 					src={editSVG}
 					tabindex="0"
-					alt="edit topic"
+					alt=""
 					height="20rem"
 					style="margin-left: 2rem; cursor:pointer"
-					on:click={() => (editGrantVisible = true)}
-				/>
+					
+				/></button>
 			{/if}
 		</div>
 
@@ -339,38 +330,38 @@
 					<h1>Publish Actions</h1>
 					{#if $isAdmin || isTopicAdmin}
 						<div style="padding-top: 1.5rem">
-							<img
-								src={deleteSVG}
-								alt="options"
-								class="dot"
-								class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-									publishActionsRowsSelected.length === 0}
-								style="margin-left: 0.5rem;"
-								on:click={() => {
+							<button aria-label="options"  on:click={() => {
 									if (publishActionsRowsSelected.length > 0) deletePublishVisible = true;
-								}}
-								on:keydown={(event) => {
+								}} on:keydown={(event) => {
 									if (event.which === returnKey) {
 										if (publishActionsRowsSelected.length > 0) deletePublishVisible = true;
 									}
-								}}
-							/>
-							<img
-								data-cy="add-duration"
-								src={addSVG}
-								alt="options"
-								class="dot"
-								on:click={() => {
+								}}><img
+								src={deleteSVG}
+								alt=""
+								class="dot icon-button"
+								class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
+									publishActionsRowsSelected.length === 0}
+								style="margin-left: 0.5rem;"
+								
+								
+							/></button>
+							<button aria-label="options"  on:click={() => {
 									isPublishAction = true;
 									addActionVisible = true;
-								}}
-								on:keydown={(event) => {
+								}} on:keydown={(event) => {
 									if (event.which === returnKey) {
 										isPublishAction = true;
 										addActionVisible = true;
 									}
-								}}
-							/>
+								}}><img
+								data-cy="add-duration"
+								src={addSVG}
+								alt=""
+								class="dot icon-button"
+								
+								
+							/></button>
 						</div>
 					{/if}
 				</div>
@@ -405,7 +396,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each $grantPublishActionsStore as publish}
+							{#each $grantPublishActionsStore as publish (publish.id)}
 								<tr>
 									{#if isTopicAdmin || $isAdmin}
 										<td style="line-height: 1rem; width: 2rem; ">
@@ -466,47 +457,47 @@
 
 									{#if $isAdmin || isTopicAdmin}
 										<td style="cursor: pointer; width:1rem">
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
-												data-cy="detail-application-icon"
-												src={detailSVG}
-												height="18rem"
-												width="18rem"
-												alt="edit user"
-												style="vertical-align: -0.15rem"
-												on:click={() => {
+											
+											<button aria-label="edit user"  on:click={() => {
 													selectedAction = publish;
 													isPublishAction = true;
 													editActionVisible = true;
-												}}
-												on:keydown={(event) => {
+												}} on:keydown={(event) => {
 													if (event.which === returnKey) {
 														selectedAction = publish;
 														isPublishAction = true;
 														editActionVisible = true;
 													}
-												}}
-											/>
+												}}><img class="icon-button"
+												data-cy="detail-application-icon"
+												src={detailSVG}
+												height="18rem"
+												width="18rem"
+												alt=""
+												style="vertical-align: -0.15rem"
+												
+												
+											/></button>
 										</td>
 
 										<td
 											style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 										>
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
+											
+											<button aria-label="delete topic"  on:click={() => {
+													if (!publishActionsRowsSelected.some((tpc) => tpc === publish))
+														publishActionsRowsSelected.push(publish);
+													deletePublishVisible = true;
+												}}><img class="icon-button"
 												data-cy="delete-topic-icon"
 												src={deleteSVG}
 												width="27px"
 												height="27px"
 												style="vertical-align: -0.45rem"
-												alt="delete topic"
+												alt=""
 												disabled={!$isAdmin || !isTopicAdmin}
-												on:click={() => {
-													if (!publishActionsRowsSelected.some((tpc) => tpc === publish))
-														publishActionsRowsSelected.push(publish);
-													deletePublishVisible = true;
-												}}
-											/>
+												
+											/></button>
 										</td>
 									{/if}
 								</tr>
@@ -524,38 +515,38 @@
 					<h1>Subscribe Actions</h1>
 					{#if $isAdmin || isTopicAdmin}
 						<div style="padding-top: 1.5rem">
-							<img
-								src={deleteSVG}
-								alt="options"
-								class="dot"
-								class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-									subscribeActionsRowsSelected.length === 0}
-								style="margin-left: 0.5rem;"
-								on:click={() => {
+							<button aria-label="options"  on:click={() => {
 									if (subscribeActionsRowsSelected.length > 0) deleteSubscribeVisible = true;
-								}}
-								on:keydown={(event) => {
+								}} on:keydown={(event) => {
 									if (event.which === returnKey) {
 										if (subscribeActionsRowsSelected.length > 0) deleteSubscribeVisible = true;
 									}
-								}}
-							/>
-							<img
-								data-cy="add-duration"
-								src={addSVG}
-								alt="options"
-								class="dot"
-								on:click={() => {
+								}}><img
+								src={deleteSVG}
+								alt=""
+								class="dot icon-button"
+								class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
+									subscribeActionsRowsSelected.length === 0}
+								style="margin-left: 0.5rem;"
+								
+								
+							/></button>
+							<button aria-label="options"  on:click={() => {
 									isPublishAction = false;
 									addActionVisible = true;
-								}}
-								on:keydown={(event) => {
+								}} on:keydown={(event) => {
 									if (event.which === returnKey) {
 										isPublishAction = false;
 										addActionVisible = true;
 									}
-								}}
-							/>
+								}}><img
+								data-cy="add-duration"
+								src={addSVG}
+								alt=""
+								class="dot icon-button"
+								
+								
+							/></button>
 						</div>
 					{/if}
 				</div>
@@ -590,7 +581,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each $grantSubscribeActionsStore as subscribe}
+							{#each $grantSubscribeActionsStore as subscribe (subscribe.id)}
 								<tr>
 									{#if isTopicAdmin || $isAdmin}
 										<td style="line-height: 1rem; width: 2rem; ">
@@ -652,47 +643,47 @@
 
 									{#if $isAdmin || isTopicAdmin}
 										<td style="cursor: pointer; width:1rem">
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
-												data-cy="detail-application-icon"
-												src={detailSVG}
-												height="18rem"
-												width="18rem"
-												alt="edit user"
-												style="vertical-align: -0.15rem"
-												on:click={() => {
+											
+											<button aria-label="edit user"  on:click={() => {
 													selectedAction = subscribe;
 													isPublishAction = false;
 													editActionVisible = true;
-												}}
-												on:keydown={(event) => {
+												}} on:keydown={(event) => {
 													if (event.which === returnKey) {
 														selectedAction = subscribe;
 														isPublishAction = false;
 														editActionVisible = true;
 													}
-												}}
-											/>
+												}}><img class="icon-button"
+												data-cy="detail-application-icon"
+												src={detailSVG}
+												height="18rem"
+												width="18rem"
+												alt=""
+												style="vertical-align: -0.15rem"
+												
+												
+											/></button>
 										</td>
 
 										<td
 											style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 										>
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
+											
+											<button aria-label="delete topic"  on:click={() => {
+													if (!subscribeActionsRowsSelected.some((tpc) => tpc === subscribe))
+														subscribeActionsRowsSelected.push(subscribe);
+													deleteSubscribeVisible = true;
+												}}><img class="icon-button"
 												data-cy="delete-topic-icon"
 												src={deleteSVG}
 												width="27px"
 												height="27px"
 												style="vertical-align: -0.45rem"
-												alt="delete topic"
+												alt=""
 												disabled={!$isAdmin || !isTopicAdmin}
-												on:click={() => {
-													if (!subscribeActionsRowsSelected.some((tpc) => tpc === subscribe))
-														subscribeActionsRowsSelected.push(subscribe);
-													deleteSubscribeVisible = true;
-												}}
-											/>
+												
+											/></button>
 										</td>
 									{/if}
 								</tr>
@@ -757,6 +748,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.pub-sub-wrapper {
 		display: flex;
 		align-items: center;

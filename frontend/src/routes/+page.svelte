@@ -3,6 +3,7 @@
 	import { isAuthenticated } from '../stores/authentication';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { httpAdapter } from '../appconfig';
 	import wavesSVG from '../icons/waves.svg';
 	import googleSVG from '../icons/google.svg';
@@ -13,7 +14,7 @@
 	import { baseURL } from '../appconfig';
 	const itemsPerPage = 10;
 
-	export let data, errors;
+	
 
 	const preloadGroups = async (page = 0) => {
 		const res = await httpAdapter.get(`/groups?page=${page}&size=${itemsPerPage}`);
@@ -30,7 +31,7 @@
 	onMount(async () => {
 		if ($isAuthenticated) {
 			await preloadGroups();
-			goto('/groups', true);
+			goto(resolve('/groups'));
 		}
 	});
 </script>
@@ -56,20 +57,19 @@
 			>{messages['login']['label']}</span
 		>
 		<hr />
-		<center>
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<div class="login-button" on:click={() => goto(`${baseURL}/oauth/login/google`, true)}>
-				<img
-					src={googleSVG}
-					alt="Login"
-					class="icon"
-					style="scale: 55%; margin: 0.1rem 0 0.1rem 0;"
-				/>
-				<span style="margin-left: 0; font-size: 1.4rem"
-					><a rel="external" href={`${baseURL}/oauth/login/google`}
-						>{messages['login']['button']}</a
-					></span
-				>
+		<center>			
+			<div class="login-button">
+				<a rel="external" href={ resolve(`${baseURL}/oauth/login/google`)} on:click={() => goto(resolve(`${baseURL}/oauth/login/google`))}>
+					<img
+						src={googleSVG}
+						alt="Login"
+						class="icon"
+						style="scale: 55%; margin: 0.1rem 0 0.1rem 0;"
+					/>
+					<span style="margin-left: 0; font-size: 1.4rem"
+						>{messages['login']['button']}</span
+					>
+				</a>
 			</div>
 		</center>
 	</div>

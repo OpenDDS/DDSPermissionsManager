@@ -37,6 +37,7 @@
 	let tokenApplicationName = '';
 	let tokenApplicationGroup = '';
 	let invalidToken = false;
+	$: invalidToken;
 
 	// Error Handling
 	let invalidName = false;
@@ -174,11 +175,11 @@
 	};
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal-backdrop" on:click={closeModal} transition:fade />
+
+<button aria-label="interactive element"  on:click={closeModal}><div class="modal-backdrop icon-button"  transition:fade /></button>
 <div class="modal" transition:fly={{ y: 300 }}>
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={closeSVG} alt="close" class="close-button" on:click={closeModal} />
+	
+	<button aria-label="close"  on:click={closeModal}><img src={closeSVG} alt="" class="close-button icon-button"  /></button>
 	<h2 class:condensed={title?.length > 25}>{title}</h2>
 	<hr style="width:80%" />
 	<div class="content">
@@ -323,7 +324,7 @@
 					bind:value={selectedDuration}
 					style="background: rgb(246, 246, 246); width: 13.9rem; border-radius: 0; margin-left: 0"
 				>
-					{#each $grantDurations as value}<option {value}>{value.name}</option>{/each}
+					{#each $grantDurations as value (value.id)}<option {value}>{value.name}</option>{/each}
 				</select>
 			</div>
 		</div>
@@ -446,6 +447,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.action-button {
 		float: right;
 		margin: 0.8rem 1.5rem 1rem 0;

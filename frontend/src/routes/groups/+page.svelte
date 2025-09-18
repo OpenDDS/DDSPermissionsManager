@@ -8,6 +8,7 @@
 	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import refreshPage from '../../stores/refreshPage';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import deleteSVG from '../../icons/delete.svg';
 	import editSVG from '../../icons/edit.svg';
@@ -38,8 +39,7 @@
 	import GroupDetails from './GroupDetails.svelte';
 	import { updateRetrievalTimestamp } from '../../utils.js';
 
-	export let data;
-	export let errors;
+	
 
 	$: if ($groupContext === 'clear') {
 		groupContext.set();
@@ -50,7 +50,7 @@
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve('/'), true);
 		}, waitTime);
 	}
 
@@ -138,6 +138,7 @@
 		}, waitTime);
 	}
 
+	// eslint-disable-next-line no-unused-vars
 	const refreshGroups = () => {
 		if (!$modalOpen) {
 			promise = reloadAllGroups();
@@ -326,7 +327,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -405,7 +406,7 @@
 				/>
 			{/if}
 
-			{#if $groupsTotalSize !== undefined && $groupsTotalSize != NaN && !groupDetailView}
+			{#if $groupsTotalSize !== undefined && !isNaN($groupsTotalSize) && !groupDetailView}
 				<div class="content">
 					<h1 data-cy="groups">{messages['group']['title']}</h1>
 
@@ -438,21 +439,13 @@
 						</button>
 					{/if}
 
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={!$isAdmin || groupsRowsSelected.length === 0}
-						style="margin-left: 0.5rem; margin-right: 1rem"
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							if (groupsRowsSelected.length > 0) deleteGroupVisible = true;
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								if (groupsRowsSelected.length > 0) deleteGroupVisible = true;
 							}
-						}}
-						on:mouseenter={() => {
+						}} on:mouseenter={() => {
 							deleteMouseEnter = true;
 							if ($isAdmin) {
 								deleteToolip = messages['group']['delete.tooltip'];
@@ -479,8 +472,7 @@
 									}
 								}, 1000);
 							}
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							deleteMouseEnter = false;
 
 							if (groupsRowsSelected.length === 0) {
@@ -492,29 +484,30 @@
 									}
 								}, 1000);
 							}
-						}}
-					/>
+						}}><img
+						src={deleteSVG}
+						alt=""
+						class="dot icon-button"
+						class:button-disabled={!$isAdmin || groupsRowsSelected.length === 0}
+						style="margin-left: 0.5rem; margin-right: 1rem"
+						
+						
+						
+						
+					/></button>
 					<span
 						id="delete-groups"
 						class="tooltip-hidden"
 						style="margin-left: 33.2rem; margin-top: -1.8rem"
 						>{deleteToolip}
 					</span>
-					<img
-						data-cy="add-group"
-						src={addSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={!$isAdmin}
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							if ($isAdmin) addGroupVisible = true;
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								addGroupVisible = true;
 							}
-						}}
-						on:mouseenter={() => {
+						}} on:mouseenter={() => {
 							addMouseEnter = true;
 							if (!$isAdmin) {
 								addTooltip = messages['group']['add.tooltip.superuser.required'];
@@ -526,8 +519,7 @@
 									}
 								}, waitTime);
 							}
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							addMouseEnter = false;
 							const tooltip = document.querySelector('#add-applications');
 							setTimeout(() => {
@@ -536,8 +528,17 @@
 									tooltip.classList.remove('tooltip');
 								}
 							}, waitTime);
-						}}
-					/>
+						}}><img
+						data-cy="add-group"
+						src={addSVG}
+						alt=""
+						class="dot icon-button"
+						class:button-disabled={!$isAdmin}
+						
+						
+						
+						
+					/></button>
 					<span
 						id="add-applications"
 						class="tooltip-hidden"
@@ -604,7 +605,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each $groups as group, i}
+								{#each $groups as group, i (group.id)}
 									<tr>
 										{#if $isAdmin}
 											<td style="width: 2rem">
@@ -634,15 +635,8 @@
 										{/if}
 
 										<td style="text-align: center; cursor: pointer">
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
-												data-cy="activate-group-context{i}"
-												src={groupSVG}
-												alt="select group"
-												width="27rem"
-												height="27rem"
-												style="vertical-align: middle;cursor: pointer"
-												on:click={() => {
+											
+											<button aria-label="select group"  on:click={() => {
 													if (!$groupContext) {
 														groupContext.set(group);
 														contextMessage.set(true);
@@ -650,8 +644,7 @@
 														groupContext.set(group);
 														contextMessage.set(true);
 													} else groupContext.set('clear');
-												}}
-												on:mouseenter={() => {
+												}} on:mouseenter={() => {
 													activateMouseEnter[i] = true;
 													const tooltip = document.querySelector(`#activate-groups${i}`);
 													setTimeout(() => {
@@ -660,8 +653,7 @@
 															tooltip.classList.add('tooltip');
 														}
 													}, waitTime);
-												}}
-												on:mouseleave={() => {
+												}} on:mouseleave={() => {
 													activateMouseEnter[i] = false;
 													const tooltip = document.querySelector(`#activate-groups${i}`);
 													setTimeout(() => {
@@ -670,38 +662,38 @@
 															tooltip.classList.remove('tooltip');
 														}
 													}, waitTime);
-												}}
-											/>
+												}}><img class="icon-button"
+												data-cy="activate-group-context{i}"
+												src={groupSVG}
+												alt=""
+												width="27rem"
+												height="27rem"
+												style="vertical-align: middle;cursor: pointer"
+												
+												
+												
+											/></button>
 										</td>
-										<!-- svelte-ignore a11y-click-events-have-key-events -->
+										
 										<td
 											style="width: max-content; cursor: pointer"
 											class:highlighted={group.name === $groupContext?.name}
-											on:click={() => {
+											
+										><button class="text-button"  on:click={() => {
 												selectedGroup = group;
 												groupDetailView = true;
 												history.pushState({ path: '/groups' }, 'My Groups', '/groups');
 												groupContext.set(group);
-											}}
-										>
+											}}>
 											{group.name}
-										</td>
+										</button></td>
 
 										<td>
 											<div
 												style="display:inline-flex; vertical-align:middle; justify-content: center; width: 7rem"
 											>
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													src={groupSVG}
-													alt="create new user"
-													width="23rem"
-													height="23rem"
-													style="margin-right: 0.4rem"
-													class:permission-badges-blue={findPermission(group, 'groupAdmin')}
-													class:permission-badges-grey={!findPermission(group, 'groupAdmin')}
-													disabled={!findPermission(group, 'groupAdmin')}
-													on:mouseenter={() => {
+												
+												<button aria-label="create new user"  on:mouseenter={() => {
 														createUserMouseEnter[i] = true;
 														const tooltip = document.querySelector(`#user-create${i}`);
 														setTimeout(() => {
@@ -710,8 +702,7 @@
 																tooltip.classList.add('tooltip');
 															}
 														}, 1000);
-													}}
-													on:mouseleave={() => {
+													}} on:mouseleave={() => {
 														createUserMouseEnter[i] = false;
 														const tooltip = document.querySelector(`#user-create${i}`);
 														setTimeout(() => {
@@ -720,15 +711,25 @@
 																tooltip.classList.remove('tooltip');
 															}
 														}, 1000);
-													}}
-													on:click={() => {
+													}} on:click={() => {
 														if (findPermission(group, 'groupAdmin')) {
 															groupContext.set(group);
 															createItem.set('user');
-															goto(`/users`, true);
+															goto(resolve('/users'), true);
 														}
-													}}
-												/>
+													}}><img class="icon-button"
+													src={groupSVG}
+													alt=""
+													width="23rem"
+													height="23rem"
+													style="margin-right: 0.4rem"
+													class:permission-badges-blue={findPermission(group, 'groupAdmin')}
+													class:permission-badges-grey={!findPermission(group, 'groupAdmin')}
+													disabled={!findPermission(group, 'groupAdmin')}
+													
+													
+													
+												/></button>
 
 												<span
 													id="user-create{i}"
@@ -742,17 +743,8 @@
 													{/if}
 												</span>
 
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													src={topicsSVG}
-													alt="create new topic"
-													width="23rem"
-													height="23rem"
-													style="margin-right: 0.2rem"
-													class:permission-badges-blue={findPermission(group, 'topicAdmin')}
-													class:permission-badges-grey={!findPermission(group, 'topicAdmin')}
-													disabled={!findPermission(group, 'topicAdmin')}
-													on:mouseenter={() => {
+												
+												<button aria-label="create new topic"  on:mouseenter={() => {
 														createTopicMouseEnter[i] = true;
 														const tooltip = document.querySelector(`#topic-create${i}`);
 														setTimeout(() => {
@@ -761,8 +753,7 @@
 																tooltip.classList.add('tooltip');
 															}
 														}, 1000);
-													}}
-													on:mouseleave={() => {
+													}} on:mouseleave={() => {
 														createTopicMouseEnter[i] = false;
 														const tooltip = document.querySelector(`#topic-create${i}`);
 														setTimeout(() => {
@@ -771,15 +762,25 @@
 																tooltip.classList.remove('tooltip');
 															}
 														}, 1000);
-													}}
-													on:click={() => {
+													}} on:click={() => {
 														if (findPermission(group, 'topicAdmin')) {
 															groupContext.set(group);
 															createItem.set('topic');
-															goto(`/topics`, true);
+															goto(resolve('/topics'), true);
 														}
-													}}
-												/>
+													}}><img class="icon-button"
+													src={topicsSVG}
+													alt=""
+													width="23rem"
+													height="23rem"
+													style="margin-right: 0.2rem"
+													class:permission-badges-blue={findPermission(group, 'topicAdmin')}
+													class:permission-badges-grey={!findPermission(group, 'topicAdmin')}
+													disabled={!findPermission(group, 'topicAdmin')}
+													
+													
+													
+												/></button>
 
 												<span id="topic-create{i}" class="tooltip-hidden" style="margin-top: 1.8rem"
 													>{#if findPermission(group, 'topicAdmin')}
@@ -789,16 +790,8 @@
 													{/if}
 												</span>
 
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													src={appsSVG}
-													alt="create application"
-													width="23rem"
-													height="23rem"
-													class:permission-badges-blue={findPermission(group, 'applicationAdmin')}
-													class:permission-badges-grey={!findPermission(group, 'applicationAdmin')}
-													disabled={!findPermission(group, 'applicationAdmin')}
-													on:mouseenter={() => {
+												
+												<button aria-label="create application"  on:mouseenter={() => {
 														createApplicationMouseEnter[i] = true;
 														const tooltip = document.querySelector(`#application-create${i}`);
 														setTimeout(() => {
@@ -807,8 +800,7 @@
 																tooltip.classList.add('tooltip');
 															}
 														}, 1000);
-													}}
-													on:mouseleave={() => {
+													}} on:mouseleave={() => {
 														createApplicationMouseEnter[i] = false;
 														const tooltip = document.querySelector(`#application-create${i}`);
 														setTimeout(() => {
@@ -817,15 +809,24 @@
 																tooltip.classList.remove('tooltip');
 															}
 														}, 1000);
-													}}
-													on:click={() => {
+													}} on:click={() => {
 														if (findPermission(group, 'applicationAdmin')) {
 															groupContext.set(group);
 															createItem.set('application');
-															goto(`/applications`, true);
+															goto(resolve('/applications'), true);
 														}
-													}}
-												/>
+													}}><img class="icon-button"
+													src={appsSVG}
+													alt=""
+													width="23rem"
+													height="23rem"
+													class:permission-badges-blue={findPermission(group, 'applicationAdmin')}
+													class:permission-badges-grey={!findPermission(group, 'applicationAdmin')}
+													disabled={!findPermission(group, 'applicationAdmin')}
+													
+													
+													
+												/></button>
 
 												<span
 													id="application-create{i}"
@@ -845,7 +846,7 @@
 												<a
 													tabindex="-1"
 													style="vertical-align: middle"
-													href="/users"
+													href={resolve('/users')}
 													on:click={() => groupContext.set(group)}>{group.membershipCount}</a
 												>
 											</center>
@@ -856,7 +857,7 @@
 												<a
 													tabindex="-1"
 													style="vertical-align: middle"
-													href="/topics"
+													href={resolve('/topics')}
 													on:click={() => groupContext.set(group)}>{group.topicCount}</a
 												>
 											</center>
@@ -867,7 +868,7 @@
 												<a
 													tabindex="-1"
 													style="vertical-align: middle"
-													href="/applications"
+													href={resolve('/applications')}
 													on:click={() => groupContext.set(group)}>{group.applicationCount}</a
 												>
 											</center>
@@ -878,7 +879,7 @@
 												<a
 													tabindex="-1"
 													style="vertical-align: middle"
-													href="/grants"
+													href={resolve('/grants')}
 													on:click={() => groupContext.set(group)}>{group.grantCount}</a
 												>
 											</center>
@@ -894,38 +895,38 @@
 
 										{#if $isAdmin}
 											<td style="cursor: pointer; text-align: right; padding-right: 0.25rem">
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													data-cy="edit-group-icon-{group.name}"
-													src={editSVG}
-													alt="edit group"
-													style="cursor: pointer; vertical-align: -0.25rem"
-													height="17rem"
-													width="17rem"
-													on:click={() => {
+												
+												<button aria-label="edit group"  on:click={() => {
 														editGroupVisible = true;
 														selectedGroupId = group.id;
 														selectedGroupName = group.name;
 														selectedGroupDescription = group.description;
 														selectedGroupPublic = group.public;
-													}}
-												/>
+													}}><img class="icon-button"
+													data-cy="edit-group-icon-{group.name}"
+													src={editSVG}
+													alt=""
+													style="cursor: pointer; vertical-align: -0.25rem"
+													height="17rem"
+													width="17rem"
+													
+												/></button>
 											</td>
 
 											<td style="cursor: pointer; text-align: right; padding-right: 0.25rem">
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													data-cy="delete-group-icon-{group.name}"
-													src={deleteSVG}
-													alt="delete group"
-													style="cursor: pointer; vertical-align: -0.5rem"
-													height="27rem"
-													on:click={() => {
+												
+												<button aria-label="delete group"  on:click={() => {
 														if (!groupsRowsSelected.some((grp) => grp === group))
 															groupsRowsSelected.push(group);
 														deleteGroupVisible = true;
-													}}
-												/>
+													}}><img class="icon-button"
+													data-cy="delete-group-icon-{group.name}"
+													src={deleteSVG}
+													alt=""
+													style="cursor: pointer; vertical-align: -0.5rem"
+													height="27rem"
+													
+												/></button>
 											</td>
 										{/if}
 									</tr>
@@ -936,10 +937,10 @@
 						<p>
 							{messages['group']['empty.groups']}&nbsp;
 
-							<!-- svelte-ignore a11y-click-events-have-key-events -->
-							<span class="link" on:click={() => (addGroupVisible = true)}>
+							
+							<button aria-label="interactive element"  on:click={() => (addGroupVisible = true)}><span class="link icon-button" >
 								{messages['group']['empty.groups.action']}
-							</span>
+							</span></button>
 							{messages['group']['empty.groups.action.result']}
 						</p>
 					{/if}
@@ -970,68 +971,68 @@
 						- {Math.min(groupsPerPage * (groupsCurrentPage + 1), $groupsTotalSize)} of
 						{$groupsTotalSize}
 					</span>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={groupsCurrentPage === 0}
-						on:click={() => {
+					
+					<button aria-label="first page"  on:click={() => {
 							deselectAllGroupsCheckboxes();
 
 							if (groupsCurrentPage > 0) {
 								groupsCurrentPage = 0;
 								reloadAllGroups();
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
+						}}><img
+						src={pagefirstSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={groupsCurrentPage === 0}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="previous page"  on:click={() => {
 							deselectAllGroupsCheckboxes();
 
 							if (groupsCurrentPage > 0) {
 								groupsCurrentPage--;
 								reloadAllGroups(groupsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={groupsCurrentPage + 1 === $groupsTotalPages ||
-							$groups?.length === undefined}
-						on:click={() => {
+						}}><img
+						src={pagebackwardsSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={groupsCurrentPage === 0}
+						
+					/></button>
+					
+					<button aria-label="next page"  on:click={() => {
 							deselectAllGroupsCheckboxes();
 
 							if (groupsCurrentPage + 1 < $groupsTotalPages) {
 								groupsCurrentPage++;
 								reloadAllGroups(groupsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
+						}}><img
+						src={pageforwardSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={groupsCurrentPage + 1 === $groupsTotalPages ||
 							$groups?.length === undefined}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="last page"  on:click={() => {
 							deselectAllGroupsCheckboxes();
 
 							if (groupsCurrentPage < $groupsTotalPages) {
 								groupsCurrentPage = $groupsTotalPages - 1;
 								reloadAllGroups(groupsCurrentPage);
 							}
-						}}
-					/>
+						}}><img
+						src={pagelastSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={groupsCurrentPage + 1 === $groupsTotalPages ||
+							$groups?.length === undefined}
+						
+					/></button>
 				</div>
 				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['groups']} />
 				<p style="margin-top: 8rem">{messages['footer']['message']}</p>
@@ -1041,6 +1042,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	.content {
 		width: 100%;
 		min-width: 45rem;

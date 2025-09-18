@@ -41,11 +41,11 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal-backdrop" on:click={closeModal} transition:fade />
+
+<button aria-label="interactive element"  on:click={closeModal}><div class="modal-backdrop icon-button"  transition:fade /></button>
 <div class="modal" transition:fly={{ y: 300 }}>
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={closeSVG} alt="close" class="close-button" on:click={closeModal} />
+	
+	<button aria-label="close"  on:click={closeModal}><img src={closeSVG} alt="" class="close-button icon-button"  /></button>
 	<h2 class:condensed={title?.length > 25}>
 		{isPublishAction ? 'Publish Actions' : 'Subscribe Actions'}
 	</h2>
@@ -53,7 +53,7 @@
 	<div class="content">
 		<div class="accordion-container">
 			<Accordion>
-				{#each allActions as action}
+				{#each allActions as action (action.id)}
 					<Panel>
 						<Header>
 							Action Interval: <span style="font-weight: 700; margin-left: 1rem"
@@ -73,7 +73,7 @@
 									{#if action.topicSets?.length}
 										<div>
 											<List nonInteractive>
-												{#each action.topicSets as topicSet}
+												{#each action.topicSets as topicSet (topicSet.id)}
 													<Item><Text>{topicSet.name}</Text></Item>
 													<Separator />
 												{/each}
@@ -91,7 +91,7 @@
 									{#if action.topics?.length}
 										<div>
 											<List nonInteractive>
-												{#each action.topics as topic}
+												{#each action.topics as topic (topic.id)}
 													<Item><Text>{topic.name}</Text></Item>
 													<Separator />
 												{/each}
@@ -108,7 +108,7 @@
 									{#if action.partitions?.length}
 										<div>
 											<List nonInteractive>
-												{#each action.partitions as partition}
+												{#each action.partitions as partition (partition)}
 													<Item><Text>{partition}</Text></Item>
 													<Separator />
 												{/each}
@@ -145,6 +145,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.topic-and-partition-wrapper {
 		display: flex;
 		flex-direction: row;

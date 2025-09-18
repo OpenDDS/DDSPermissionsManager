@@ -1,5 +1,6 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
+	// eslint-disable-next-line svelte/infinite-reactive-loop
 	import { onMount } from 'svelte';
 	import { httpAdapter } from '../appconfig';
 	import { inview } from 'svelte-inview';
@@ -17,7 +18,6 @@
 	let comboboxfilter;
 	let list;
 	let selected = -1;
-	let previousLength;
 
 	// Constants
 	const groupsDropdownSuggestion = 7;
@@ -34,7 +34,7 @@
 	let timer;
 	let selectedGroup;
 
-	$: if ($refreshPage && $singleGroupCheck !== 'checked') searchGroup('singleGroupCheck');
+	$: if ($refreshPage && $singleGroupCheck !== 'checked') checkSingleGroup();
 
 	$: if ($contextMessage) {
 		contextMessage.set(false);
@@ -59,6 +59,7 @@
 		clearTimeout(timer);
 		timer = setTimeout(() => {
 			searchGroup(searchGroups.trim());
+			// eslint-disable-next-line svelte/infinite-reactive-loop
 			stopSearchingGroups = true;
 		}, waitTime);
 	}
@@ -88,39 +89,36 @@
 			selectedGroup = $groupContext;
 			searchGroups = selectedGroup.name;
 		}
-		if ($singleGroupCheck !== 'checked') await searchGroup('singleGroupCheck');
+		if ($singleGroupCheck !== 'checked') await checkSingleGroup();
 	});
+
+	const checkSingleGroup = async () => {
+		singleGroupCheck.set('checked');
+
+		const res = await httpAdapter.get(`/groups?page=${groupResultPage}&size=2`);
+
+		// If this user belong to only one group
+		if (res.data?.content?.length === 1) {
+			searchGroupActive = false;
+			selectedGroup = res.data.content;
+			searchGroups = selectedGroup[0].name;
+			isSingleGroup.set(true);
+			groupContext.set(...res.data.content);
+		}
+	};
 
 	const searchGroup = async (searchGroupStr) => {
 		let res;
 
-		if (searchGroupStr === 'allgroups')
+		if (searchGroupStr === 'allgroups') {
 			res = await httpAdapter.get(
 				`/groups?page=${groupResultPage}&size=${groupsDropdownSuggestion}`
 			);
-
-		if (searchGroupStr === 'singleGroupCheck') {
-			singleGroupCheck.set('checked');
-
-			res = await httpAdapter.get(`/groups?page=${groupResultPage}&size=2`);
-
-			// If this user belong to only one group
-			if (res.data?.content?.length === 1) {
-				searchGroupActive = false;
-				selectedGroup = res.data.content;
-				searchGroups = selectedGroup[0].name;
-				isSingleGroup.set(true);
-				groupContext.set(...res.data.content);
-
-				return;
-			} else return;
-		} else if (searchGroupStr !== 'allgroups' && searchGroupStr !== 'singleGroupCheck') {
+		} else {
 			res = await httpAdapter.get(
 				`/groups?page=${groupResultPage}&size=${groupsDropdownSuggestion}&filter=${searchGroupStr}`
 			);
 		}
-
-		if (res.data.content) previousLength = res.data.content.length;
 
 		// For all cases
 		if (res.data && res.data?.content?.length < groupsDropdownSuggestion) {
@@ -172,7 +170,7 @@
 				list?.querySelector(`#listbox-1-option-${selected}`).scrollIntoView(false);
 
 				break;
-			case 'Backspace':
+			case 'Backspace': {
 				const searchInput = searchGroups.slice(0, searchGroups.length - 1);
 
 				if (searchInput?.length >= searchStringLength) {
@@ -185,6 +183,8 @@
 					searchGroupResults = [];
 					searchGroup('allgroups');
 				}
+				break;
+			}
 		}
 
 		// Resume group search
@@ -301,7 +301,7 @@
 								{group.name}
 							</li>
 						{/each}
-						<div use:inview={{ options }} on:change={loadMoreResultsGroups} />
+						<button aria-label="interactive element"  on:change={loadMoreResultsGroups}><div class="icon-button" use:inview={{ options }}  /></button>
 					</ul>
 				{/if}
 			{/if}
@@ -310,6 +310,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	* {
 		box-sizing: border-box;
 	}

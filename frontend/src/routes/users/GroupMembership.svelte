@@ -84,16 +84,20 @@
 	const searchStringLength = 3;
 	let searchGroups;
 	let searchGroupResults;
-	let searchGroupsResultsVisible = false;
+	$: searchGroupResults;
 	let searchGroupActive = false;
 	let selectedGroup;
 	let timer;
 
 	// Forms
 	let emailValue = '';
+	$: emailValue;
 	let selectedIsGroupAdmin = false;
+	$: selectedIsGroupAdmin;
 	let selectedIsApplicationAdmin = false;
+	$: selectedIsApplicationAdmin;
 	let selectedIsTopicAdmin = false;
+	$: selectedIsTopicAdmin;
 	let groupsDropdownSuggestion = 7;
 
 	// Tables
@@ -155,16 +159,9 @@
 		timer = setTimeout(() => {
 			searchGroup(searchGroups.trim());
 		}, waitTime);
-	} else {
-		searchGroupsResultsVisible = false;
 	}
 
-	// Search Groups Dropdown Visibility
-	$: if (searchGroupResults?.data?.content?.length >= 1 && searchGroupActive) {
-		searchGroupsResultsVisible = true;
-	} else {
-		searchGroupsResultsVisible = false;
-	}
+	
 
 	// Reset add group form once closed
 	$: if (addGroupMembershipVisible === false) {
@@ -288,7 +285,7 @@
 			.catch((err) => {
 				if (err.response.status === 403) {
 					errorMessage(errorMessages['group_membership']['saving.error.title'], err.message);
-				} else if (err.response.status === 400 || 401) {
+				} else if (err.response.status === 400 || err.response.status === 401) {
 					const decodedError = decodeError(Object.create(...err.response.data));
 					errorMessage(
 						errorMessages['group_membership']['adding.error.title'],
@@ -415,7 +412,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -517,21 +514,13 @@
 					</button>
 				{/if}
 
-				<img
-					src={deleteSVG}
-					alt="options"
-					class="dot"
-					class:button-disabled={(!$isAdmin && !isGroupAdmin) || usersRowsSelected.length === 0}
-					style="margin-left: 0.5rem; margin-right: 1rem"
-					on:click={() => {
+				<button aria-label="options"  on:click={() => {
 						if (usersRowsSelected.length > 0) deleteSelectedGroupMembershipsVisible = true;
-					}}
-					on:keydown={(event) => {
+					}} on:keydown={(event) => {
 						if (event.which === returnKey) {
 							if (usersRowsSelected.length > 0) deleteSelectedGroupMembershipsVisible = true;
 						}
-					}}
-					on:mouseenter={() => {
+					}} on:mouseenter={() => {
 						deleteMouseEnter = true;
 						if ($isAdmin || isGroupAdmin) {
 							if (usersRowsSelected.length === 0) {
@@ -557,8 +546,7 @@
 								}
 							}, waitTime);
 						}
-					}}
-					on:mouseleave={() => {
+					}} on:mouseleave={() => {
 						deleteMouseEnter = false;
 
 						const tooltip = document.querySelector('#delete-users');
@@ -568,8 +556,17 @@
 								tooltip.classList.remove('tooltip');
 							}
 						}, waitTime);
-					}}
-				/>
+					}}><img
+					src={deleteSVG}
+					alt=""
+					class="dot icon-button"
+					class:button-disabled={(!$isAdmin && !isGroupAdmin) || usersRowsSelected.length === 0}
+					style="margin-left: 0.5rem; margin-right: 1rem"
+					
+					
+					
+					
+				/></button>
 				<span
 					id="delete-users"
 					class="tooltip-hidden"
@@ -577,24 +574,16 @@
 					>{deleteToolip}
 				</span>
 
-				<img
-					data-cy="add-user"
-					src={addSVG}
-					alt="options"
-					class="dot"
-					class:button-disabled={(!$isAdmin && !isGroupAdmin) || !$groupContext}
-					on:click={() => {
+				<button aria-label="options"  on:click={() => {
 						if ($isAdmin || isGroupAdmin) {
 							if ($groupContext) addGroupMembershipVisible = true;
 							else showSelectGroupContext.set(true);
 						}
-					}}
-					on:keydown={(event) => {
+					}} on:keydown={(event) => {
 						if (event.which === returnKey) {
 							if ($isAdmin || isGroupAdmin) if ($groupContext) addGroupMembershipVisible = true;
 						}
-					}}
-					on:mouseenter={() => {
+					}} on:mouseenter={() => {
 						addMouseEnter = true;
 						if (!$isAdmin && !isGroupAdmin) {
 							addTooltip = messages['user']['add.tooltip.group.admin.required'];
@@ -619,8 +608,7 @@
 								}
 							}, 1000);
 						}
-					}}
-					on:mouseleave={() => {
+					}} on:mouseleave={() => {
 						addMouseEnter = false;
 						const tooltip = document.querySelector('#add-users');
 						setTimeout(() => {
@@ -629,8 +617,17 @@
 								tooltip.classList.remove('tooltip');
 							}
 						}, waitTime);
-					}}
-				/>
+					}}><img
+					data-cy="add-user"
+					src={addSVG}
+					alt=""
+					class="dot icon-button"
+					class:button-disabled={(!$isAdmin && !isGroupAdmin) || !$groupContext}
+					
+					
+					
+					
+				/></button>
 				<span id="add-users" class="tooltip-hidden" style="margin-left: 24rem; margin-top: -1.8rem">
 					{addTooltip}
 				</span>
@@ -685,7 +682,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each $groupMembershipList as groupMembership, i}
+							{#each $groupMembershipList as groupMembership (groupMembership.groupMembershipId)}
 								<tr class:highlighted={groupMembership.userEmail === $userEmail}>
 									{#if $isAdmin || isGroupAdmin}
 										<td style="width: 2rem">
@@ -764,40 +761,40 @@
 									{#if $isAdmin || $groupAdminGroups?.some((group) => group.groupName === groupMembership.groupName)}
 										<td
 											style="cursor: pointer; text-align: right"
-											on:keydown={(event) => {
+											
+										><button class="text-button"  on:keydown={(event) => {
 												if (event.which === returnKey) {
 													updateGroupMembershipSelection(groupMembership);
 												}
-											}}
-										>
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
+											}}>
+											
+											<button aria-label="edit user"  on:click={() => updateGroupMembershipSelection(groupMembership)}><img class="icon-button"
 												data-cy="edit-users-icon"
 												src={editSVG}
 												height="17rem"
 												width="17rem"
 												style="vertical-align: -0.225rem"
-												alt="edit user"
-												on:click={() => updateGroupMembershipSelection(groupMembership)}
-											/>
-										</td>
+												alt=""
+												
+											/></button>
+										</button></td>
 										<td
 											style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 										>
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
+											
+											<button aria-label="delete user"  on:click={() => {
+													if (!usersRowsSelected.some((gm) => gm === groupMembership))
+														usersRowsSelected.push(groupMembership);
+													deleteSelectedGroupMembershipsVisible = true;
+												}}><img class="icon-button"
 												data-cy="delete-users-icon"
 												src={deleteSVG}
 												height="27px"
 												width="27px"
 												style="vertical-align: -0.5rem"
-												alt="delete user"
-												on:click={() => {
-													if (!usersRowsSelected.some((gm) => gm === groupMembership))
-														usersRowsSelected.push(groupMembership);
-													deleteSelectedGroupMembershipsVisible = true;
-												}}
-											/>
+												alt=""
+												
+											/></button>
 										</td>
 									{:else}
 										<td /><td />
@@ -815,16 +812,16 @@
 				{:else if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isGroupAdmin === true) || $isAdmin)}
 					<p>
 						{messages['user']['empty.users']} <br />
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<span
-							class="link"
-							on:click={() => {
+						
+						<button aria-label="interactive element"  on:click={() => {
 								if ($groupContext) addGroupMembershipVisible = true;
 								else showSelectGroupContext.set(true);
-							}}
+							}}><span
+							class="link icon-button"
+							
 						>
 							{messages['user']['empty.users.action.two']}
-						</span>
+						</span></button>
 						{messages['user']['empty.users.action.result']}
 					</p>
 				{/if}
@@ -832,7 +829,7 @@
 				<br />
 			</div>
 
-			{#if $groupMembershipsTotalSize !== undefined && $groupMembershipsTotalSize != NaN}
+			{#if $groupMembershipsTotalSize !== undefined && !isNaN($groupMembershipsTotalSize)}
 				<div class="pagination">
 					<span>{messages['pagination']['rows.per.page']}</span>
 					<select
@@ -861,65 +858,65 @@
 							$groupMembershipsTotalSize
 						)} of {$groupMembershipsTotalSize}
 					</span>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage === 0}
-						on:click={() => {
+					
+					<button aria-label="first page"  on:click={() => {
 							deselectAllGroupMembershipCheckboxes();
 							if (groupMembershipsCurrentPage > 0) {
 								groupMembershipsCurrentPage = 0;
 
 								reloadGroupMemberships();
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
+						}}><img
+						src={pagefirstSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={groupMembershipsCurrentPage === 0}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="previous page"  on:click={() => {
 							deselectAllGroupMembershipCheckboxes();
 							if (groupMembershipsCurrentPage > 0) {
 								groupMembershipsCurrentPage--;
 								reloadGroupMemberships(groupMembershipsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
-							$groupMembershipList?.length === undefined}
-						on:click={() => {
+						}}><img
+						src={pagebackwardsSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={groupMembershipsCurrentPage === 0}
+						
+					/></button>
+					
+					<button aria-label="next page"  on:click={() => {
 							deselectAllGroupMembershipCheckboxes();
 							if (groupMembershipsCurrentPage + 1 < $groupMembershipsTotalPages) {
 								groupMembershipsCurrentPage++;
 								reloadGroupMemberships(groupMembershipsCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
+						}}><img
+						src={pageforwardSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
 							$groupMembershipList?.length === undefined}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="last page"  on:click={() => {
 							deselectAllGroupMembershipCheckboxes();
 							if (groupMembershipsCurrentPage < $groupMembershipsTotalPages) {
 								groupMembershipsCurrentPage = $groupMembershipsTotalPages - 1;
 								reloadGroupMemberships(groupMembershipsCurrentPage);
 							}
-						}}
-					/>
+						}}><img
+						src={pagelastSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
+							$groupMembershipList?.length === undefined}
+						
+					/></button>
 				</div>
 
 				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['users']} />
@@ -929,6 +926,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	.content {
 		width: 100%;
 		min-width: 32rem;

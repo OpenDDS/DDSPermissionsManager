@@ -5,14 +5,16 @@
 
 	export let retrievedTimestamp;
     let refreshInterval = 60000;
-	$: timeAgo = moment(retrievedTimestamp).fromNow();
+	let timeAgo; // Make it a regular variable
 	$: browserFormat = retrievedTimestamp?.toLocaleString();
 
 	let clear;
 	onMount(() => {
-		clear = setInterval(() => {
+		const updateTime = () => { // Create a function to update timeAgo
 			timeAgo = moment(retrievedTimestamp).fromNow();
-		}, refreshInterval);
+		};
+		updateTime(); // Call it once immediately
+		clear = setInterval(updateTime, refreshInterval); // Use the function in setInterval
 	});
 
 	onDestroy(() => {
