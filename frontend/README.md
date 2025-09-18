@@ -45,7 +45,6 @@ After authentication is completed, we are redirected to `/groups` that serves as
 
 `stores` folder contains all the Svelte stores (state variables) that share data among all components that imports them.
 
-
 ## Application Functionality
 
 ### Authentication

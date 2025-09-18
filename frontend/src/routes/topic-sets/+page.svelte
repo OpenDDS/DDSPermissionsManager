@@ -9,6 +9,7 @@
 	import TopicSetDetails from './TopicSetDetails.svelte';
 	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import { goto } from '$app/navigation';
+    import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import headerTitle from '../../stores/headerTitle';
@@ -51,7 +52,7 @@
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve(`/`));
 		}, waitTime);
 	}
 
@@ -294,7 +295,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -352,7 +353,7 @@
 			{/if}
 
 			{#if !topicDetailVisible}
-				{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
+				{#if $topicsTotalSize !== undefined && !isNaN($topicsTotalSize)}
 					<div class="content">
 						<h1 data-cy="topics">{messages['topic-sets']['title']}</h1>
 
@@ -384,22 +385,13 @@
 							>
 						{/if}
 
-						<img
-							src={deleteSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
-								topicSetRowsSelected.length === 0}
-							style="margin-left: 0.5rem; margin-right: 1rem"
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (topicSetRowsSelected.length > 0) deleteTopicVisible = true;
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (topicSetRowsSelected.length > 0) deleteTopicVisible = true;
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if ($isAdmin || isTopicAdmin) {
 									if (topicSetRowsSelected.length === 0) {
@@ -423,8 +415,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								deleteMouseEnter = false;
 								if (topicSetRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-topics');
@@ -435,8 +426,18 @@
 										}
 									}, 1000);
 								}
-							}}
-						/>
+							}}><img
+							src={deleteSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin && !isTopicAdmin) ||
+								topicSetRowsSelected.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							
+							
+							
+							
+						/></button>
 						<span
 							id="delete-topics"
 							class="tooltip-hidden"
@@ -444,17 +445,7 @@
 							>{deleteToolip}
 						</span>
 
-						<img
-							data-cy="add-topic"
-							src={addSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin &&
-								!$permissionsByGroup?.find(
-									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-								)) ||
-								!$groupContext}
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (
 									$groupContext &&
 									($isAdmin ||
@@ -468,8 +459,7 @@
 									($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 								)
 									showSelectGroupContext.set(true);
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (
 										$groupContext &&
@@ -485,8 +475,7 @@
 									)
 										showSelectGroupContext.set(true);
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								addMouseEnter = true;
 								if (
 									(!$isAdmin &&
@@ -520,8 +509,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								addMouseEnter = false;
 								const tooltip = document.querySelector('#add-topics');
 								setTimeout(() => {
@@ -530,8 +518,21 @@
 										tooltip.classList.remove('tooltip');
 									}
 								}, waitTime);
-							}}
-						/>
+							}}><img
+							data-cy="add-topic"
+							src={addSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+								)) ||
+								!$groupContext}
+							
+							
+							
+							
+						/></button>
 						<span
 							id="add-topics"
 							class="tooltip-hidden"
@@ -571,7 +572,7 @@
 									</tr>
 								</thead>
 								<tbody>
-									{#each $topicSets as topicSet}
+									{#each $topicSets as topicSet (topicSet.id)}
 										<tr>
 											{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
 												<td style="line-height: 1rem; width: 2rem; ">
@@ -601,61 +602,61 @@
 
 											<td
 												style="cursor: pointer; width: max-content"
-												on:click={() => {
+												
+												
+												><button class="text-button"  on:click={() => {
 													selectedTopicSetId = topicSet.id;
 													loadTopic();
 													history.pushState({ path: '/topics' }, 'My Topic Sets', '/topic-sets');
-												}}
-												on:keydown={(event) => {
+												}} on:keydown={(event) => {
 													if (event.which === returnKey) {
 														selectedTopicSetId = topicSet.id;
 														loadTopic();
 													}
-												}}
-												>{topicSet.name}
-											</td>
+												}}>{topicSet.name}
+											</button></td>
 
 											<td style="padding-left: 0.5rem">{topicSet.groupName}</td>
 
 											<td style="cursor: pointer; width:1rem">
-												<img
-													data-cy="detail-application-icon"
-													src={detailSVG}
-													height="18rem"
-													width="18rem"
-													alt="edit user"
-													style="vertical-align: -0.2rem"
-													on:click={() => {
+												<button aria-label="edit user"  on:click={() => {
 														selectedTopicSetId = topicSet.id;
 														loadTopic();
-													}}
-													on:keydown={(event) => {
+													}} on:keydown={(event) => {
 														if (event.which === returnKey) {
 															selectedTopicSetId = topicSet.id;
 															loadTopic();
 														}
-													}}
-												/>
+													}}><img class="icon-button"
+													data-cy="detail-application-icon"
+													src={detailSVG}
+													height="18rem"
+													width="18rem"
+													alt=""
+													style="vertical-align: -0.2rem"
+													
+													
+												/></button>
 											</td>
 
 											<td
 												style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 											>
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
+												
+												<button aria-label="delete topic"  on:click={() => {
+														if (!topicSetRowsSelected.some((tpc) => tpc === topicSet))
+															topicSetRowsSelected.push(topicSet);
+														deleteTopicVisible = true;
+													}}><img class="icon-button"
 													data-cy="delete-topic-icon"
 													src={deleteSVG}
 													width="27px"
 													height="27px"
 													style="vertical-align: -0.45rem"
-													alt="delete topic"
+													alt=""
 													disabled={!$isAdmin || !isTopicAdmin}
-													on:click={() => {
-														if (!topicSetRowsSelected.some((tpc) => tpc === topicSet))
-															topicSetRowsSelected.push(topicSet);
-														deleteTopicVisible = true;
-													}}
-												/>
+													
+												/></button>
 											</td>
 										</tr>
 									{/each}
@@ -666,10 +667,8 @@
 								{messages['topic-sets']['empty.topics']}
 								<br />
 								{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<span
-										class="link"
-										on:click={() => {
+									
+									<button aria-label="interactive element"  on:click={() => {
 											if (
 												$groupContext &&
 												($permissionsByGroup?.find(
@@ -683,10 +682,12 @@
 												($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 											)
 												showSelectGroupContext.set(true);
-										}}
+										}}><span
+										class="link icon-button"
+										
 									>
 										{messages['topic-sets']['empty.topics.action.two']}
-									</span>
+									</span></button>
 									{messages['topic-sets']['empty.topics.action.result']}
 								{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
 									{messages['topic-sets']['empty.topics.action']}
@@ -722,64 +723,64 @@
 							{$topicsTotalSize}
 						</span>
 
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagefirstSVG}
-							alt="first page"
-							class="pagination-image"
-							class:disabled-img={topicsCurrentPage === 0}
-							on:click={() => {
+						
+						<button aria-label="first page"  on:click={() => {
 								deselectAllTopicsCheckboxes();
 								if (topicsCurrentPage > 0) {
 									topicsCurrentPage = 0;
 									reloadAllTopicSets();
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagebackwardsSVG}
-							alt="previous page"
-							class="pagination-image"
+							}}><img
+							src={pagefirstSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={topicsCurrentPage === 0}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="previous page"  on:click={() => {
 								deselectAllTopicsCheckboxes();
 								if (topicsCurrentPage > 0) {
 									topicsCurrentPage--;
 									reloadAllTopicSets(topicsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pageforwardSVG}
-							alt="next page"
-							class="pagination-image"
-							class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
-								$topicSets?.length === undefined}
-							on:click={() => {
+							}}><img
+							src={pagebackwardsSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={topicsCurrentPage === 0}
+							
+						/></button>
+						
+						<button aria-label="next page"  on:click={() => {
 								deselectAllTopicsCheckboxes();
 								if (topicsCurrentPage + 1 < $topicsTotalPages) {
 									topicsCurrentPage++;
 									reloadAllTopicSets(topicsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagelastSVG}
-							alt="last page"
-							class="pagination-image"
+							}}><img
+							src={pageforwardSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
 								$topicSets?.length === undefined}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="last page"  on:click={() => {
 								deselectAllTopicsCheckboxes();
 								if (topicsCurrentPage < $topicsTotalPages) {
 									topicsCurrentPage = $topicsTotalPages - 1;
 									reloadAllTopicSets(topicsCurrentPage);
 								}
-							}}
-						/>
+							}}><img
+							src={pagelastSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={topicsCurrentPage + 1 === $topicsTotalPages ||
+								$topicSets?.length === undefined}
+							
+						/></button>
 					</div>
 				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['topic-sets']} />
 					<p style="margin-top: 8rem">{messages['footer']['message']}</p>
@@ -790,6 +791,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;

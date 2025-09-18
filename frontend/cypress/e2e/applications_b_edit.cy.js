@@ -11,39 +11,34 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+/* global cy, describe, beforeEach, it */
 /// <reference types="Cypress" />
 
 describe('Applications Capabilities', () => {
-    beforeEach(() => {
-        cy.login('unity-admin', 'password');
-        cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
-        cy.visit('http://localhost:8080/');
-        cy.wait('@tokenInfo');
-    });
-   
-    it('should edit the name of the second application', () => {
-        cy.visit('/applications');
+	beforeEach(() => {
+		cy.login('unity-admin', 'password');
+		cy.intercept('http://localhost:8080/api/token_info').as('tokenInfo');
+		cy.visit('http://localhost:8080/');
+		cy.wait('@tokenInfo');
+	});
 
-        cy.get('td').contains('Test Application')
-        .click();
+	it('should edit the name of the second application', () => {
+		cy.visit('/applications');
 
-        cy.wait(500);
-        
-        cy.get('[data-cy="edit-application-icon"]')
-        .click({force: true});
+		cy.get('td').contains('Test Application').click();
 
-        cy.get('[data-cy="application-name"]')
-        .clear()
-        .type("New Application");
+		cy.wait(500);
 
-        cy.get('[data-cy="save-application"]')
-        .click();
+		cy.get('[data-cy="edit-application-icon"]').click({ force: true });
 
-        cy.visit('/applications');
+		cy.get('[data-cy="application-name"]').clear().type('New Application');
 
-        cy.get('td').should('not.eq', 'Test Application');
+		cy.get('[data-cy="save-application"]').click();
 
-        cy.get('td').contains('New Application');
+		cy.visit('/applications');
 
-        });
+		cy.get('td').should('not.eq', 'Test Application');
+
+		cy.get('td').contains('New Application');
+	});
 });

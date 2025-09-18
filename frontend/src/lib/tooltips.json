@@ -1,9 +1,9 @@
 {
-    "createUserAllowed": "Create a new User in ",
-    "createUserNotAllowed": "Contact your Admin to become a Group Admin",
-    "createTopicAllowed": "Create a new Topic in ",
-    "createTopicNotAllowed": "Contact your Admin to become a Topic Admin",
-    "createApplicationAllowed": "Create a new Application in ",
-    "createApplicationNotAllowed": "Contact your Admin to become an Application Admin",
-    "group.not.public": "Cannot be made public as the group is not public."
+	"createUserAllowed": "Create a new User in ",
+	"createUserNotAllowed": "Contact your Admin to become a Group Admin",
+	"createTopicAllowed": "Create a new Topic in ",
+	"createTopicNotAllowed": "Contact your Admin to become a Topic Admin",
+	"createApplicationAllowed": "Create a new Application in ",
+	"createApplicationNotAllowed": "Contact your Admin to become an Application Admin",
+	"group.not.public": "Cannot be made public as the group is not public."
 }

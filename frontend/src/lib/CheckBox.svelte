@@ -18,7 +18,7 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
+
 <div class="checkbox-container">
 	<input type="checkbox" class="checkbox" on:click={toggle} bind:checked />
 	<!-- svelte-ignore a11y-label-has-associated-control -->
@@ -85,24 +85,32 @@
 
 <div style="margin: 0.5rem 0 0.5rem 0">
 	<ul class="stylish-list">
-		{#each partitionList as item}
+		{#each partitionList as item (item)}
 			<li class="list-item">
 				<span class="list-item-text">{item}</span>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
+				
+				<button aria-label="remove partition"  on:click={() => (partitionList = partitionList.filter((partition) => partition !== item))}><img
 					src={closeSVG}
 					height="15rem"
-					alt="remove partition"
-					class="close-button"
+					alt=""
+					class="close-button icon-button"
 					style="cursor: pointer; margin-top: 0.15rem"
-					on:click={() => (partitionList = partitionList.filter((partition) => partition !== item))}
-				/>
+					
+				/></button>
 			</li>
 		{/each}
 	</ul>
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.checkbox-container {
 		display: flex;
 		align-items: center;

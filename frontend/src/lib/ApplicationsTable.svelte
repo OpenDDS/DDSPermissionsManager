@@ -105,9 +105,9 @@
 	/>
 {/if}
 
-{#await promise then _}
+{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 	<div class="content">
-		{#if $applicationsTotalSize !== undefined && $applicationsTotalSize != NaN}
+		{#if $applicationsTotalSize !== undefined && !isNaN($applicationsTotalSize)}
 				{#if $applications?.length > 0}
 					<table
 						data-cy="applications-table"
@@ -126,7 +126,7 @@
 
 						{#if $applications.length > 0}
 							<tbody>
-								{#each $applications as app, i}
+								{#each $applications as app (app.id)}
 									<tr>
 										<td>{app.name}</td>
 										<td style="padding-left: 0.5rem">{app.id}</td>
@@ -135,7 +135,7 @@
 							</tbody>
 						{/if}
 					</table>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					
 					<div class="pagination">
 						<span>{messages['pagination']['rows.per.page']}</span>
 						<select
@@ -167,59 +167,59 @@
 							{$applicationsTotalSize}
 						</span>
 	
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagefirstSVG}
-							alt="first page"
-							class="pagination-image"
-							class:disabled-img={applicationsCurrentPage === 0}
-							on:click={() => {
+						
+						<button aria-label="first page"  on:click={() => {
 								if (applicationsCurrentPage > 0) {
 									applicationsCurrentPage = 0;
 									reloadAllApps();
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagebackwardsSVG}
-							alt="previous page"
-							class="pagination-image"
+							}}><img
+							src={pagefirstSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={applicationsCurrentPage === 0}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="previous page"  on:click={() => {
 								if (applicationsCurrentPage > 0) {
 									applicationsCurrentPage--;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pageforwardSVG}
-							alt="next page"
-							class="pagination-image"
-							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
-								$applications?.length === undefined}
-							on:click={() => {
+							}}><img
+							src={pagebackwardsSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={applicationsCurrentPage === 0}
+							
+						/></button>
+						
+						<button aria-label="next page"  on:click={() => {
 								if (applicationsCurrentPage + 1 < $applicationsTotalPages) {
 									applicationsCurrentPage++;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
-						<img
-							src={pagelastSVG}
-							alt="last page"
-							class="pagination-image"
+							}}><img
+							src={pageforwardSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
 								$applications?.length === undefined}
-							on:click={() => {
+							
+						/></button>
+						<button aria-label="last page"  on:click={() => {
 								if (applicationsCurrentPage < $applicationsTotalPages) {
 									applicationsCurrentPage = $applicationsTotalPages - 1;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
+							}}><img
+							src={pagelastSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
+								$applications?.length === undefined}
+							
+						/></button>
 					</div>	
 				{/if}
 		{/if}
@@ -229,6 +229,14 @@
 {/await}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.content {
 		width: 100%;
 		min-width: 45rem;

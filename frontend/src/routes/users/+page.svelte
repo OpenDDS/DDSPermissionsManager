@@ -1,7 +1,7 @@
 <!-- Copyright 2023 DDS Permissions Manager Authors-->
 <script>
 	import { isAuthenticated, isAdmin } from '../../stores/authentication';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { httpAdapter } from '../../appconfig';
 	import users from '../../stores/users';
 	import Modal from '../../lib/Modal.svelte';
@@ -9,6 +9,7 @@
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import refreshPage from '../../stores/refreshPage';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import GroupMembership from './GroupMembership.svelte';
 	import headerTitle from '../../stores/headerTitle';
@@ -27,12 +28,12 @@
 	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import {updateRetrievalTimestamp} from '../../utils.js';
 
-	export let data, errors;
+	
 
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve('/'));
 		}, waitTime);
 	}
 
@@ -81,6 +82,7 @@
 
 	// Forms
 	let emailValue = '';
+	$: emailValue;
 
 	// Reactive Statements
 	$: if (addSuperUserVisible === false) emailValue = '';
@@ -169,7 +171,7 @@
 	};
 
 	const addSuperUser = async (userEmail) => {
-		const res = await httpAdapter
+		await httpAdapter
 			.post(`/admins/save`, {
 				email: userEmail
 			})
@@ -243,7 +245,7 @@
 		<h1 data-cy="users">{messages['user']['title.user']}</h1>
 		<GroupMembership />
 
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -335,21 +337,13 @@
 							{messages['user']['search.clear.button.super.user']}
 						</button>
 					{/if}
-					<img
-						src={deleteSVG}
-						alt="options"
-						class="dot"
-						class:button-disabled={superUsersRowsSelected.length === 0}
-						style="margin-left: 0.5rem"
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							if (superUsersRowsSelected.length > 0) deleteSuperUserVisible = true;
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								if (superUsersRowsSelected.length > 0) deleteSuperUserVisible = true;
 							}
-						}}
-						on:mouseenter={() => {
+						}} on:mouseenter={() => {
 							if (superUsersRowsSelected.length === 0) {
 								const tooltip = document.querySelector('#delete-super-users');
 								setTimeout(() => {
@@ -357,8 +351,7 @@
 									tooltip.classList.add('tooltip');
 								}, 1000);
 							}
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							if (superUsersRowsSelected.length === 0) {
 								const tooltip = document.querySelector('#delete-super-users');
 								setTimeout(() => {
@@ -366,8 +359,17 @@
 									tooltip.classList.remove('tooltip');
 								}, 1000);
 							}
-						}}
-					/>
+						}}><img
+						src={deleteSVG}
+						alt=""
+						class="dot icon-button"
+						class:button-disabled={superUsersRowsSelected.length === 0}
+						style="margin-left: 0.5rem"
+						
+						
+						
+						
+					/></button>
 
 					<span
 						id="delete-super-users"
@@ -377,20 +379,20 @@
 						{messages['user']['delete.tooltip.super.user']}
 					</span>
 
-					<img
-						data-cy="add-super-user"
-						src={addSVG}
-						alt="options"
-						class="dot"
-						on:click={() => {
+					<button aria-label="options"  on:click={() => {
 							addSuperUserVisible = true;
-						}}
-						on:keydown={(event) => {
+						}} on:keydown={(event) => {
 							if (event.which === returnKey) {
 								addSuperUserVisible = true;
 							}
-						}}
-					/>
+						}}><img
+						data-cy="add-super-user"
+						src={addSVG}
+						alt=""
+						class="dot icon-button"
+						
+						
+					/></button>
 
 					{#if $users?.length > 0}
 						<table data-cy="super-users-table" id="super-users-table" style="margin-top: 0.5rem">
@@ -422,7 +424,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each $users as user}
+								{#each $users as user (user.email)}
 									<tr class:highlighted={user.email === $userEmail}>
 										<td style="width: 2rem">
 											<input
@@ -449,18 +451,18 @@
 										</td>
 										<td style="margin-left: 0.3rem">{user.email}</td>
 										<td style="cursor: pointer; text-align: right; padding-right: 0.25rem">
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
-											<img
-												data-cy="delete-super-users-icon"
-												src={deleteSVG}
-												width="25px"
-												alt="delete user"
-												on:click={() => {
+											
+											<button aria-label="delete user"  on:click={() => {
 													if (!superUsersRowsSelected?.some((usr) => usr === user))
 														superUsersRowsSelected.push(user);
 													deleteSuperUserVisible = true;
-												}}
-											/>
+												}}><img class="icon-button"
+												data-cy="delete-super-users-icon"
+												src={deleteSVG}
+												width="25px"
+												alt=""
+												
+											/></button>
 										</td>
 									</tr>
 								{/each}
@@ -496,64 +498,64 @@
 						- {Math.min(superUsersPerPage * (superUsersCurrentPage + 1), $superUsersTotalSize)} of
 						{$superUsersTotalSize}
 					</span>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagefirstSVG}
-						alt="first page"
-						class="pagination-image"
-						class:disabled-img={superUsersCurrentPage === 0}
-						on:click={() => {
+					
+					<button aria-label="first page"  on:click={() => {
 							deselectAllSuperUsersCheckboxes();
 							if (superUsersCurrentPage > 0) {
 								superUsersCurrentPage = 0;
 								reloadAllSuperUsers();
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagebackwardsSVG}
-						alt="previous page"
-						class="pagination-image"
+						}}><img
+						src={pagefirstSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={superUsersCurrentPage === 0}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="previous page"  on:click={() => {
 							deselectAllSuperUsersCheckboxes();
 							if (superUsersCurrentPage > 0) {
 								superUsersCurrentPage--;
 								reloadAllSuperUsers(superUsersCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pageforwardSVG}
-						alt="next page"
-						class="pagination-image"
-						class:disabled-img={superUsersCurrentPage + 1 === $superUsersTotalPages ||
-							$users?.length === undefined}
-						on:click={() => {
+						}}><img
+						src={pagebackwardsSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={superUsersCurrentPage === 0}
+						
+					/></button>
+					
+					<button aria-label="next page"  on:click={() => {
 							deselectAllSuperUsersCheckboxes();
 							if (superUsersCurrentPage + 1 < $superUsersTotalPages) {
 								superUsersCurrentPage++;
 								reloadAllSuperUsers(superUsersCurrentPage);
 							}
-						}}
-					/>
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
-						src={pagelastSVG}
-						alt="last page"
-						class="pagination-image"
+						}}><img
+						src={pageforwardSVG}
+						alt=""
+						class="pagination-image icon-button"
 						class:disabled-img={superUsersCurrentPage + 1 === $superUsersTotalPages ||
 							$users?.length === undefined}
-						on:click={() => {
+						
+					/></button>
+					
+					<button aria-label="last page"  on:click={() => {
 							deselectAllSuperUsersCheckboxes();
 							if (superUsersCurrentPage < $superUsersTotalPages) {
 								superUsersCurrentPage = $superUsersTotalPages - 1;
 								reloadAllSuperUsers(superUsersCurrentPage);
 							}
-						}}
-					/>
+						}}><img
+						src={pagelastSVG}
+						alt=""
+						class="pagination-image icon-button"
+						class:disabled-img={superUsersCurrentPage + 1 === $superUsersTotalPages ||
+							$users?.length === undefined}
+						
+					/></button>
 				</div>
 			{/if}
 
@@ -564,6 +566,14 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.content {
 		width: fit-content;
 		min-width: 32rem;

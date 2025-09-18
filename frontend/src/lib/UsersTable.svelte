@@ -29,6 +29,10 @@
 	// Modals
 	let errorMessageVisible = false;
 
+	export let usersAllRowsSelectedTrue;
+	export let usersRowsSelectedTrue;
+	export let usersRowsSelected;
+
 	// Pagination
 	let groupMembershipsPerPage = 10;
 	let groupMembershipsCurrentPage = 0;
@@ -126,9 +130,9 @@
 	/>
 {/if}
 
-{#await promise then _}
+{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 	<div class="content">
-		{#if $groupMembershipsTotalSize !== undefined && $groupMembershipsTotalSize != NaN && $groupMembershipList?.length > 0}
+		{#if $groupMembershipsTotalSize !== undefined && !isNaN($groupMembershipsTotalSize) && $groupMembershipList?.length > 0}
 			<table
 				data-cy="users-table"
 				id="group-memberships-table"
@@ -151,7 +155,7 @@
 					</tr>
 				</thead>
 				<tbody>
-				{#each $groupMembershipList as user, i}
+				{#each $groupMembershipList as user (user.id)}
 					<tr>
 						<td style="width:fit-content">{user.userEmail}</td>
 						<td>
@@ -232,65 +236,65 @@
 						$groupMembershipsTotalSize
 					)} of {$groupMembershipsTotalSize}
 				</span>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagefirstSVG}
-					alt="first page"
-					class="pagination-image"
-					class:disabled-img={groupMembershipsCurrentPage === 0}
-					on:click={() => {
+				
+				<button aria-label="first page"  on:click={() => {
 						deselectAllGroupMembershipCheckboxes();
 						if (groupMembershipsCurrentPage > 0) {
 							groupMembershipsCurrentPage = 0;
 
 							reloadGroupMemberships();
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagebackwardsSVG}
-					alt="previous page"
-					class="pagination-image"
+					}}><img
+					src={pagefirstSVG}
+					alt=""
+					class="pagination-image icon-button"
 					class:disabled-img={groupMembershipsCurrentPage === 0}
-					on:click={() => {
+					
+				/></button>
+				
+				<button aria-label="previous page"  on:click={() => {
 						deselectAllGroupMembershipCheckboxes();
 						if (groupMembershipsCurrentPage > 0) {
 							groupMembershipsCurrentPage--;
 							reloadGroupMemberships(groupMembershipsCurrentPage);
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pageforwardSVG}
-					alt="next page"
-					class="pagination-image"
-					class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
-						$groupMembershipList?.length === undefined}
-					on:click={() => {
+					}}><img
+					src={pagebackwardsSVG}
+					alt=""
+					class="pagination-image icon-button"
+					class:disabled-img={groupMembershipsCurrentPage === 0}
+					
+				/></button>
+				
+				<button aria-label="next page"  on:click={() => {
 						deselectAllGroupMembershipCheckboxes();
 						if (groupMembershipsCurrentPage + 1 < $groupMembershipsTotalPages) {
 							groupMembershipsCurrentPage++;
 							reloadGroupMemberships(groupMembershipsCurrentPage);
 						}
-					}}
-				/>
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<img
-					src={pagelastSVG}
-					alt="last page"
-					class="pagination-image"
+					}}><img
+					src={pageforwardSVG}
+					alt=""
+					class="pagination-image icon-button"
 					class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
 						$groupMembershipList?.length === undefined}
-					on:click={() => {
+					
+				/></button>
+				
+				<button aria-label="last page"  on:click={() => {
 						deselectAllGroupMembershipCheckboxes();
 						if (groupMembershipsCurrentPage < $groupMembershipsTotalPages) {
 							groupMembershipsCurrentPage = $groupMembershipsTotalPages - 1;
 							reloadGroupMemberships(groupMembershipsCurrentPage);
 						}
-					}}
-				/>
+					}}><img
+					src={pagelastSVG}
+					alt=""
+					class="pagination-image icon-button"
+					class:disabled-img={groupMembershipsCurrentPage + 1 === $groupMembershipsTotalPages ||
+						$groupMembershipList?.length === undefined}
+					
+				/></button>
 			</div>
 		{/if}
 
@@ -299,6 +303,14 @@
 {/await}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.content {
 		width: 100%;
 		min-width: 32rem;

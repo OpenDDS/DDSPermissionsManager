@@ -12,19 +12,31 @@
 	import editSVG from '../../icons/edit.svg';
 	import { httpAdapter } from '../../appconfig';
 	import messages from '$lib/messages.json';
+	import userValidityCheck from '../../stores/userValidityCheck';
+	import errorMessages from '$lib/errorMessages.json';
 	import GroupCategoryDetails from './GroupCategoryDetails.svelte';
 
 	const dispatch = createEventDispatcher();
 	let groupsPerPage = 10;
 	let groupsCurrentPage = 0;
+	$: groupsCurrentPage;
 
 	export let group;
 
+	// eslint-disable-next-line svelte/no-immutable-reactive-statements
 	$: if (group) isPublic = group.public;
 
 	let descriptionSelector;
 	let isPublic = group.public;
 	let editGroupVisible = false;
+
+	// Error Handling
+	let errorMsg;
+	$: errorMsg;
+	let errorObject;
+	$: errorObject;
+	let errorMessageVisible = false;
+	$: errorMessageVisible;
 
 	headerTitle.set(group.name);
 	detailView.set(true);
@@ -53,6 +65,12 @@
 		// Adjust style when there is no description
 		if (!group.description) descriptionSelector.style.marginLeft = '0.27rem';
 	});
+
+	const errorMessage = (errMsg, errObj) => {
+		errorMsg = errMsg;
+		errorObject = errObj;
+		errorMessageVisible = true;
+	};
 
 	const editGroup = async (id, name, description, isPublic) => {
 		const res = await httpAdapter.post(`/groups/save`, {
@@ -101,14 +119,14 @@
 				<td style="font-weight: 500">{group.name} </td>
 
 				{#if $isAdmin || $permissionsByGroup.find((permission) => permission.groupId === group.id && permission.isGroupAdmin)}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<img
+					
+					<button aria-label="edit group"  on:click={() => (editGroupVisible = true)}><img class="icon-button"
 						src={editSVG}
-						alt="edit group"
+						alt=""
 						width="18rem"
 						style="margin-left: 1.5rem; float: right; cursor: pointer"
-						on:click={() => (editGroupVisible = true)}
-					/>
+						
+					/></button>
 				{/if}
 			</tr>
 
@@ -143,6 +161,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	td {
 		height: 2.2rem;
 	}

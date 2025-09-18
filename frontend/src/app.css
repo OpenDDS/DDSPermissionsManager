@@ -15,8 +15,8 @@
 */
 
 @font-face {
-    font-family: 'Roboto Flex'; /*You can use whatever name that you want*/
-    src: url('../src/fonts/RobotoFlex-Variable.ttf');
+	font-family: 'Roboto Flex'; /*You can use whatever name that you want*/
+	src: url('../src/fonts/RobotoFlex-Variable.ttf');
 	font-weight: 100 1000;
 	font-stretch: 25% 151%;
 }
@@ -72,7 +72,6 @@ h3 {
 	font-size: 0.9rem;
 }
 
-
 p {
 	line-height: 1.5;
 }
@@ -115,7 +114,6 @@ input {
 
 textarea {
 	padding-left: 0.5rem;
-
 }
 
 input::placeholder {
@@ -138,7 +136,6 @@ input.searchbox {
 	width: 15rem;
 	height: 2.2rem;
 	margin-right: 2rem;
-
 }
 
 input.searchbox:disabled {
@@ -155,7 +152,8 @@ table {
 	border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
 	border-bottom: 1px solid black;
 }
 
@@ -185,18 +183,17 @@ select {
 	margin: 0 1rem 0 1rem;
 
 	background-image:
-    linear-gradient(45deg, transparent 50%, black 50%),
-    linear-gradient(135deg, black 50%, transparent 50%),
-    linear-gradient(to right, white, white);
- 	 background-position:
-    calc(100% - 20px) calc(1em),
-    calc(100% - 15px) calc(1em),
-    100% 0;
-  	background-size:
-    5px 5px,
-    5px 5px,
-    2.5em 2.5em;
-  	background-repeat: no-repeat;
+		linear-gradient(45deg, transparent 50%, black 50%),
+		linear-gradient(135deg, black 50%, transparent 50%), linear-gradient(to right, white, white);
+	background-position:
+		calc(100% - 20px) calc(1em),
+		calc(100% - 15px) calc(1em),
+		100% 0;
+	background-size:
+		5px 5px,
+		5px 5px,
+		2.5em 2.5em;
+	background-repeat: no-repeat;
 }
 
 select:focus {
@@ -221,7 +218,6 @@ select:focus {
 	filter: invert();
 	background-color: #ff9900;
 	/* background-color: #c7a35a; */
-	
 }
 
 .pagination-image {
@@ -259,11 +255,11 @@ select:focus {
 }
 
 .button-blue {
-	color: white; 
-	background-color: #0066FF; 
-	border-radius: 25px; 
-	border-style: solid; 
-	border-color: transparent; 
+	color: white;
+	background-color: #0066ff;
+	border-radius: 25px;
+	border-style: solid;
+	border-color: transparent;
 	cursor: pointer;
 }
 
@@ -279,9 +275,9 @@ select:focus {
 .button-universal-search {
 	height: 2.5rem;
 	text-align: center;
-	color: black; 
-	background-color: transparent; 
-	border-style: solid; 
+	color: black;
+	background-color: transparent;
+	border-style: solid;
 	border-color: black;
 	border-width: 0.08rem;
 	cursor: pointer;
@@ -292,7 +288,7 @@ select:focus {
 .button-universal-search-selected {
 	background-color: #e8def8;
 	border-width: 0.08rem;
-	border-style: solid; 
+	border-style: solid;
 }
 
 .error-message {
@@ -339,11 +335,11 @@ select:focus {
 
 .search-group tr {
 	height: 1.9rem;
-	border-bottom-color: rgba(0,0,0,0.01);
+	border-bottom-color: rgba(0, 0, 0, 0.01);
 }
 
 .search-group td {
-	border-bottom-color: rgba(0,0,0,0.15);
+	border-bottom-color: rgba(0, 0, 0, 0.15);
 }
 
 .search-application {
@@ -364,7 +360,7 @@ select:focus {
 }
 
 .search-application td {
-	border-bottom-color: rgba(0,0,0,0.15);
+	border-bottom-color: rgba(0, 0, 0, 0.15);
 }
 
 .search-application tr:last-child td {
@@ -380,7 +376,7 @@ select:focus {
 .link {
 	cursor: pointer;
 	text-decoration: underline;
-	color: #0000EE;
+	color: #0000ee;
 }
 
 .highlighted {
@@ -388,20 +384,20 @@ select:focus {
 }
 
 .tooltip {
-    position: absolute;
-    visibility: visible;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    text-align: center;
-    line-height: 17px;
-    border-radius: 5px;
-    padding: 3px 5px 3px 5px;
-    font-size: 8.5pt;
-    z-index: 1;
+	position: absolute;
+	visibility: visible;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	text-align: center;
+	line-height: 17px;
+	border-radius: 5px;
+	padding: 3px 5px 3px 5px;
+	font-size: 8.5pt;
+	z-index: 1;
 }
 
 .tooltip-hidden {
-    position: absolute;
+	position: absolute;
 	visibility: hidden;
 }
 
@@ -437,22 +433,22 @@ select:focus {
 }
 
 @-webkit-keyframes fadeIn {
-0% {
-	opacity: 0;
-	transform: scale(0.6);
-}
+	0% {
+		opacity: 0;
+		transform: scale(0.6);
+	}
 
-100% {
-	opacity: 100%;
-	transform: scale(1);
-}
+	100% {
+		opacity: 100%;
+		transform: scale(1);
+	}
 }
 
 @keyframes fadeIn {
-0% {
-	opacity: 0;
-}
-100% {
-	opacity: 100%;
-}
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 100%;
+	}
 }

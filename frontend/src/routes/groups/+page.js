@@ -1,3 +1,4 @@
+/* eslint-disable */
 export function load() {
 	return {
 		menuOptions: [

@@ -12,52 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export const updateRetrievalTimestamp = (store, path) => {
-    const currentTime = new Date();
+	const currentTime = new Date();
 
-    store.update(storeValues => {
-        return {
-            ...storeValues,
-            [path]: currentTime
-        }
-    });
+	store.update((storeValues) => {
+		return {
+			...storeValues,
+			[path]: currentTime
+		};
+	});
 };
 
 export const convertFromMilliseconds = (durationInMilliseconds, durationType) => {
-    let convertedDuration = 0;
-    switch (durationType) {
-        case 'Minute':
-            convertedDuration = durationInMilliseconds / 60000;
-            break;
-        case 'Day':
-            convertedDuration = durationInMilliseconds / 86400000;
-            break;
-        case 'Month':
-            convertedDuration = durationInMilliseconds / 2629746000;
-            break;
-        case 'Year':
-            convertedDuration = durationInMilliseconds / 31556952000;
-            break;
-    }
-    return convertedDuration;
+	let convertedDuration = 0;
+	switch (durationType) {
+		case 'Minute':
+			convertedDuration = durationInMilliseconds / 60000;
+			break;
+		case 'Day':
+			convertedDuration = durationInMilliseconds / 86400000;
+			break;
+		case 'Month':
+			convertedDuration = durationInMilliseconds / 2629746000;
+			break;
+		case 'Year':
+			convertedDuration = durationInMilliseconds / 31556952000;
+			break;
+	}
+	return convertedDuration;
 };
 
 export const getDurationInMilliseconds = (duration, durationType) => {
-    let durationInMilliseconds = 0;
-    switch (durationType) {
-        case 'Minute':
-            durationInMilliseconds = duration * 60000;
-            break;
-        case 'Day':
-            durationInMilliseconds = duration * 86400000;
-            break;
-        case 'Month':
-            durationInMilliseconds = duration * 2629746000;
-            break;
-        case 'Year':
-            durationInMilliseconds = duration * 31556952000;
-            break;
-    }
-    return durationInMilliseconds;
+	let durationInMilliseconds = 0;
+	switch (durationType) {
+		case 'Minute':
+			durationInMilliseconds = duration * 60000;
+			break;
+		case 'Day':
+			durationInMilliseconds = duration * 86400000;
+			break;
+		case 'Month':
+			durationInMilliseconds = duration * 2629746000;
+			break;
+		case 'Year':
+			durationInMilliseconds = duration * 31556952000;
+			break;
+	}
+	return durationInMilliseconds;
 };
 
 export default null;

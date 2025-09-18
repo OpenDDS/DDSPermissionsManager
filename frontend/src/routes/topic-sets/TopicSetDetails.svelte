@@ -22,30 +22,9 @@
 	let selectedTopicsSetName,
 		selectedTopicsSetGroupName,
 		selectedTopicsSetGroupId,
-		selectedTopicApplications = [],
-		selectedTopicSetUpdateDate,
-		selectedTopicsSetAdmins,
-		topicCurrentGroupPublic;
-	// Selection
-	let grantsRowsSelected = [],
-		grantsRowsSelectedTrue = false,
-		grantsAllRowsSelectedTrue = false;
-
-	// checkboxes selection
-	$: if (selectedTopicApplications?.length === grantsRowsSelected?.length) {
-		grantsRowsSelectedTrue = false;
-		grantsAllRowsSelectedTrue = true;
-	} else if (grantsRowsSelected?.length > 0) {
-		grantsRowsSelectedTrue = true;
-	} else {
-		grantsAllRowsSelectedTrue = false;
-	}
-
-	// Success Message
-	let notifyApplicationAccessTypeSuccess = false;
-	$: if (notifyApplicationAccessTypeSuccess) {
-		setTimeout(() => (notifyApplicationAccessTypeSuccess = false), waitTime);
-	}
+		selectedTopicsSetAdmins;
+	// eslint-disable-next-line no-unused-vars
+    let selectedTopicApplications = [];
 
 	// Promises
 	let promise;
@@ -55,8 +34,7 @@
 		editTopicSetNameVisible = false;
 
 	// Constants
-	const returnKey = 13,
-		waitTime = 1000;
+	const returnKey = 13;
 
 	const minCharactersToTriggerSearch = 3;
 
@@ -84,9 +62,8 @@
 		selectedTopicsSetGroupName = $topicSetsDetails.groupName;
 		selectedTopicsSetGroupId = $topicSetsDetails.groupId;
 		selectedTopicsSetAdmins = $topicSetsDetails.admins;
-		selectedTopicSetUpdateDate = $topicSetsDetails.dateUpdated;
 
-		topicCurrentGroupPublic = await getGroupVisibilityPublic(selectedTopicsSetGroupName);
+		await getGroupVisibilityPublic(selectedTopicsSetGroupName); // eslint-disable-next-line no-unused-vars
 		headerTitle.set(selectedTopicsSetName);
 		detailView.set(true);
 	};
@@ -266,17 +243,15 @@
 				</tr>
 			</table>
 
-			{#if $isAdmin || isTopicAdmin}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
-				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<img
+			{#if $isAdmin || isTopicAdmin}				
+				<button aria-label="edit topic" tabindex="0" on:click={() => (editTopicSetNameVisible = true)}><img class="icon-button"
 					src={editSVG}
-					tabindex="0"
-					alt="edit topic"
+					
+					alt=""
 					height="20rem"
 					style="margin-left: 2rem; cursor:pointer"
-					on:click={() => (editTopicSetNameVisible = true)}
-				/>
+					
+				/></button>
 			{/if}
 		</div>
 
@@ -301,21 +276,13 @@
 				</Select>
 			</div>
 			{#if $isAdmin || isTopicAdmin}
-				<img
-					src={deleteSVG}
-					alt="options"
-					class="dot"
-					class:button-disabled={(!$isAdmin && !isTopicAdmin) || topicsRowsSelected.length === 0}
-					style="margin-left: 0.5rem; margin-right: 1rem"
-					on:click={() => {
+				<button aria-label="options"  on:click={() => {
 						if (topicsRowsSelected.length > 0) deleteTopicVisible = true;
-					}}
-					on:keydown={(event) => {
+					}} on:keydown={(event) => {
 						if (event.which === returnKey) {
 							if (topicsRowsSelected.length > 0) deleteTopicVisible = true;
 						}
-					}}
-					on:mouseenter={() => {
+					}} on:mouseenter={() => {
 						deleteMouseEnter = true;
 						if ($isAdmin || isTopicAdmin) {
 							if (topicsRowsSelected.length === 0) {
@@ -339,8 +306,7 @@
 								}
 							}, 1000);
 						}
-					}}
-					on:mouseleave={() => {
+					}} on:mouseleave={() => {
 						deleteMouseEnter = false;
 						if (topicsRowsSelected.length === 0) {
 							const tooltip = document.querySelector('#delete-topics');
@@ -351,8 +317,17 @@
 								}
 							}, 1000);
 						}
-					}}
-				/>
+					}}><img
+					src={deleteSVG}
+					alt=""
+					class="dot icon-button"
+					class:button-disabled={(!$isAdmin && !isTopicAdmin) || topicsRowsSelected.length === 0}
+					style="margin-left: 0.5rem; margin-right: 1rem"
+					
+					
+					
+					
+				/></button>
 			{/if}
 			<span
 				id="delete-topics"
@@ -376,11 +351,7 @@
 									on:click={(e) => {
 										if (e.target.checked) {
 											topicsRowsSelected = $topicSetsDetails?.topics;
-											topicsRowsSelectedTrue = false;
-											topicsAllRowsSelectedTrue = true;
 										} else {
-											topicsAllRowsSelectedTrue = false;
-											topicsRowsSelectedTrue = false;
 											topicsRowsSelected = [];
 										}
 									}}
@@ -394,7 +365,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each $topicSetsDetails?.topics as topic}
+					{#each $topicSetsDetails?.topics as topic (Object.keys(topic)[0])}
 						<tr>
 							{#if isTopicAdmin || $isAdmin}
 								<td style="line-height: 1rem; width: 2rem; ">
@@ -408,14 +379,11 @@
 												topicsRowsSelected.push(topic);
 												// reactive statement
 												topicsRowsSelected = topicsRowsSelected;
-												topicsRowsSelectedTrue = true;
 											} else {
 												topicsRowsSelected = topicsRowsSelected.filter(
 													(selection) => selection !== topic
 												);
-												if (topicsRowsSelected.length === 0) {
-													topicsRowsSelectedTrue = false;
-												}
+												
 											}
 										}}
 									/>
@@ -426,21 +394,21 @@
 
 							<td style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem">
 								{#if $isAdmin || isTopicAdmin}
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="delete topic"  on:click={() => {
+											if (!topicsRowsSelected.some((tpc) => tpc === topic))
+												topicsRowsSelected.push(topic);
+											deleteTopicVisible = true;
+										}}><img class="icon-button"
 										data-cy="delete-topic-icon"
 										src={deleteSVG}
 										width="27px"
 										height="27px"
 										style="vertical-align: -0.45rem"
-										alt="delete topic"
+										alt=""
 										disabled={!$isAdmin || !isTopicAdmin}
-										on:click={() => {
-											if (!topicsRowsSelected.some((tpc) => tpc === topic))
-												topicsRowsSelected.push(topic);
-											deleteTopicVisible = true;
-										}}
-									/>
+										
+									/></button>
 								{/if}
 							</td>
 						</tr>
@@ -493,6 +461,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.topics-details {
 		font-size: 12pt;
 		width: 15rem;

@@ -1,17 +1,17 @@
 {
-    "appPassword": "export APP_PASSWORD='...'",
+	"appPassword": "export APP_PASSWORD='...'",
 
-    "appNonce": "export APP_NONCE='...'",
+	"appNonce": "export APP_NONCE='...'",
 
-    "authenticate": "curl -c cookies.txt -H'Content-Type: application\/json' -d\"{\\\"username\\\":\\\"${APP_ID}\\\",\\\"password\\\":\\\"$APP_PASSWORD\\\"}\" ${DPM_URL}\/api\/login",
+	"authenticate": "curl -c cookies.txt -H'Content-Type: application\/json' -d\"{\\\"username\\\":\\\"${APP_ID}\\\",\\\"password\\\":\\\"$APP_PASSWORD\\\"}\" ${DPM_URL}\/api\/login",
 
-    "identityCa": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/identity_ca.pem\" > identity_ca.pem",
+	"identityCa": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/identity_ca.pem\" > identity_ca.pem",
 
-    "permissionsCa": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/permissions_ca.pem\" > permissions_ca.pem",
+	"permissionsCa": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/permissions_ca.pem\" > permissions_ca.pem",
 
-    "governance": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/governance.xml.p7s\" > governance.xml.p7s",
+	"governance": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/governance.xml.p7s\" > governance.xml.p7s",
 
-    "keyPair": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/key_pair?nonce=${APP_NONCE}\" > key-pair",
+	"keyPair": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/key_pair?nonce=${APP_NONCE}\" > key-pair",
 
-    "permissionsFile": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/permissions.xml.p7s?nonce=${APP_NONCE}\" > permissions.xml.p7s"
+	"permissionsFile": "curl --silent -b cookies.txt \"${DPM_URL}\/api\/applications\/permissions.xml.p7s?nonce=${APP_NONCE}\" > permissions.xml.p7s"
 }

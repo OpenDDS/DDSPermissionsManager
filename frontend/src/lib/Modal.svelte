@@ -423,11 +423,11 @@
 	};
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal-backdrop" on:click={closeModal} transition:fade />
+
+<button aria-label="interactive element"  on:click={closeModal}><div class="modal-backdrop icon-button"  transition:fade /></button>
 <div class="modal" transition:fly={{ y: 300 }}>
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<img src={closeSVG} alt="close" class="close-button" on:click={closeModal} />
+	
+	<button aria-label="close"  on:click={closeModal}><img src={closeSVG} alt="" class="close-button icon-button"  /></button>
 	<h2 class:condensed={title?.length > 25}>{title}</h2>
 	<hr />
 	<div class="content">
@@ -771,12 +771,7 @@
 				</span>
 
 				{#if !appCurrentGroupPublic}
-					<img
-						src={groupnotpublicSVG}
-						alt="group not public"
-						height="21rem"
-						style="vertical-align:top; margin-left: 0.5rem"
-						on:mouseenter={() => {
+					<button aria-label="group not public"  on:mouseenter={() => {
 							groupNotPublicMouseEnter = true;
 							groupNotPublicTooltip = tooltips['group.not.public'];
 							const tooltip = document.querySelector('#group-not-public');
@@ -786,8 +781,7 @@
 									tooltip.classList.add('tooltip');
 								}
 							}, 1000);
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							groupNotPublicMouseEnter = false;
 							const tooltip = document.querySelector('#group-not-public');
 							setTimeout(() => {
@@ -796,8 +790,14 @@
 									tooltip.classList.remove('tooltip');
 								}
 							}, 1000);
-						}}
-					/>
+						}}><img class="icon-button"
+						src={groupnotpublicSVG}
+						alt=""
+						height="21rem"
+						style="vertical-align:top; margin-left: 0.5rem"
+						
+						
+					/></button>
 
 					<span
 						id="group-not-public"
@@ -855,12 +855,7 @@
 					>{messages['modal']['public.label']}</span
 				>
 				{#if !topicCurrentGroupPublic}
-					<img
-						src={groupnotpublicSVG}
-						alt="group not public"
-						height="21rem"
-						style="vertical-align:top; margin-left: 0.5rem"
-						on:mouseenter={() => {
+					<button aria-label="group not public"  on:mouseenter={() => {
 							groupNotPublicMouseEnter = true;
 							groupNotPublicTooltip = tooltips['group.not.public'];
 							const tooltip = document.querySelector('#group-not-public');
@@ -870,8 +865,7 @@
 									tooltip.classList.add('tooltip');
 								}
 							}, 1000);
-						}}
-						on:mouseleave={() => {
+						}} on:mouseleave={() => {
 							groupNotPublicMouseEnter = false;
 							const tooltip = document.querySelector('#group-not-public');
 							setTimeout(() => {
@@ -880,8 +874,14 @@
 									tooltip.classList.remove('tooltip');
 								}
 							}, 1000);
-						}}
-					/>
+						}}><img class="icon-button"
+						src={groupnotpublicSVG}
+						alt=""
+						height="21rem"
+						style="vertical-align:top; margin-left: 0.5rem"
+						
+						
+					/></button>
 
 					<span
 						id="group-not-public"
@@ -1046,7 +1046,7 @@
 	{/if}
 
 	{#if actionUnsavedPartitions && $nonEmptyInputField}
-		{#each $nonEmptyInputField as field}
+		{#each $nonEmptyInputField as field (field)}
 			<div style="margin-left: 2rem; margin-bottom: 1rem">
 				{field}
 			</div>
@@ -1588,6 +1588,14 @@
 </div>
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.action-button {
 		float: right;
 		margin: 0.8rem 1.5rem 1rem 0;

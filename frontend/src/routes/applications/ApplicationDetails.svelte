@@ -139,7 +139,7 @@
 
 	const saveNewApp = async (newAppName, newAppDescription, newAppPublic) => {
 		pauseSocketListener();
-		const res = await httpAdapter
+		await httpAdapter
 			.post(`/applications/save/`, {
 				id: selectedAppId,
 				name: newAppName,
@@ -323,19 +323,19 @@
 
 			<td style="font-weight: 500">{selectedAppName} </td>
 			{#if $isAdmin || $permissionsByGroup.find((permission) => permission.groupId === selectedAppGroupId && permission.isApplicationAdmin)}
-				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				
 				<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-				<img
+				<button aria-label="edit application"  on:click={async () => {
+						editApplicationVisible = true;
+					}}><img class="icon-button"
 					data-cy="edit-application-icon"
 					src={editSVG}
 					tabindex="0"
-					alt="edit application"
+					alt=""
 					width="18rem"
 					style="margin-left: 1rem; cursor: pointer"
-					on:click={async () => {
-						editApplicationVisible = true;
-					}}
-				/>
+					
+				/></button>
 			{/if}
 		</tr>
 		<tr>
@@ -394,22 +394,13 @@
 
 				{#if isApplicationAdmin || $isAdmin}
 					<div>
-						<img
-							src={deleteSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
-								grantsRowsSelected?.length === 0}
-							style="margin-left: 0.5rem; margin-right: 1rem"
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (grantsRowsSelected.length > 0) deleteSelectedGrantsVisible = true;
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if ($isAdmin || isApplicationAdmin) {
 									if (grantsRowsSelected.length === 0) {
@@ -433,8 +424,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								deleteMouseEnter = false;
 								if (grantsRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-topics');
@@ -445,8 +435,18 @@
 										}
 									}, 1000);
 								}
-							}}
-						/>
+							}}><img
+							src={deleteSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin && !isApplicationAdmin) ||
+								grantsRowsSelected?.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							
+							
+							
+							
+						/></button>
 						<span id="delete-topics" class="tooltip-hidden" style="margin-top: -1.8rem"
 							>{deleteToolip}
 						</span>
@@ -490,7 +490,7 @@
 				</tr>
 			</thead>
 			{#if applicationGrants.length}
-				{#each applicationGrants as grant}
+				{#each applicationGrants as grant (grant.id)}
 					{@const publishActions = getActionsTotal(grant, 'publishActions')}
 					{@const subscribeActions = getActionsTotal(grant, 'subscribeActions')}
 					<tbody>
@@ -530,51 +530,51 @@
 								{getDuration(grant)}
 							</td>
 							<td style="min-width: 12rem">
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<span
-									class:clickable-action={publishActions}
-									on:click={() => {
+								
+								<button aria-label="interactive element"  on:click={() => {
 										if (publishActions) {
 											selectedGrant = grant;
 											selectedAction = grant.publishActions[0];
 											actionsModalVisible = true;
 										}
-									}}
+									}}><span class="icon-button"
+									class:clickable-action={publishActions}
+									
 								>
 									{publishActions}
-								</span>
+								</span></button>
 								/
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<span
-									class:clickable-action={subscribeActions.length}
-									on:click={() => {
+								
+								<button aria-label="interactive element"  on:click={() => {
 										if (subscribeActions) {
 											selectedGrant = grant;
 											selectedAction = grant.subscribeActions;
 											actionsModalVisible = true;
 										}
-									}}>{subscribeActions}</span
-								>
+									}}><span class="icon-button"
+									class:clickable-action={subscribeActions.length}
+									>{subscribeActions}</span
+								></button>
 							</td>
 							<td />
 
 							{#if isApplicationAdmin || $isAdmin}
 								<td>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									
 									<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-									<img
-										src={deleteSVG}
-										tabindex="0"
-										alt="delete topic"
-										height="23px"
-										width="23px"
-										style="vertical-align: -0.4rem; float: right; cursor: pointer"
-										on:click={() => {
+									<button aria-label="delete topic"  on:click={() => {
 											if (!grantsRowsSelected.some((grant) => grant === grant))
 												grantsRowsSelected.push(grant);
 											deleteSelectedGrantsVisible = true;
-										}}
-									/>
+										}}><img class="icon-button"
+										src={deleteSVG}
+										tabindex="0"
+										alt=""
+										height="23px"
+										width="23px"
+										style="vertical-align: -0.4rem; float: right; cursor: pointer"
+										
+									/></button>
 								</td>
 							{:else}
 								<td />
@@ -619,6 +619,14 @@
 {/if}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	.content {
 		width: 100%;
 		min-width: 45rem;

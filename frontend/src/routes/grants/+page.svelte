@@ -8,6 +8,7 @@
 	import Modal from '../../lib/Modal.svelte';
 	import RetrievedTimestamp from '../../lib/RetrievedTimestamp.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import userValidityCheck from '../../stores/userValidityCheck';
 	import headerTitle from '../../stores/headerTitle';
@@ -45,7 +46,7 @@
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve('/'));
 		}, waitTime);
 	}
 
@@ -257,7 +258,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -306,7 +307,7 @@
 				/>
 			{/if}
 			{#if !grantDetailVisible}
-				{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
+				{#if $topicsTotalSize !== undefined && !isNaN($topicsTotalSize)}
 					<div class="content">
 						<h1 data-cy="durations">{messages['grants']['title']}</h1>
 
@@ -338,21 +339,13 @@
 							>
 						{/if}
 
-						<img
-							src={deleteSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin && !isTopicAdmin) || grantRowsSelected.length === 0}
-							style="margin-left: 0.5rem; margin-right: 1rem"
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (grantRowsSelected.length > 0) deleteGrantVisible = true;
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (grantRowsSelected.length > 0) deleteGrantVisible = true;
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if ($isAdmin || isTopicAdmin) {
 									if (grantRowsSelected.length === 0) {
@@ -376,8 +369,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								deleteMouseEnter = false;
 								if (grantRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-durations');
@@ -388,8 +380,17 @@
 										}
 									}, 1000);
 								}
-							}}
-						/>
+							}}><img
+							src={deleteSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin && !isTopicAdmin) || grantRowsSelected.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							
+							
+							
+							
+						/></button>
 						<span
 							id="delete-durations"
 							class="tooltip-hidden"
@@ -397,17 +398,7 @@
 							>{deleteToolip}
 						</span>
 
-						<img
-							data-cy="add-duration"
-							src={addSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin &&
-								!$permissionsByGroup?.find(
-									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
-								)) ||
-								!$groupContext}
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (
 									$groupContext &&
 									($isAdmin ||
@@ -421,8 +412,7 @@
 									($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 								)
 									showSelectGroupContext.set(true);
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (
 										$groupContext &&
@@ -438,8 +428,7 @@
 									)
 										showSelectGroupContext.set(true);
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								addMouseEnter = true;
 								if (
 									(!$isAdmin &&
@@ -473,8 +462,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								addMouseEnter = false;
 								const tooltip = document.querySelector('#add-durations');
 								setTimeout(() => {
@@ -483,8 +471,21 @@
 										tooltip.classList.remove('tooltip');
 									}
 								}, waitTime);
-							}}
-						/>
+							}}><img
+							data-cy="add-duration"
+							src={addSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true
+								)) ||
+								!$groupContext}
+							
+							
+							
+							
+						/></button>
 						<span
 							id="add-durations"
 							class="tooltip-hidden"
@@ -529,7 +530,7 @@
 									</tr>
 								</thead>
 								<tbody>
-									{#each $grants as grant}
+									{#each $grants as grant (grant.id)}
 										<tr>
 											{#if $permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin}
 												<td style="line-height: 1rem; width: 2rem; ">
@@ -557,22 +558,22 @@
 												</td>
 											{/if}
 
-											<!-- svelte-ignore a11y-click-events-have-key-events -->
+											
 											<td
 												style="cursor: pointer; width: max-content"
 												data-cy="duration-name"
-												on:click={() => {
+												
+												
+												><button class="text-button"  on:click={() => {
 													selectedGrant = grant;
 													loadGrant();
-												}}
-												on:keydown={(event) => {
+												}} on:keydown={(event) => {
 													if (event.which === returnKey) {
 														selectedGrant = grant;
 														loadGrant();
 													}
-												}}
-												>{grant.name}
-											</td>
+												}}>{grant.name}
+											</button></td>
 
 											<td>{grant.groupName}</td>
 
@@ -583,45 +584,45 @@
 
 											{#if $isAdmin || isTopicAdmin}
 												<td style="cursor: pointer; width:1rem">
-													<!-- svelte-ignore a11y-click-events-have-key-events -->
-													<img
-														data-cy="detail-application-icon"
-														src={detailSVG}
-														height="18rem"
-														width="18rem"
-														alt="edit user"
-														style="vertical-align: -0.2rem"
-														on:click={() => {
+													
+													<button aria-label="edit user"  on:click={() => {
 															selectedGrant = grant;
 															loadGrant();
-														}}
-														on:keydown={(event) => {
+														}} on:keydown={(event) => {
 															if (event.which === returnKey) {
 																selectedGrant = grant;
 																loadGrant();
 															}
-														}}
-													/>
+														}}><img class="icon-button"
+														data-cy="detail-application-icon"
+														src={detailSVG}
+														height="18rem"
+														width="18rem"
+														alt=""
+														style="vertical-align: -0.2rem"
+														
+														
+													/></button>
 												</td>
 
 												<td
 													style="cursor: pointer; text-align: right; padding-right: 0.25rem; width: 1rem"
 												>
-													<!-- svelte-ignore a11y-click-events-have-key-events -->
-													<img
+													
+													<button aria-label="delete duration"  on:click={() => {
+															if (!grantRowsSelected.some((tpc) => tpc === grant))
+																grantRowsSelected.push(grant);
+															deleteGrantVisible = true;
+														}}><img class="icon-button"
 														data-cy="delete-duration-icon"
 														src={deleteSVG}
 														width="27px"
 														height="27px"
 														style="vertical-align: -0.45rem"
-														alt="delete duration"
+														alt=""
 														disabled={!$isAdmin || !isTopicAdmin}
-														on:click={() => {
-															if (!grantRowsSelected.some((tpc) => tpc === grant))
-																grantRowsSelected.push(grant);
-															deleteGrantVisible = true;
-														}}
-													/>
+														
+													/></button>
 												</td>
 											{/if}
 										</tr>
@@ -633,10 +634,8 @@
 								{messages['grants']['empty.grants']}
 								<br />
 								{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isTopicAdmin === true) || $isAdmin)}
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<span
-										class="link"
-										on:click={() => {
+									
+									<button aria-label="interactive element"  on:click={() => {
 											if (
 												$groupContext &&
 												($permissionsByGroup?.find(
@@ -650,10 +649,12 @@
 												($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)
 											)
 												showSelectGroupContext.set(true);
-										}}
+										}}><span
+										class="link icon-button"
+										
 									>
 										{messages['grants']['empty.grants.action.two']}
-									</span>
+									</span></button>
 									{messages['grants']['empty.grants.action.result']}
 								{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isTopicAdmin === true) || $isAdmin)}
 									{messages['grants']['empty.grants.action']}
@@ -689,64 +690,64 @@
 							{$topicsTotalSize}
 						</span>
 
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagefirstSVG}
-							alt="first page"
-							class="pagination-image"
-							class:disabled-img={grantsCurrentPage === 0}
-							on:click={() => {
+						
+						<button aria-label="first page"  on:click={() => {
 								deselectAllGrantsCheckboxes();
 								if (grantsCurrentPage > 0) {
 									grantsCurrentPage = 0;
 									reloadAllGrants();
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagebackwardsSVG}
-							alt="previous page"
-							class="pagination-image"
+							}}><img
+							src={pagefirstSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={grantsCurrentPage === 0}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="previous page"  on:click={() => {
 								deselectAllGrantsCheckboxes();
 								if (grantsCurrentPage > 0) {
 									grantsCurrentPage--;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pageforwardSVG}
-							alt="next page"
-							class="pagination-image"
-							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
-								$grants?.length === undefined}
-							on:click={() => {
+							}}><img
+							src={pagebackwardsSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={grantsCurrentPage === 0}
+							
+						/></button>
+						
+						<button aria-label="next page"  on:click={() => {
 								deselectAllGrantsCheckboxes();
 								if (grantsCurrentPage + 1 < $topicsTotalPages) {
 									grantsCurrentPage++;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagelastSVG}
-							alt="last page"
-							class="pagination-image"
+							}}><img
+							src={pageforwardSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
 								$grants?.length === undefined}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="last page"  on:click={() => {
 								deselectAllGrantsCheckboxes();
 								if (grantsCurrentPage < $topicsTotalPages) {
 									grantsCurrentPage = $topicsTotalPages - 1;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
+							}}><img
+							src={pagelastSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+								$grants?.length === undefined}
+							
+						/></button>
 					</div>
 					<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['grants']} />
 					<p style="margin-top: 8rem">{messages['footer']['message']}</p>
@@ -757,6 +758,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;

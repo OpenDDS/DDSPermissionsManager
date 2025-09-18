@@ -17,7 +17,7 @@
 </script>
 
 <div style="margin-block-start: 0.67em;margin-block-end: 0.67em;margin-inline-start: 0px;margin-inline-end: 0px;">
-	{#each $page.data.menuOptions as menuOption, i}
+	{#each $page.data.menuOptions as menuOption (menuOption.id)}
 		<button
 			class:active={$groupDetailsButton == menuOption.label ? true : false}
 			on:click={() => selectButton(menuOption.label)}

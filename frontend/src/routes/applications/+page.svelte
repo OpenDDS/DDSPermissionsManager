@@ -10,6 +10,7 @@
 	import applications from '../../stores/applications';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { browser } from '$app/environment';
 	import headerTitle from '../../stores/headerTitle';
 	import detailView from '../../stores/detailView';
@@ -36,7 +37,7 @@
 	import retrievedTimestamps from '../../stores/retrievedTimestamps.js';
 	import { updateRetrievalTimestamp } from '../../utils.js';
 
-	export let data, errors;
+	
 
 	// Group Context
 	$: if ($groupContext?.id) reloadAllApps();
@@ -57,7 +58,7 @@
 	// Redirects the User to the Login screen if not authenticated
 	$: if (browser) {
 		setTimeout(() => {
-			if (!$isAuthenticated) goto(`/`, true);
+			if (!$isAuthenticated) goto(resolve(`/`), true);
 		}, waitTime);
 	}
 
@@ -92,7 +93,6 @@
 	let promise, promiseDetail;
 
 	// Public flag
-	let isPublic, checkboxSelector;
 
 	// Constants
 	const fiveSeconds = 5000;
@@ -123,7 +123,6 @@
 	let addApplicationVisible = false;
 	let deleteApplicationVisible = false;
 	let applicationDetailVisible = false;
-	let editApplicationVisible = false;
 
 	// Tables
 	let applicationsRowsSelected = [];
@@ -134,9 +133,6 @@
 	// Applications SearchBox
 	let searchString;
 	let searchAppResults;
-
-	// Groups SearchBox
-	let searchGroups;
 
 	// Forms
 	let generateCredentialsVisible = false;
@@ -150,8 +146,8 @@
 
 	// App
 	let applicationListVisible = true;
-	let appName, appDescription, appPublic;
 	let selectedGroup = '';
+	$: selectedGroup;
 
 	// Pagination
 	let applicationsCurrentPage = 0;
@@ -162,12 +158,10 @@
 		selectedAppGroupId,
 		selectedAppGroupName,
 		selectedAppDescription,
-		selectedAppDescriptionSelector,
 		selectedAppPublic,
 		selectedAppDateUpdated;
 
 	// Validation
-	let previousAppName;
 
 	// Application Detail
 	let applicationDetailId, ApplicationDetailGroupId;
@@ -208,10 +202,6 @@
 	}
 
 	// Reset add group form once closed
-	$: if (addApplicationVisible === false) {
-		searchGroups = '';
-		appName = '';
-	}
 
 	const reloadAllApps = async (page = 0) => {
 		try {
@@ -398,7 +388,6 @@
 		selectedAppDescription = appDetail.data.description;
 		selectedAppPublic = appDetail.data.public;
 		selectedAppDateUpdated = appDetail.data.dateUpdated;
-		isPublic = selectedAppPublic;
 		curlCommandsDecode();
 	};
 
@@ -491,15 +480,7 @@
 		return { category: cat, code: code };
 	};
 
-	const getGroupVisibilityPublic = async (groupName) => {
-		try {
-			const res = await httpAdapter.get(`/groups?filter=${groupName}`);
-			if (res.data?.content[0]?.public) return true;
-			else return false;
-		} catch (err) {
-			errorMessage(errorMessages['group']['error.loading.visibility'], err.message);
-		}
-	};
+
 </script>
 
 <svelte:head>
@@ -509,7 +490,7 @@
 
 {#key $refreshPage}
 	{#if $isAuthenticated}
-		{#await promise then _}
+		{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 			{#if errorMessageVisible}
 				<Modal
 					title={errorMsg}
@@ -566,7 +547,7 @@
 				/>
 			{/if}
 
-			{#if $applicationsTotalSize !== undefined && $applicationsTotalSize != NaN}
+			{#if $applicationsTotalSize !== undefined && !isNaN($applicationsTotalSize)}
 				<div class="content">
 					{#if !applicationDetailVisible}
 						<h1 data-cy="applications">My Applications</h1>
@@ -599,25 +580,13 @@
 							>
 						{/if}
 
-						<img
-							src={deleteSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin &&
-								!$permissionsByGroup?.find(
-									(gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true
-								)) ||
-								applicationsRowsSelected.length === 0}
-							style="margin-left: 0.5rem; margin-right: 1rem"
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (applicationsRowsSelected.length > 0) deleteApplicationVisible = true;
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (applicationsRowsSelected.length > 0) deleteApplicationVisible = true;
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								deleteMouseEnter = true;
 								if (
 									$isAdmin ||
@@ -647,8 +616,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								deleteMouseEnter = false;
 								if (applicationsRowsSelected.length === 0) {
 									const tooltip = document.querySelector('#delete-applications');
@@ -659,8 +627,21 @@
 										}
 									}, 1000);
 								}
-							}}
-						/>
+							}}><img
+							src={deleteSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true
+								)) ||
+								applicationsRowsSelected.length === 0}
+							style="margin-left: 0.5rem; margin-right: 1rem"
+							
+							
+							
+							
+						/></button>
 						<span
 							id="delete-applications"
 							class="tooltip-hidden"
@@ -668,17 +649,7 @@
 							>{deleteToolip}
 						</span>
 
-						<img
-							data-cy="add-application"
-							src={addSVG}
-							alt="options"
-							class="dot"
-							class:button-disabled={(!$isAdmin &&
-								!$permissionsByGroup?.find(
-									(gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true
-								)) ||
-								!$groupContext}
-							on:click={() => {
+						<button aria-label="options"  on:click={() => {
 								if (
 									$groupContext &&
 									($isAdmin ||
@@ -692,8 +663,7 @@
 									($permissionsByGroup?.some((gm) => gm.isApplicationAdmin === true) || $isAdmin)
 								)
 									showSelectGroupContext.set(true);
-							}}
-							on:keydown={(event) => {
+							}} on:keydown={(event) => {
 								if (event.which === returnKey) {
 									if (
 										$groupContext &&
@@ -710,8 +680,7 @@
 									)
 										showSelectGroupContext.set(true);
 								}
-							}}
-							on:mouseenter={() => {
+							}} on:mouseenter={() => {
 								addMouseEnter = true;
 								if (
 									(!$isAdmin &&
@@ -744,8 +713,7 @@
 										}
 									}, 1000);
 								}
-							}}
-							on:mouseleave={() => {
+							}} on:mouseleave={() => {
 								addMouseEnter = false;
 								const tooltip = document.querySelector('#add-application');
 								setTimeout(() => {
@@ -754,8 +722,21 @@
 										tooltip.classList.remove('tooltip');
 									}
 								}, waitTime);
-							}}
-						/>
+							}}><img
+							data-cy="add-application"
+							src={addSVG}
+							alt=""
+							class="dot icon-button"
+							class:button-disabled={(!$isAdmin &&
+								!$permissionsByGroup?.find(
+									(gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true
+								)) ||
+								!$groupContext}
+							
+							
+							
+							
+						/></button>
 						<span
 							id="add-application"
 							class="tooltip-hidden"
@@ -806,7 +787,7 @@
 
 							{#if $applications.length > 0}
 								<tbody>
-									{#each $applications as app, i}
+									{#each $applications as app (app.id)}
 										<tr>
 											{#if ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true) || $isAdmin) && !applicationDetailVisible}
 												<td style="width: 2rem">
@@ -836,7 +817,9 @@
 
 											<td
 												style="cursor: pointer; line-height: 2.2rem; width: max-content"
-												on:click={() => {
+												
+												
+												><button class="text-button"  on:click={() => {
 													applicationDetailId = app.id;
 													ApplicationDetailGroupId = app.group;
 
@@ -848,66 +831,64 @@
 														'My Applications',
 														'/applications'
 													);
-												}}
-												on:keydown={(event) => {
+												}} on:keydown={(event) => {
 													if (event.which === returnKey) {
 														loadApplicationDetail(app.id, app.group);
 													}
-												}}
-												>{app.name}
-											</td>
+												}}>{app.name}
+											</button></td>
 
 											<td>{app.id}</td>
 
 											<td style="padding-left: 0.5rem">{app.groupName}</td>
 
 											<td style="cursor: pointer; width:1rem">
-												<img
-													data-cy="detail-application-icon"
-													src={detailSVG}
-													height="18rem"
-													width="18rem"
-													style="margin-left: 2rem; vertical-align: -0.1rem"
-													alt="edit user"
-													on:click={() => {
+												<button aria-label="edit user"  on:click={() => {
 														applicationDetailId = app.id;
 														ApplicationDetailGroupId = app.group;
 
 														loadApplicationDetail(app.id, app.group);
 														headerTitle.set(app.name);
 														detailView.set(true);
-													}}
-													on:keydown={(event) => {
+													}} on:keydown={(event) => {
 														if (event.which === returnKey) {
 															loadApplicationDetail(app.id, app.group);
 														}
-													}}
-												/>
+													}}><img class="icon-button"
+													data-cy="detail-application-icon"
+													src={detailSVG}
+													height="18rem"
+													width="18rem"
+													style="margin-left: 2rem; vertical-align: -0.1rem"
+													alt=""
+													
+													
+												/></button>
 											</td>
 
 											<td
 												style="cursor: pointer; text-align: right; padding-right: 0.25rem; width:1rem"
 											>
-												<!-- svelte-ignore a11y-click-events-have-key-events -->
-												<img
-													data-cy="delete-application-icon"
-													src={deleteSVG}
-													alt="delete application"
-													width="27rem"
-													style="cursor: pointer"
-													on:click={() => {
+												
+												<button aria-label="delete application"  on:click={() => {
 														selectedAppId = app.id;
 														selectedAppName = app.name;
 														deleteApplicationVisible = true;
-													}}
-													on:click={() => {
+													}} on:click={() => {
 														if (
 															!applicationsRowsSelected.some((application) => application === app)
 														)
 															applicationsRowsSelected.push(app);
 														deleteApplicationVisible = true;
-													}}
-												/>
+													}}><img class="icon-button"
+													data-cy="delete-application-icon"
+													src={deleteSVG}
+													alt=""
+													width="27rem"
+													style="cursor: pointer"
+													
+													
+												/></button>
 											</td>
 										</tr>
 									{/each}
@@ -919,10 +900,8 @@
 							{messages['application']['empty.applications']}
 							<br />
 							{#if $groupContext && ($permissionsByGroup?.find((gm) => gm.groupName === $groupContext?.name && gm.isApplicationAdmin === true) || $isAdmin)}
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<span
-									class="link"
-									on:click={() => {
+								
+								<button aria-label="interactive element"  on:click={() => {
 										if (
 											$groupContext &&
 											($permissionsByGroup?.find(
@@ -938,10 +917,12 @@
 												$isAdmin)
 										)
 											showSelectGroupContext.set(true);
-									}}
+									}}><span
+									class="link icon-button"
+									
 								>
 									{messages['application']['empty.applications.action.two']}
-								</span>
+								</span></button>
 								{messages['application']['empty.applications.action.result']}
 							{:else if !$groupContext && ($permissionsByGroup?.some((gm) => gm.isApplicationAdmin === true) || $isAdmin)}
 								{messages['application']['empty.applications.action']}
@@ -949,7 +930,7 @@
 						</p>
 					{/if}
 
-					{#await promiseDetail then _}
+					{#await promiseDetail then _} <!-- eslint-disable-line no-unused-vars -->
 						{#if $applications && applicationDetailVisible && !applicationListVisible}
 							<ApplicationDetails
 								{isApplicationAdmin}
@@ -1022,27 +1003,27 @@
 								<div style="margin-top: 2rem; font-weight: 500; font-size: 0.9rem">
 									{messages['application.detail']['password.label']}
 								</div>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<div
-									style="margin-top: 0.3rem;  font-weight: 300; cursor: pointer"
-									on:click={() => {
+								
+								<button aria-label="interactive element"  on:click={() => {
 										copyPassword(selectedAppId);
 										showCopyPasswordNotification();
-									}}
+									}}><div class="icon-button"
+									style="margin-top: 0.3rem;  font-weight: 300; cursor: pointer"
+									
 								>
 									<span data-cy="generated-password" style="vertical-align: middle">{password}</span
 									>
-									<img
-										src={copySVG}
-										alt="copy password"
-										height="20rem"
-										style="transform: scaleY(-1); filter: contrast(25%); vertical-align: middle; margin-left: 1rem"
-										on:click={() => {
+									<button aria-label="copy password"  on:click={() => {
 											copyPassword(selectedAppId);
 											showCopyPasswordNotification();
-										}}
-									/>
-								</div>
+										}}><img class="icon-button"
+										src={copySVG}
+										alt=""
+										height="20rem"
+										style="transform: scaleY(-1); filter: contrast(25%); vertical-align: middle; margin-left: 1rem"
+										
+									/></button>
+								</div></button>
 
 								{#if showCopyPasswordNotificationVisible}
 									<div class="bubble">{messages['application.detail']['password.copied']}</div>
@@ -1060,18 +1041,18 @@
 										style="vertical-align: middle; width: 44.7rem; margin-left: 0.5rem; margin-top: 1rem; resize: none"
 										>{bindToken}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
-										data-cy="bind-token-copy"
-										src={copySVG}
-										alt="copy bind token"
-										height="20rem"
-										style="transform: scaleY(-1); filter: contrast(25%); vertical-align: middle; margin-left: 0.5rem; cursor: pointer"
-										on:click={() => {
+									
+									<button aria-label="copy bind token"  on:click={() => {
 											copyBindToken(selectedAppId);
 											showCopyBindTokenNotification();
-										}}
-									/>
+										}}><img class="icon-button"
+										data-cy="bind-token-copy"
+										src={copySVG}
+										alt=""
+										height="20rem"
+										style="transform: scaleY(-1); filter: contrast(25%); vertical-align: middle; margin-left: 0.5rem; cursor: pointer"
+										
+									/></button>
 								</div>
 
 								{#if showCopyBindTokenNotificationVisible}
@@ -1081,7 +1062,6 @@
 								{/if}
 							{/if}
 							<div class="curl-commands">
-								<!-- svelte-ignore missing-declaration -->
 								<div>
 									{messages['application.detail']['curl.commands.general.instructions']}
 								</div>
@@ -1093,19 +1073,19 @@
 									<textarea rows="1" style="width:50rem; resize: none" readonly
 										>{curlCommands.appPassword}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommands.appPassword);
+											showCopyCommand(1);
+										}}><img class="icon-button"
 										data-cy="curl-command-1-copy"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommands.appPassword);
-											showCopyCommand(1);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 1}
 										<div class="bubble-commands" style="margin-top: -0.4rem">
@@ -1120,19 +1100,19 @@
 									<textarea rows="1" style="width:50rem; resize: none" readonly
 										>{curlCommands.appNonce}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommands.appNonce);
+											showCopyCommand(2);
+										}}><img class="icon-button"
 										data-cy="curl-command-2-copy"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommands.appNonce);
-											showCopyCommand(2);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 2}
 										<div class="bubble-commands" style="margin-top: -0.4rem">
@@ -1147,19 +1127,19 @@
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeThree}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeThree);
+											showCopyCommand(3);
+										}}><img class="icon-button"
 										data-cy="curl-command-3-copy"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeThree);
-											showCopyCommand(3);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 3}
 										<div class="bubble-commands" style="margin-top: -0.4rem">
@@ -1176,18 +1156,18 @@
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeFour}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeFour);
+											showCopyCommand(4);
+										}}><img class="icon-button"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeFour);
-											showCopyCommand(4);
-										}}
-									/>
+										
+									/></button>
 									{#if copiedVisible === 4}
 										<div class="bubble-commands">
 											{messages['application.detail']['curl.commands.copied.notification']}
@@ -1199,22 +1179,22 @@
 										'curl.commands.download.permission.ca.certificate.label'
 									]}
 								</div>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								
 								<section style="display:inline-flex;">
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeFive}</textarea
 									>
-									<img
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeFive);
+											showCopyCommand(5);
+										}}><img class="icon-button"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeFive);
-											showCopyCommand(5);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 5}
 										<div class="bubble-commands">
@@ -1229,18 +1209,18 @@
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeSix}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeSix);
+											showCopyCommand(6);
+										}}><img class="icon-button"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeSix);
-											showCopyCommand(6);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 6}
 										<div class="bubble-commands">
@@ -1255,18 +1235,18 @@
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeSeven}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeSeven);
+											showCopyCommand(7);
+										}}><img class="icon-button"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeSeven);
-											showCopyCommand(7);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 7}
 										<div class="bubble-commands">
@@ -1283,18 +1263,18 @@
 									<textarea rows="2" style="width:50rem; resize: none" readonly
 										>{curlCommandsDecodedCodeEight}</textarea
 									>
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<img
+									
+									<button aria-label="copy code"  on:click={() => {
+											navigator.clipboard.writeText(curlCommandsDecodedCodeEight);
+											showCopyCommand(8);
+										}}><img class="icon-button"
 										src={copySVG}
-										alt="copy code"
+										alt=""
 										width="20rem"
 										height="20rem"
 										style="margin-left: 0.5rem; cursor: pointer; transform: scaleY(-1); filter: contrast(25%);"
-										on:click={() => {
-											navigator.clipboard.writeText(curlCommandsDecodedCodeEight);
-											showCopyCommand(8);
-										}}
-									/>
+										
+									/></button>
 
 									{#if copiedVisible === 8}
 										<div class="bubble-commands">
@@ -1308,7 +1288,7 @@
 				</div>
 
 				{#if !applicationDetailVisible}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					
 					<div class="pagination">
 						<span>{messages['pagination']['rows.per.page']}</span>
 						<select
@@ -1340,63 +1320,63 @@
 							{$applicationsTotalSize}
 						</span>
 
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagefirstSVG}
-							alt="first page"
-							class="pagination-image"
-							class:disabled-img={applicationsCurrentPage === 0}
-							on:click={() => {
+						
+						<button aria-label="first page"  on:click={() => {
 								deselectAllApplicationsCheckboxes();
 								if (applicationsCurrentPage > 0) {
 									applicationsCurrentPage = 0;
 									reloadAllApps();
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagebackwardsSVG}
-							alt="previous page"
-							class="pagination-image"
+							}}><img
+							src={pagefirstSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={applicationsCurrentPage === 0}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="previous page"  on:click={() => {
 								deselectAllApplicationsCheckboxes();
 								if (applicationsCurrentPage > 0) {
 									applicationsCurrentPage--;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pageforwardSVG}
-							alt="next page"
-							class="pagination-image"
-							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
-								$applications?.length === undefined}
-							on:click={() => {
+							}}><img
+							src={pagebackwardsSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={applicationsCurrentPage === 0}
+							
+						/></button>
+						
+						<button aria-label="next page"  on:click={() => {
 								deselectAllApplicationsCheckboxes();
 								if (applicationsCurrentPage + 1 < $applicationsTotalPages) {
 									applicationsCurrentPage++;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
-						<img
-							src={pagelastSVG}
-							alt="last page"
-							class="pagination-image"
+							}}><img
+							src={pageforwardSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
 								$applications?.length === undefined}
-							on:click={() => {
+							
+						/></button>
+						<button aria-label="last page"  on:click={() => {
 								deselectAllApplicationsCheckboxes();
 								if (applicationsCurrentPage < $applicationsTotalPages) {
 									applicationsCurrentPage = $applicationsTotalPages - 1;
 									reloadAllApps(applicationsCurrentPage);
 								}
-							}}
-						/>
+							}}><img
+							src={pagelastSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={applicationsCurrentPage + 1 === $applicationsTotalPages ||
+								$applications?.length === undefined}
+							
+						/></button>
 					</div>
 				{/if}
 				<RetrievedTimestamp retrievedTimestamp={$retrievedTimestamps['applications']} />
@@ -1407,6 +1387,27 @@
 {/key}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
+}
+
 	.content {
 		width: 100%;
 		min-width: 32rem;

@@ -32,6 +32,7 @@
 
 	// Authentication
 	let isTopicAdmin = false;
+	$: isTopicAdmin;
 
 	// Error Handling
 	let errorMsg, errorObject;
@@ -110,9 +111,9 @@
 	/>
 {/if}
 
-{#await promise then _}
+{#await promise then _} <!-- eslint-disable-line no-unused-vars -->
 	<div class="content">
-		{#if $topicsTotalSize !== undefined && $topicsTotalSize != NaN}
+		{#if $topicsTotalSize !== undefined && !isNaN($topicsTotalSize)}
 			<div class="content">
 				{#if $grants?.length > 0}
 					<table data-cy="durations-table" class="main" style="margin-top:0.5rem; min-width: 50rem; width:max-content;">
@@ -126,7 +127,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each $grants as grant}
+							{#each $grants as grant (grant.id)}
 								<tr>
 									<td data-cy="duration-name">{grant.name}</td>
 									<td data-cy="grant-duration">{getDuration(grant)}</td>
@@ -163,60 +164,60 @@
 							{$topicsTotalSize}
 						</span>
 
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagefirstSVG}
-							alt="first page"
-							class="pagination-image"
-							class:disabled-img={grantsCurrentPage === 0}
-							on:click={() => {
+						
+						<button aria-label="first page"  on:click={() => {
 								if (grantsCurrentPage > 0) {
 									grantsCurrentPage = 0;
 									reloadAllGrants();
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagebackwardsSVG}
-							alt="previous page"
-							class="pagination-image"
+							}}><img
+							src={pagefirstSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={grantsCurrentPage === 0}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="previous page"  on:click={() => {
 								if (grantsCurrentPage > 0) {
 									grantsCurrentPage--;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pageforwardSVG}
-							alt="next page"
-							class="pagination-image"
-							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
-								$grants?.length === undefined}
-							on:click={() => {
+							}}><img
+							src={pagebackwardsSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={grantsCurrentPage === 0}
+							
+						/></button>
+						
+						<button aria-label="next page"  on:click={() => {
 								if (grantsCurrentPage + 1 < $topicsTotalPages) {
 									grantsCurrentPage++;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<img
-							src={pagelastSVG}
-							alt="last page"
-							class="pagination-image"
+							}}><img
+							src={pageforwardSVG}
+							alt=""
+							class="pagination-image icon-button"
 							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
 								$grants?.length === undefined}
-							on:click={() => {
+							
+						/></button>
+						
+						<button aria-label="last page"  on:click={() => {
 								if (grantsCurrentPage < $topicsTotalPages) {
 									grantsCurrentPage = $topicsTotalPages - 1;
 									reloadAllGrants(grantsCurrentPage);
 								}
-							}}
-						/>
+							}}><img
+							src={pagelastSVG}
+							alt=""
+							class="pagination-image icon-button"
+							class:disabled-img={grantsCurrentPage + 1 === $topicsTotalPages ||
+								$grants?.length === undefined}
+							
+						/></button>
 					</div>
 				{/if}
 			</div>
@@ -227,6 +228,14 @@
 {/await}
 
 <style>
+.icon-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;
@@ -236,9 +245,7 @@
 		font-weight: 600;
 	}
 
-	.dot {
-		float: right;
-	}
+	
 
 	.content {
 		width: 100%;
@@ -246,7 +253,5 @@
 		margin-right: 1rem;
 	}
 
-	p {
-		font-size: large;
-	}
+	
 </style>
