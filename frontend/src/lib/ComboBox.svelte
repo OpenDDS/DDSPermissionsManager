@@ -301,7 +301,7 @@
 								{group.name}
 							</li>
 						{/each}
-						<button aria-label="interactive element"  on:change={loadMoreResultsGroups}><div class="icon-button" use:inview={{ options }}  /></button>
+						<button aria-label="interactive element"  on:change={loadMoreResultsGroups}><div use:inview={{ options }}  /></button>
 					</ul>
 				{/if}
 			{/if}
@@ -310,14 +310,6 @@
 </div>
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
 	* {
 		box-sizing: border-box;
 	}

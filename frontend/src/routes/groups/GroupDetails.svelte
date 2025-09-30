@@ -161,14 +161,6 @@
 {/if}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
 	td {
 		height: 2.2rem;
 	}

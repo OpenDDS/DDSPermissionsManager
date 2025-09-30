@@ -748,14 +748,6 @@
 {/if}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
 	.pub-sub-wrapper {
 		display: flex;
 		align-items: center;

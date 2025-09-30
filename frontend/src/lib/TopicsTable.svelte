@@ -210,13 +210,6 @@
 {/await}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
 
 	table.main {
 		min-width: 43.5rem;

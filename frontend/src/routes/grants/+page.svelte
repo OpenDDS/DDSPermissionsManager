@@ -758,27 +758,6 @@
 {/key}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
-.text-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-	font: inherit;
-	color: inherit;
-	text-align: left;
-	display: inline;
-	text-decoration: underline;
-}
-
 	table.main {
 		min-width: 43.5rem;
 		line-height: 2.2rem;

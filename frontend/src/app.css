@@ -14,12 +14,9 @@
   limitations under the License.
 */
 
-@font-face {
-	font-family: 'Roboto Flex'; /*You can use whatever name that you want*/
-	src: url('../src/fonts/RobotoFlex-Variable.ttf');
-	font-weight: 100 1000;
-	font-stretch: 25% 151%;
-}
+/* Replace local Roboto Flex font-face with Google Fonts import */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap');
+
 :root {
 	font-family: 'Roboto Flex', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
@@ -451,4 +448,25 @@ select:focus {
 	100% {
 		opacity: 100%;
 	}
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.text-button {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	display: inline;
+	text-decoration: underline;
 }

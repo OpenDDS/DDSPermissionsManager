@@ -619,14 +619,6 @@
 {/if}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
 	.content {
 		width: 100%;
 		min-width: 45rem;

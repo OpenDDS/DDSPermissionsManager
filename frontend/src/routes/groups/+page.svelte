@@ -1042,27 +1042,6 @@
 {/key}
 
 <style>
-.icon-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-}
-
-.text-button {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-	font: inherit;
-	color: inherit;
-	text-align: left;
-	display: inline;
-	text-decoration: underline;
-}
-
 	.content {
 		width: 100%;
 		min-width: 45rem;
