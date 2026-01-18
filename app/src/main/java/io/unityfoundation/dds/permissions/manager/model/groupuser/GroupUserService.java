@@ -19,8 +19,8 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Body;
-import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
+import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupAdminRole;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
@@ -28,8 +28,8 @@ import io.unityfoundation.dds.permissions.manager.model.user.User;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import io.unityfoundation.dds.permissions.manager.security.SecurityUtil;
 import jakarta.inject.Singleton;
+import jakarta.transaction.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 

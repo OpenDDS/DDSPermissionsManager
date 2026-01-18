@@ -27,12 +27,15 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrant;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
-import io.unityfoundation.dds.permissions.manager.model.applicationpermission.*;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.AccessPermissionDTO;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermission;
+import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDurationRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
@@ -181,18 +184,19 @@ public class GroupApiTest {
         @Test
         public void cannotCreateGroupWithSameNameAsAnExistingGroup() {
             HttpResponse<?> response = entityUtil.createGroup("Theta");
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
-            Group theta = thetaOptional.get();
+            SimpleGroupDTO theta = thetaOptional.get();
 
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 entityUtil.createGroup("Theta");
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.GROUP_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -201,28 +205,30 @@ public class GroupApiTest {
                 entityUtil.createGroup(null);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             HttpClientResponseException exception1 = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 entityUtil.createGroup("   ");
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
         public void createShouldTrimWhitespace() {
             HttpResponse<?> response = entityUtil.createGroup("   Theta  ");
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
-            Group theta = thetaOptional.get();
+            SimpleGroupDTO theta = thetaOptional.get();
             assertEquals("Theta", theta.getName());
         }
 
@@ -232,10 +238,11 @@ public class GroupApiTest {
                 entityUtil.createGroup("g");
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -258,10 +265,11 @@ public class GroupApiTest {
                 blockingClient.exchange(finalRequest, SimpleGroupDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.GROUP_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.GROUP_DESCRIPTION_CANNOT_BE_MORE_THAN_FOUR_THOUSAND_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -344,9 +352,9 @@ public class GroupApiTest {
 
             response = entityUtil.createGroup("Beta");
             assertEquals(OK, response.getStatus());
-            Optional<Group> betaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> betaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(betaOptional.isPresent());
-            Group beta = betaOptional.get();
+            SimpleGroupDTO beta = betaOptional.get();
 
             beta.setName("Theta");
             request = HttpRequest.POST("/groups/save", beta);
@@ -605,9 +613,9 @@ public class GroupApiTest {
         @Test
         void canDeleteGroup(){
             HttpResponse response = entityUtil.createGroup("Beta");
-            Optional<Group> betaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> betaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(betaOptional.isPresent());
-            Group beta = betaOptional.get();
+            SimpleGroupDTO beta = betaOptional.get();
 
             HttpRequest request = HttpRequest.DELETE("/groups/"+beta.getId(), Map.of());
             response = blockingClient.exchange(request);
@@ -642,9 +650,9 @@ public class GroupApiTest {
 
             // create group
             response = entityUtil.createGroup("CascadeTestTheta");
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
-            Group theta = thetaOptional.get();
+            SimpleGroupDTO theta = thetaOptional.get();
 
             // create member - non-admin and only membership
             response = createNonAdminGroupMembership("cascade-user@test.test", theta.getId());
@@ -761,12 +769,12 @@ public class GroupApiTest {
 
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
 
             loginAsNonAdmin();
 
-            Group group = primaryOptional.get();
+            SimpleGroupDTO group = primaryOptional.get();
             request = HttpRequest.DELETE("/groups/"+group.getId(), Map.of());
             HttpClientResponseException exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(request);
@@ -785,12 +793,12 @@ public class GroupApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
 
             response = entityUtil.createGroup("SecondaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> secondaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> secondaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(secondaryOptional.isPresent());
 
             // add membership
@@ -838,11 +846,12 @@ public class GroupApiTest {
             mockAuthenticationFetcher.setAuthentication(mockSecurityService.getAuthentication().get());
 
             // create groups
-            Group theta = new Group("Theta");
+            SimpleGroupDTO theta = new SimpleGroupDTO();
+            theta.setName("Theta");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", theta);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<Group> thetaOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(thetaOptional.isPresent());
             theta = thetaOptional.get();
 

@@ -15,9 +15,8 @@ package io.unityfoundation.dds.permissions.manager.model.user;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.data.annotation.DateUpdated;
-
-import javax.persistence.*;
-import javax.validation.constraints.Email;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 
 @Entity
 @Table(name = "permissions_user")

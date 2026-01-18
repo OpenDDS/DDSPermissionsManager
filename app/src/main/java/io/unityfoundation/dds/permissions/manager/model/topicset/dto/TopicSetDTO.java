@@ -13,8 +13,7 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.topicset.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
 
 import java.time.Instant;
@@ -22,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Introspected
+@Serdeable
 public class TopicSetDTO implements EntityDTO {
 
     private Long id;
@@ -32,10 +31,8 @@ public class TopicSetDTO implements EntityDTO {
     private Set<Map<Long, String>> topics;
     private List<String> admins;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateCreated;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant dateUpdated;
 
     public TopicSetDTO(Long id, String name, Long groupId, String groupName, Set<Map<Long, String>> topics, Instant dateCreated, Instant dateUpdated) {

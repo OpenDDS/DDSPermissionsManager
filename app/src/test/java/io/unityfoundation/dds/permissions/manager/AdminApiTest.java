@@ -26,7 +26,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.unityfoundation.dds.permissions.manager.model.group.Group;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
+import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.AdminDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
@@ -106,11 +107,12 @@ public class AdminApiTest {
         @Test
         void canEscalateExistingMembersPrivilegeToAdmin(){
             // group
-            Group primaryGroup = new Group("PrimaryGroup");
+            SimpleGroupDTO primaryGroup = new SimpleGroupDTO();
+            primaryGroup.setName("PrimaryGroup");
             HttpRequest<?> request = HttpRequest.POST("/groups/save", primaryGroup);
-            HttpResponse<?> response = blockingClient.exchange(request, Group.class);
+            HttpResponse<?> response = blockingClient.exchange(request, SimpleGroupDTO.class);
             assertEquals(OK, response.getStatus());
-            primaryGroup = response.getBody(Group.class).get();
+            primaryGroup = response.getBody(SimpleGroupDTO.class).get();
 
             String bobEmail = "bob.builder@test.test";
 
@@ -138,27 +140,29 @@ public class AdminApiTest {
 
         @Test
         public void userWithInvalidEmailFormatShallNotPersist() {
-            HttpRequest<?> request = HttpRequest.POST("/admins/save", new User("pparker@.test.test", true));
+            HttpRequest<?> request = HttpRequest.POST("/admins/save", new AdminDTO("pparker@.test.test"));
             HttpRequest<?> finalRequest = request;
-            HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
+            HttpClientResponseException exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(dpmErrorResponse.getCode())));
 
-            request = HttpRequest.POST("/admins/save", new User("pparker@unityfoundation", true));
+            request = HttpRequest.POST("/admins/save", new AdminDTO("pparker@unityfoundation"));
             HttpRequest<?> finalRequest1 = request;
-            thrown = assertThrows(HttpClientResponseException.class, () -> {
+            exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest1);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.INVALID_EMAIL_FORMAT.equals(dpmErrorResponse.getCode())));
         }
 
         // update
@@ -230,7 +234,7 @@ public class AdminApiTest {
             HttpRequest<?> request = HttpRequest.POST("/admins/save", justin);
             HttpResponse<?> response = blockingClient.exchange(request, AdminDTO.class);
             assertEquals(OK, response.getStatus());
-            Optional<User> jjones = response.getBody(User.class);
+            Optional<AdminDTO> jjones = response.getBody(AdminDTO.class);
             assertTrue(jjones.isPresent());
 
             request = HttpRequest.PUT("/admins/remove_admin/"+jjones.get().getId(), Map.of());

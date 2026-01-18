@@ -18,7 +18,7 @@ import io.unityfoundation.dds.permissions.manager.util.XMLEscaper;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @MicronautTest
 public class XMLEscaperTest {

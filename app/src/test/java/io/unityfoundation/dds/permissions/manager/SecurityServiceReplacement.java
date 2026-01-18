@@ -13,15 +13,11 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager;
 
-import io.micronaut.context.annotation.Replaces;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
-import io.unityfoundation.dds.permissions.manager.model.user.UserRole;
+import jakarta.annotation.PostConstruct;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class SecurityServiceReplacement implements SecurityService {

@@ -26,9 +26,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDurationService;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.CreateGrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 
 @Controller("/api/grant_durations")

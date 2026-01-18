@@ -34,8 +34,7 @@ import io.unityfoundation.dds.permissions.manager.exception.DPMException;
 import io.unityfoundation.dds.permissions.manager.model.user.AdminDTO;
 import io.unityfoundation.dds.permissions.manager.model.user.UserService;
 import io.unityfoundation.dds.permissions.manager.security.UserIsAdmin;
-
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @UserIsAdmin
 @Controller("/api/admins")

@@ -20,10 +20,9 @@ import io.micronaut.data.model.Pageable;
 import io.micronaut.data.repository.PageableRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface GroupUserRepository extends PageableRepository<GroupUser, Long> {

@@ -13,22 +13,22 @@
 // limitations under the License.
 package io.unityfoundation.dds.permissions.manager.model.grantduration.dto;
 
-import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 import io.unityfoundation.dds.permissions.manager.model.EntityDTO;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 
-@Introspected
+@Serdeable
 public class GrantDurationDTO implements EntityDTO {
+
+    @NotNull
+    private Long id;
 
     @NotBlank
     @Size(min = 3)
-    private Long id;
-
-    @NotNull
     private String name;
     private Long groupId;
     private String groupName;

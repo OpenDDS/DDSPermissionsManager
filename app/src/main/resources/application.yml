@@ -32,9 +32,8 @@ micronaut:
         cookie:
           cookie-path: /
           cookie-max-age: 1d
-      jwt:
-        cookie:
-          cookie-max-age: 1h
+      cookie:
+        cookie-max-age: 1h
     authentication: cookie
     oauth2:
       login-uri: "/api/oauth/login{/provider}"

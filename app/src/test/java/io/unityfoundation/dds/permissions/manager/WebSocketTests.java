@@ -33,9 +33,10 @@ import io.micronaut.websocket.annotation.ClientWebSocket;
 import io.micronaut.websocket.annotation.OnClose;
 import io.micronaut.websocket.annotation.OnMessage;
 import io.micronaut.websocket.annotation.OnOpen;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.OnUpdateApplicationWebSocket;
-import io.unityfoundation.dds.permissions.manager.model.group.Group;
+import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.OnUpdateTopicWebSocket;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicDTO;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicKind;
@@ -54,7 +55,6 @@ import org.reactivestreams.Subscription;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicReference;
@@ -62,7 +62,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static io.micronaut.http.HttpStatus.BAD_REQUEST;
 import static io.micronaut.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Property(name = "spec.name", value = "WebSocketTests")
 @MicronautTest
@@ -194,9 +193,9 @@ public class WebSocketTests {
         // create groups
         response = entityUtil.createGroup("Theta");
         assertEquals(OK, response.getStatus());
-        Optional<Group> thetaOptional = response.getBody(Group.class);
+        Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
         assertTrue(thetaOptional.isPresent());
-        Group theta = thetaOptional.get();
+        SimpleGroupDTO theta = thetaOptional.get();
 
         // create topic
         response = entityUtil.createTopic("Abc123", TopicKind.B, theta.getId());
@@ -244,9 +243,9 @@ public class WebSocketTests {
         // create groups
         response = entityUtil.createGroup("Theta");
         assertEquals(OK, response.getStatus());
-        Optional<Group> thetaOptional = response.getBody(Group.class);
+        Optional<SimpleGroupDTO> thetaOptional = response.getBody(SimpleGroupDTO.class);
         assertTrue(thetaOptional.isPresent());
-        Group theta = thetaOptional.get();
+        SimpleGroupDTO theta = thetaOptional.get();
 
         // create applications
         response = entityUtil.createApplication("TestApplication", theta.getId());
@@ -285,11 +284,12 @@ public class WebSocketTests {
             }
 
             assertTrue(applicationsWsClient.replies.contains(OnUpdateApplicationWebSocket.APPLICATION_UPDATED));
-        } catch (HttpClientResponseException e) {
-            assertEquals(BAD_REQUEST, e.getStatus());
-            Optional<List> bodyOptional = e.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
+        } catch (HttpClientResponseException exception) {
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
             System.out.println("application list "+list);
         }
 

@@ -14,11 +14,11 @@
 package io.unityfoundation.dds.permissions.manager.testing.util;
 
 import io.unityfoundation.dds.permissions.manager.model.action.ActionRepository;
+import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalRepository;
 import io.unityfoundation.dds.permissions.manager.model.actiontopic.ActionTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationgrant.ApplicationGrantRepository;
 import io.unityfoundation.dds.permissions.manager.model.applicationpermission.ApplicationPermissionRepository;
-import io.unityfoundation.dds.permissions.manager.model.actioninterval.ActionIntervalRepository;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
 import io.unityfoundation.dds.permissions.manager.model.topic.TopicRepository;
@@ -26,8 +26,7 @@ import io.unityfoundation.dds.permissions.manager.model.topicset.TopicSetReposit
 import io.unityfoundation.dds.permissions.manager.model.topicsettopic.TopicSetTopicRepository;
 import io.unityfoundation.dds.permissions.manager.model.user.UserRepository;
 import jakarta.inject.Singleton;
-
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Singleton
 public class DbCleanup {

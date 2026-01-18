@@ -26,6 +26,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.authentication.ServerAuthentication;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.action.dto.ActionDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.ActionIntervalDTO;
 import io.unityfoundation.dds.permissions.manager.model.actioninterval.dto.CreateActionIntervalDTO;
@@ -122,10 +123,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(request, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -245,10 +247,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             actionIntervalDTO.setName("     ");
             request = HttpRequest.POST("/action_intervals", actionIntervalDTO);
@@ -257,10 +260,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest1, ActionIntervalDTO.class);
             });
             assertEquals(BAD_REQUEST, exception1.getStatus());
-            bodyOptional = exception1.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(map.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -277,10 +281,11 @@ public class ActionIntervalApiTest {
                 entityUtil.createActionInterval("A", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_NAME_CANNOT_BE_LESS_THAN_THREE_CHARACTERS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -327,14 +332,15 @@ public class ActionIntervalApiTest {
             abcActionInterval.setGroupId(zeta.getId());
             request = HttpRequest.PUT("/action_intervals/"+abcActionInterval.getId(), abcActionInterval);
             HttpRequest<?> finalRequest = request;
-            HttpClientResponseException thrown = assertThrows(HttpClientResponseException.class, () -> {
+            HttpClientResponseException exception = assertThrows(HttpClientResponseException.class, () -> {
                 blockingClient.exchange(finalRequest);
             });
-            assertEquals(BAD_REQUEST, thrown.getStatus());
-            Optional<List> bodyOptional = thrown.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(map.get("code"))));
+            assertEquals(BAD_REQUEST, exception.getStatus());
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_CANNOT_UPDATE_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -358,10 +364,13 @@ public class ActionIntervalApiTest {
 
             // with different name and dates
             savedActionInterval.setName("NewName123");
+
             Instant updateStartInstant = Instant.now().plus(2, ChronoUnit.DAYS);
             savedActionInterval.setStartDate(updateStartInstant);
+
             Instant updateEndInstant = Instant.now().plus(5, ChronoUnit.DAYS);
             savedActionInterval.setEndDate(updateEndInstant);
+
             request = HttpRequest.PUT("/action_intervals/"+savedActionInterval.getId(), savedActionInterval);
             response = blockingClient.exchange(request, ActionIntervalDTO.class);
             assertEquals(OK, response.getStatus());
@@ -407,10 +416,11 @@ public class ActionIntervalApiTest {
                 entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.ACTION_INTERVAL_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         //show
@@ -849,10 +859,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> bodyOptional = exception.getResponse().getBody(List.class);
-            assertTrue(bodyOptional.isPresent());
-            List<Map> list = bodyOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.ACTION_INTERVAL_HAS_ONE_OR_MORE_ACTION_ASSOCIATIONS.equals(map.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.ACTION_INTERVAL_HAS_ONE_OR_MORE_ACTION_ASSOCIATIONS.equals(dpmErrorResponse.getCode())));
         }
     }
 
@@ -901,10 +912,11 @@ public class ActionIntervalApiTest {
                 entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -941,10 +953,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(request2);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1049,10 +1062,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED, exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // list
@@ -1294,10 +1308,11 @@ public class ActionIntervalApiTest {
                 entityUtil.createActionInterval("Abc123", theta.getId());
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // delete
@@ -1332,10 +1347,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
 
         // show
@@ -1378,10 +1394,11 @@ public class ActionIntervalApiTest {
                 blockingClient.exchange(finalRequest);
             });
             assertEquals(UNAUTHORIZED,exception.getStatus());
-            Optional<List> listOptional = exception.getResponse().getBody(List.class);
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
             assertTrue(listOptional.isPresent());
-            List<Map> list = listOptional.get();
-            assertTrue(list.stream().anyMatch(map -> ResponseStatusCodes.UNAUTHORIZED.equals(map.get("code"))));
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.UNAUTHORIZED.equals(dpmErrorResponse.getCode())));
         }
     }
 

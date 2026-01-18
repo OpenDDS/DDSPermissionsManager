@@ -29,6 +29,7 @@ import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import io.micronaut.security.token.jwt.generator.claims.JWTClaimsSetGenerator;
 import io.micronaut.security.utils.SecurityService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.unityfoundation.dds.permissions.manager.exception.DPMErrorResponse;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationDTO;
 import io.unityfoundation.dds.permissions.manager.model.application.ApplicationRepository;
@@ -40,6 +41,7 @@ import io.unityfoundation.dds.permissions.manager.model.applicationpermission.Ap
 import io.unityfoundation.dds.permissions.manager.model.grantduration.dto.GrantDurationDTO;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.group.GroupRepository;
+import io.unityfoundation.dds.permissions.manager.model.group.SimpleGroupDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUser;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserDTO;
 import io.unityfoundation.dds.permissions.manager.model.groupuser.GroupUserRepository;
@@ -159,9 +161,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = entityUtil.createApplication("Application123", primaryGroup.getId());
@@ -249,7 +251,7 @@ public class ApplicationGrantApiTest {
             HashMap responseMap = blockingClient.retrieve(request, HashMap.class);
             assertNotNull(responseMap);
             List<Map> content = (List<Map>) responseMap.get("content");
-            assertNull(content);
+            assertTrue(content.isEmpty());
         }
 
         @Test
@@ -260,9 +262,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = entityUtil.createApplication("Application123", primaryGroup.getId());
@@ -296,9 +298,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = entityUtil.createApplication("Application123", primaryGroup.getId());
@@ -341,9 +343,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = entityUtil.createApplication("Application123", primaryGroup.getId());
@@ -388,9 +390,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             // create application
             response = entityUtil.createApplication("Application123", primaryGroup.getId());
@@ -425,10 +427,11 @@ public class ApplicationGrantApiTest {
                 entityUtil.createApplicationGrant(applicationGrantToken, primaryGroup.getId(), "MyGrant", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            List<Map> list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_ALREADY_EXISTS.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_ALREADY_EXISTS.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -534,10 +537,11 @@ public class ApplicationGrantApiTest {
                         null, durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            List<Map> list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             // name less than three characters
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
@@ -545,30 +549,33 @@ public class ApplicationGrantApiTest {
                         "    ", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL.equals(group.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_NAME_CANNOT_BE_BLANK_OR_NULL.equals(dpmErrorResponse.getCode())));
 
             // requires group
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 entityUtil.createApplicationGrant(applicationGrantToken, null, "MyGrant", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_GROUP_ASSOCIATION.equals(group.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_GROUP_ASSOCIATION.equals(dpmErrorResponse.getCode())));
 
             // requires duration
             exception = assertThrowsExactly(HttpClientResponseException.class, () -> {
                 entityUtil.createApplicationGrant(applicationGrantToken, applicationOne.getPermissionsGroup().getId(), "MyGrant", null);
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_DURATION_ASSOCIATION.equals(group.get("code"))));
+            listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            dpmErrorResponses = listOptional.get();
+            list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_REQUIRES_DURATION_ASSOCIATION.equals(dpmErrorResponse.getCode())));
         }
 
         @Test
@@ -597,10 +604,11 @@ public class ApplicationGrantApiTest {
                 entityUtil.createApplicationGrant(finalApplicationGrantToken, testGroup.getId(), "CreateGrantAttempt-Fail", durationOptional.get().getId());
             });
             assertEquals(BAD_REQUEST, exception.getStatus());
-            Optional<List> body = exception.getResponse().getBody(List.class);
-            assertTrue(body.isPresent());
-            List<Map> list = body.get();
-            assertTrue(list.stream().anyMatch(group -> ResponseStatusCodes.APPLICATION_GRANT_GRANT_DURATION_DOES_NOT_BELONG_TO_SAME_GROUP.equals(group.get("code"))));
+            Optional<DPMErrorResponse[]> listOptional = exception.getResponse().getBody(DPMErrorResponse[].class);
+            assertTrue(listOptional.isPresent());
+            DPMErrorResponse[] dpmErrorResponses = listOptional.get();
+            List<DPMErrorResponse> list = List.of(dpmErrorResponses);
+            assertTrue(list.stream().anyMatch(dpmErrorResponse -> ResponseStatusCodes.APPLICATION_GRANT_GRANT_DURATION_DOES_NOT_BELONG_TO_SAME_GROUP.equals(dpmErrorResponse.getCode())));
 
             // attempt to create a grant under publicGroup with group B duration - pass
             request = HttpRequest.GET("/applications/generate_grant_token/" + applicationOne.getId());
@@ -662,9 +670,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -715,9 +723,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -779,9 +787,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -874,15 +882,15 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             response = entityUtil.createGroup("SecondaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> secondaryGroupOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> secondaryGroupOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(secondaryGroupOptional.isPresent());
-            Group secondaryGroup = secondaryGroupOptional.get();
+            SimpleGroupDTO secondaryGroup = secondaryGroupOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -972,9 +980,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -1047,9 +1055,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -1102,9 +1110,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin
@@ -1173,9 +1181,9 @@ public class ApplicationGrantApiTest {
             // create groups
             response = entityUtil.createGroup("PrimaryGroup");
             assertEquals(OK, response.getStatus());
-            Optional<Group> primaryOptional = response.getBody(Group.class);
+            Optional<SimpleGroupDTO> primaryOptional = response.getBody(SimpleGroupDTO.class);
             assertTrue(primaryOptional.isPresent());
-            Group primaryGroup = primaryOptional.get();
+            SimpleGroupDTO primaryGroup = primaryOptional.get();
 
             User justin = userRepository.findByEmail("jjones@test.test").get();
             // add user to group as an application admin

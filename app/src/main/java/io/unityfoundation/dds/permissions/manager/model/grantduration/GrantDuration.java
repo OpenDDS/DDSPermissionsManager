@@ -16,11 +16,10 @@ package io.unityfoundation.dds.permissions.manager.model.grantduration;
 
 import io.micronaut.core.annotation.NonNull;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "permissions_grant_duration")

@@ -19,7 +19,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.filters.AuthenticationFetcher;
 import org.reactivestreams.Publisher;
 
-public class AuthenticationFetcherReplacement implements AuthenticationFetcher {
+public class AuthenticationFetcherReplacement implements AuthenticationFetcher<HttpRequest<?>> {
 
 
     private Authentication authentication;

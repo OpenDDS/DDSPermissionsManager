@@ -16,8 +16,7 @@ package io.unityfoundation.dds.permissions.manager.model.groupuser;
 import io.micronaut.core.annotation.NonNull;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
 import io.unityfoundation.dds.permissions.manager.model.user.User;
-
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "permissions_group_user")

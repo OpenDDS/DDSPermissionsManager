@@ -23,13 +23,13 @@ import io.micronaut.http.server.exceptions.ExceptionHandler;
 import io.unityfoundation.dds.permissions.manager.ResponseStatusCodes;
 import io.unityfoundation.dds.permissions.manager.security.PassphraseGenerator;
 import jakarta.inject.Singleton;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.*;
+import jakarta.validation.metadata.ConstraintDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.constraints.*;
-import javax.validation.metadata.ConstraintDescriptor;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

@@ -18,10 +18,9 @@ import io.micronaut.core.annotation.NonNull;
 import io.unityfoundation.dds.permissions.manager.model.application.Application;
 import io.unityfoundation.dds.permissions.manager.model.grantduration.GrantDuration;
 import io.unityfoundation.dds.permissions.manager.model.group.Group;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "permissions_application_grant")

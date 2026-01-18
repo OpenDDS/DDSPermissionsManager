@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Replaces(IntrospectionController.class)
 @Requires(env = Environment.TEST)
@@ -90,7 +91,7 @@ public class MockDPMIntrospectionController {
     }
 
     private Publisher<MutableHttpResponse<?>> getIntrospectionAndValidResponse(Authentication authentication, HttpRequest<?> request) {
-        return Publishers.map(Publishers.map(processor.introspect(authentication, request), response -> {
+        return Publishers.map(Publishers.map(processor.introspect(authentication, request), (Function<IntrospectionResponse, String>) response -> {
             groupUserService.checkUserValidity().forEach(response::addExtension);
             return introspectionResponseAsJsonString(response);
         }), HttpResponse::ok);
